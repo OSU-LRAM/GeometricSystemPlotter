@@ -1,0 +1,41 @@
+function output = AA_CURVFILENAME(params,mode)
+
+% Turn params into a cell matrix
+params = num2cell(params);
+
+switch mode
+    
+    case 'curvature'
+
+        AA_curv_fun_call
+
+    case 'angle'
+        
+        AA_int_curv_ds_call
+        
+    case 'dcurvature'
+        
+        AA_d_curv_dp_call
+            
+    case 'dcurvature_int'
+        
+        AA_int_d_curv_dp_ds_call
+                                   
+end
+
+end
+
+function output = vector_to_list_input(funhandle,all_params)
+
+    all_params = num2cell(all_params);
+    
+    output = funhandle(all_params{:});
+    
+end
+
+
+function output = reshape_truncate_jacobian(J)
+
+    output = J(2:end)';
+    
+end
