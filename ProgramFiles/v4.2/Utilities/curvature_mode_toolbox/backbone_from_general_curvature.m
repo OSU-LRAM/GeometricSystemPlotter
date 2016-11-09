@@ -17,19 +17,21 @@ h = @(s) [L*locus_sol(torow(s)/L); theta_fun(torow(s)/L)]; % with actual length
 %%%%%%%%%%%%%%
 % Get the jacobian to body point velocities
 
-dcurvdef = curvdef(cparams,'dcurvature_int');
+if nargout == 2
 
-%Jacobian of theta function is the derivative of the curvature with respect
-%to each of the parameters, as definded in the curvdef function
-J_theta_fun = dcurvdef; %ode_multistart(@ode45,@(s,J) dcurvdef(s),all_limits,0,zeros(length(dcurvdef(0)),1));
+    dcurvdef = curvdef(cparams,'dcurvature_int');
 
-% SE(2) adjoint integration to get the x and y jacobians
-jacobian_sol = ode_multistart(@ode45,@(s,J) J_helper(s,J,dcurvdef,h_norm(s)),all_limits,0,zeros(2*length(dcurvdef(0)),1));
+    %Jacobian of theta function is the derivative of the curvature with respect
+    %to each of the parameters, as definded in the curvdef function
+    J_theta_fun = dcurvdef; %ode_multistart(@ode45,@(s,J) dcurvdef(s),all_limits,0,zeros(length(dcurvdef(0)),1));
 
-% Concatenate xy and theta jacobians.
-J = @(s) cat(1,reshape(L*jacobian_sol(toz(s/L)),2,[],length(s)),ipermute(J_theta_fun(s/L),[2,3,1]));
+    % SE(2) adjoint integration to get the x and y jacobians
+    jacobian_sol = ode_multistart(@ode45,@(s,J) J_helper(s,J,dcurvdef,h_norm(s)),all_limits,0,zeros(2*length(dcurvdef(0)),1));
 
+    % Concatenate xy and theta jacobians.
+    J = @(s) cat(1,reshape(L*jacobian_sol(toz(s/L)),2,[],length(s)),ipermute(J_theta_fun(s/L),[2,3,1]));
 
+end
 
 end
 
