@@ -125,19 +125,23 @@ h = @(s) [L*locus_sol(torow(s)/L); theta_fun(torow(s)/L)]; % with actual length
 %%%%%%%%%%%%%%
 % Get the jacobian to body point velocities
 
-% Calculate the theta component separately once again, to accomodated delta
-% functions
+if nargout == 2
 
-% Summed integral of the basis functions
-J_theta_fun = @(s) cell2mat(permute(cellfun( @(k) toz(theta_fun_helper(k,1,s)), kappa_basis,'UniformOutput',false),[2 1]));
+    % Calculate the theta component separately once again, to accomodated delta
+    % functions
 
-% SE2 integration for velocities
-%jacobian_sol = ode45(@(s,J) J_helper(s,J,kappa_basis,h(s)),L*int_limit,zeros(2*length(kappa_basis),1));
-jacobian_sol = ode_multistart(@ode45,@(s,J) J_helper(s,J,kappa_basis,h_norm(s)),all_limits,0,zeros(2*length(kappa_basis),1));
+    % Summed integral of the basis functions
+    J_theta_fun = @(s) cell2mat(permute(cellfun( @(k) toz(theta_fun_helper(k,1,s)), kappa_basis,'UniformOutput',false),[2 1]));
 
-% Concatenate xy and theta jacobians.
-J = @(s) cat(1,reshape(L*jacobian_sol(toz(s/L)),2,[],length(s)),J_theta_fun(s/L));
+    % SE2 integration for velocities
+    %jacobian_sol = ode45(@(s,J) J_helper(s,J,kappa_basis,h(s)),L*int_limit,zeros(2*length(kappa_basis),1));
+    jacobian_sol = ode_multistart(@ode45,@(s,J) J_helper(s,J,kappa_basis,h_norm(s)),all_limits,0,zeros(2*length(kappa_basis),1));
 
+    % Concatenate xy and theta jacobians.
+    J = @(s) cat(1,reshape(L*jacobian_sol(toz(s/L)),2,[],length(s)),J_theta_fun(s/L));
+
+end
+    
 end
 
 % Get the derivative of the locus along the backbone length
