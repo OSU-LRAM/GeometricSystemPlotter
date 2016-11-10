@@ -27,9 +27,9 @@ function output = sys_calcsystem(input_mode,systemfilename)
 			%%%%%
 			%Processing stages, passed off to secondary functions
 			
-			%Vectorize the connection definition functions if necessary (should
-			%only be necessary if connection is defined as an inline function)
-			s = vectorize_connection(s);
+% 			%Vectorize the connection definition functions if necessary (should
+% 			%only be necessary if connection is defined as an inline function)
+% 			s = vectorize_connection(s);
 			
 			%Create grids for evaluating the connection functions
 			s = create_grids(s);

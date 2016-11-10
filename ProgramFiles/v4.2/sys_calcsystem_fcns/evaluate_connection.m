@@ -7,8 +7,8 @@ function s = evaluate_connection(s)
 		n_shape = nargin(s.A_num);
 		shape_test_list = num2cell(ones(n_shape,1));
 		s.A_den = @(a,varargin) repmat(ones(size(a)),size(s.A_num(shape_test_list{:})));
-	end
-
+    end
+    
     %list of zoom levels at which to evaluate connection vector fields and the
     %grid which should be used for them
     vector_field_list = {'display','vector';
