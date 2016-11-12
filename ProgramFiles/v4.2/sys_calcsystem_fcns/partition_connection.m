@@ -1,6 +1,6 @@
 %Reshape the evaluated connection to format compatible with plotting over
 %base space
-function s = reshape_connection(s)
+function s = partition_connection(s)
 
 	%get the list of connection vector field zoom levels
 	zoom_list = fieldnames(s.vecfield);

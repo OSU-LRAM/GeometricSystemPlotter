@@ -2,32 +2,108 @@
 %grid for vector display
 function s = evaluate_connection(s)
 
-	% If there is no connection denominator, make it all ones
-	if ~isfield(s,'A_den')
-		n_shape = nargin(s.A_num);
-		shape_test_list = num2cell(ones(n_shape,1));
-		s.A_den = @(a,varargin) repmat(ones(size(a)),size(s.A_num(shape_test_list{:})));
-	end
-
+    
     %list of zoom levels at which to evaluate connection vector fields and the
     %grid which should be used for them
     vector_field_list = {'display','vector';
                          'eval','eval'};
                      
-    %loop over list, creating the vector fields
+    %list of all components of the local connection and metric that may be present
+    connection_components = {'A_num','A_den','B_ref_point',...
+        'B_rot_add','B_rot_mult','metric','metric_den'};
+    
+    
+    %loop over list of zoom levels, creating the vector fields
     for i = 1:size(vector_field_list,1);
         
-        %generate one large array with all the vector information in it for
-        %each of the numerator and denominator, and treat the set as two
-        %cells in an array
-        %note that the fields are the _negative_ of the connection
-        s.vecfield.(vector_field_list{i,1}).content.A_num =... %numerator
-            -s.A_num(s.grid.(vector_field_list{i,2}){:});
-        s.vecfield.(vector_field_list{i,1}).content.A_den =... %denominator
-            s.A_den(s.grid.(vector_field_list{i,2}){:});
+        % Shape values in grid
+        a = s.grid.(vector_field_list{i,2});
         
-        %mark what grid was used to create the field
-        s.vecfield.(vector_field_list{i,1}).type = (vector_field_list{i,2});
+        
+        
+        %iterate over list of possible components
+        for j = 1:length(connection_components)
+
+            %check if component is present for this system
+            if isfield(s,connection_components{j})
+
+                %mark what grid was used to create the field
+                s.vecfield.(vector_field_list{i,1}).type = (vector_field_list{i,2});
+
+                %generate one large array with all the vector information in it for
+                %each of the numerator and denominator, and treat the set as two
+                %cells in an array
+                %note that the fields are the _negative_ of the connection
+
+                % Either call the connection function directly for the shape
+                % inputs, or run a parallel loop to evaluate it at each of the
+                % points
+                switch s.function_type.(connection_components{j})
+
+                    case 'block'
+                        
+                        % Evaluate the function at all points
+                        A_full = -s.(connection_components{j})(a{:});
+                        
+                        % Split the function output into pieces each the
+                        % size of the input
+                        A_cell_block = mat2tiles(A_full, size(a{1}));
+                    
+                    case 'woven'
+
+                        % Evaluate the function at all points
+                        A_full = -s.(connection_components{j})(a{:});
+                        
+                        % Split the function output into pieces each the
+                        % size of the output
+                        a_point = cellfun(@(ai) ai(1),a,'UniformOutput',false);
+                        A_cell = mat2tiles(A_full, size(s.(connection_components{j})(a_point{:})));
+                        
+
+                        % Swap the inner and outer structure of the cell so
+                        % that outer layer is position in the tensor and
+                        % inner layer is position in the grid.
+                        A_cell_block = celltensorconvert(A_cell);
+
+                    case 'single point'
+
+
+                        A_cell = cell(size(a{1})); % Build a cell array to hold the function at each point
+                        parfor par_idx = 1:numel(a{1});   % Loop over all elements of the grid
+
+                            % Extract the idx'th element of each grid, and put them
+                            % into a cell array
+                            a_point = cellfun(@(ai) ai(par_idx),a,'UniformOutput',false);
+
+                            % Evaluate the function at the idx'th point
+                            A_cell{par_idx} = -s.(connection_components{j})(a_point{:});
+                        end
+                        
+                        % Swap the inner and outer structure of the cell so
+                        % that outer layer is position in the tensor and
+                        % inner layer is position in the grid.
+                        A_cell_block = celltensorconvert(A_cell);
+
+
+                    otherwise
+
+                        error('Function type was specified as something other than block, woven, or single point')
+
+                end
+                       
+                  
+                % Save the cell block evaluation of the function into the
+                % appropriate field of the data structure
+                s.vecfield.(vector_field_list{i,1}).content.(connection_components{j})...
+                    = A_cell_block;
+                
+            end
+
+        end
+            
+            
+               
+                
         
     end
 
