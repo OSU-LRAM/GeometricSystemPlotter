@@ -2,19 +2,9 @@
 %grid for vector display
 function s = evaluate_metric(s)
 
-	% Get the number of shape variables
-	n_shape = nargin(s.A_num);
-	shape_test_list = num2cell(ones(n_shape,1));
 
 
-	%Ensure presence of a metric and a metric denominator
-	if ~isfield(s,'metric')
-		s.metric = @(varargin) eye(size(shape_test_list,1));
-	end
 
-	if ~isfield(s,'metric_den')
-		s.metric_den = @(varargin) ones(size(shape_test_list,1));
-	end
 
     %list of zoom levels at which to evaluate connection vector fields and the
     %grid which should be used for them

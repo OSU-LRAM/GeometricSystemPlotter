@@ -6,7 +6,7 @@ function s = test_function_type(s,fieldname)
 range_start = s.grid_range(1:2:end);
 range_end = s.grid_range(2:2:end);
 
-range_mid = (range_start+range_end)/2;
+range_mid = num2cell((range_start+range_end)/2);
 
 % Try to evaluate the local connection numerator at this midpoint, but
 % supply the point twice as if it were two grid points
@@ -45,7 +45,7 @@ else
     while 1
 
         % Evaluate connection numerator at midpoint
-        A_mid = s.(fieldname)(range_mid);
+        A_mid = s.(fieldname)(range_mid{:});
 
 
         % Tile this out into two copies side by side
@@ -64,7 +64,7 @@ else
             % woven format
 
             % Generate a random point within the domain
-            range_mid = range_start + (0.9 * (range_end-range_start).*rand(size(range_end)));
+            range_mid = num2cell(range_start + (0.9 * (range_end-range_start).*rand(size(range_end))));
 
             % Add one to the test counter
             counter = counter +1;
@@ -100,7 +100,7 @@ else
         % Double-evaluate the connection at the midpoint or random test point
         % that was found above
 
-        double_midpoint = mat2cell([range_mid(:) range_mid(:)],ones(numel(range_mid),1),2);
+        double_midpoint = mat2tiles([range_mid{:} range_mid{:}],size(range_mid));
         A_test = s.(fieldname)(double_midpoint{:});
 
         %%%%%%%%
