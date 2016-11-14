@@ -10,7 +10,7 @@ range_mid = num2cell((range_start+range_end)/2);
 
 % Try to evaluate the local connection numerator at this midpoint, but
 % supply the point twice as if it were two grid points
-double_midpoint = mat2cell([range_mid(:) range_mid(:)],ones(numel(range_mid),1),2);
+double_midpoint = mat2tiles([range_mid{:} range_mid{:}],size(range_mid));
 
 vector_input = 1;
 try

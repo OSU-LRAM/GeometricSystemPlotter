@@ -5,7 +5,7 @@ function s = merge_metric(s)
     zoom_list = fieldnames(s.metricfield);
     
     %Get the size of the local connection matrix
-    M_size = size(s.metricfield.(zoom_list{1}).content.metric_num);
+    M_size = size(s.metricfield.(zoom_list{1}).content.metric);
     
     %loop over all zoom levels of the field being evacuated
 	for m = 1:length(zoom_list)
@@ -19,7 +19,7 @@ function s = merge_metric(s)
 		[s.metricfield.(zoom_list{m}).content.metric ...
 			,s.metricfield.(zoom_list{m}).singularities]...
 			= cellfun(@(num,den) smart_divider(s.grid.(s.metricfield.(zoom_list{m}).type),num,den)...
-			,s.metricfield.(zoom_list{m}).content.metric_num...
+			,s.metricfield.(zoom_list{m}).content.metric...
 			,s.metricfield.(zoom_list{m}).content.metric_den, 'UniformOutput',false);
 		
 	end

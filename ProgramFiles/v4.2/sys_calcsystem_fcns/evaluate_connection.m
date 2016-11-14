@@ -27,13 +27,13 @@ function s = evaluate_connection(s)
             %check if component is present for this system
             if isfield(s,connection_components{j})
 
-                %mark what grid was used to create the field
-                s.vecfield.(vector_field_list{i,1}).type = (vector_field_list{i,2});
 
                 %generate one large array with all the vector information in it for
                 %each of the numerator and denominator, and treat the set as two
                 %cells in an array
-                %note that the fields are the _negative_ of the connection
+                %note that the connection fields are the _negative_ of the
+                %connection, this is handled in the merge_connection
+                %function
 
                 % Either call the connection function directly for the shape
                 % inputs, or run a parallel loop to evaluate it at each of the
@@ -43,7 +43,7 @@ function s = evaluate_connection(s)
                     case 'block'
                         
                         % Evaluate the function at all points
-                        A_full = -s.(connection_components{j})(a{:});
+                        A_full = s.(connection_components{j})(a{:});
                         
                         % Split the function output into pieces each the
                         % size of the input
@@ -52,7 +52,7 @@ function s = evaluate_connection(s)
                     case 'woven'
 
                         % Evaluate the function at all points
-                        A_full = -s.(connection_components{j})(a{:});
+                        A_full = s.(connection_components{j})(a{:});
                         
                         % Split the function output into pieces each the
                         % size of the output
@@ -69,6 +69,7 @@ function s = evaluate_connection(s)
 
 
                         A_cell = cell(size(a{1})); % Build a cell array to hold the function at each point
+                        current_component = s.(connection_components{j});
                         parfor par_idx = 1:numel(a{1});   % Loop over all elements of the grid
 
                             % Extract the idx'th element of each grid, and put them
@@ -76,7 +77,7 @@ function s = evaluate_connection(s)
                             a_point = cellfun(@(ai) ai(par_idx),a,'UniformOutput',false);
 
                             % Evaluate the function at the idx'th point
-                            A_cell{par_idx} = -s.(connection_components{j})(a_point{:});
+                            A_cell{par_idx} = current_component(a_point{:});
                         end
                         
                         % Swap the inner and outer structure of the cell so
@@ -91,11 +92,27 @@ function s = evaluate_connection(s)
 
                 end
                        
-                  
+                
+                
                 % Save the cell block evaluation of the function into the
                 % appropriate field of the data structure
-                s.vecfield.(vector_field_list{i,1}).content.(connection_components{j})...
-                    = A_cell_block;
+                
+                if ~strncmp(connection_components{j},'metric',6)
+                    
+                    s.vecfield.(vector_field_list{i,1}).content.(connection_components{j})...
+                        = A_cell_block;
+                    
+                    %mark what grid was used to create the field
+                    s.vecfield.(vector_field_list{i,1}).type = (vector_field_list{i,2});
+               else
+                    
+                    s.metricfield.(vector_field_list{i,1}).content.(connection_components{j})...
+                        = A_cell_block;
+                    
+                    %mark what grid was used to create the field
+                    s.metricfield.(vector_field_list{i,1}).type = (vector_field_list{i,2});
+                    
+                end
                 
             end
 
