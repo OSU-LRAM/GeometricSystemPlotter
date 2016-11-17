@@ -30,22 +30,16 @@ function output = sys_calcsystem(input_mode,systemfilename)
 			%Create grids for evaluating the connection functions
 			s = create_grids(s);
 			
-            % Ensure that there is a connection denominator and a metric
+            % Ensure that there is a metric
             s = ensure_connection_and_metric(s);
 
-            %Test connection and metric functions to see if they take
-            %vector input, and if so, how the output is arranged
-            s = test_connection_and_metric(s);
             
             
 			%Evaluate the connection and metric over the fine grid for calculations and the coarse
 			%grid for vector display
 			s = evaluate_connection(s);
+            s = evaluate_metric(s);
 			
-% 			%Reshape the evaluated connection and metric to format compatible with plotting
-% 			%over base space
-% 			s = partition_connection(s);
-% 			s = partition_metric(s);
 			
 			%Merge components of evaluated connection and metric
 			s = merge_connection(s);
