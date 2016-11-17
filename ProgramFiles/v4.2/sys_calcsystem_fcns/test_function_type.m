@@ -1,10 +1,10 @@
-% Test whether the connection can be called on a grid of points, and
+% Test whether the a function can be called on a grid of points, and
 % if so, whether it produces block- or woven-style output
-function s = test_function_type(s,fieldname)
+function tensorfunctiontype = test_function_type(tensorfunction,grid_range)
 
 % Extract the centerpoint of the range of the grid
-range_start = s.grid_range(1:2:end);
-range_end = s.grid_range(2:2:end);
+range_start = grid_range(1:2:end);
+range_end = grid_range(2:2:end);
 
 range_mid = num2cell((range_start+range_end)/2);
 
@@ -15,7 +15,7 @@ double_midpoint = mat2tiles([range_mid{:} range_mid{:}],size(range_mid));
 vector_input = 1;
 try
 
-    A_test = s.(fieldname)(double_midpoint{:});
+    A_test = tensorfunction(double_midpoint{:}); %#ok<NASGU>
 
 catch
     
@@ -31,7 +31,7 @@ end
 % single-point evaluation
 if  ~vector_input    
 
-    s.function_type.(fieldname) = 'single point';
+    tensorfunctiontype = 'single point';
     
 % If the function appears able to take vector input, test to see if the
 % output is block or woven
@@ -45,7 +45,7 @@ else
     while 1
 
         % Evaluate connection numerator at midpoint
-        A_mid = s.(fieldname)(range_mid{:});
+        A_mid = tensorfunction(range_mid{:});
 
 
         % Tile this out into two copies side by side
@@ -93,7 +93,7 @@ else
     % woven.
     if ambiguous
   
-        s.function_type.(fieldname) = 'single point';
+        tensorfunctiontype = 'single point';
     
     else
     
@@ -101,18 +101,18 @@ else
         % that was found above
 
         double_midpoint = mat2tiles([range_mid{:} range_mid{:}],size(range_mid));
-        A_test = s.(fieldname)(double_midpoint{:});
+        A_test = tensorfunction(double_midpoint{:});
 
         %%%%%%%%
         %%%%%%%%
         % Compare A_test with A_mid_block and A_mid_woven
         if all(A_test(:) == A_mid_woven(:))
 
-            s.function_type.(fieldname) = 'woven';
+            tensorfunctiontype = 'woven';
 
         elseif all(A_test(:) == A_mid_block(:))
 
-            s.function_type.(fieldname) = 'block';
+            tensorfunctiontype = 'block';
 
         end
 
