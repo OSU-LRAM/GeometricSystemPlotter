@@ -100,7 +100,7 @@ else
         % Double-evaluate the connection at the midpoint or random test point
         % that was found above
 
-        double_midpoint = mat2tiles([range_mid{:} range_mid{:}],size(range_mid));
+        double_midpoint = mat2tiles([[range_mid{:}]' [range_mid{:}]'],size(range_mid));
         A_test = tensorfunction(double_midpoint{:});
 
         %%%%%%%%
@@ -113,7 +113,12 @@ else
         elseif all(A_test(:) == A_mid_block(:))
 
             tensorfunctiontype = 'block';
-
+            
+        else
+            
+            tensorfunctiontype = 'single point';
+            warning('check  the test_function_type program to make sure it is handling this function correctly')
+            
         end
 
     end

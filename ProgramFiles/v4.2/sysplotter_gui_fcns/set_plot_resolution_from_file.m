@@ -1,6 +1,9 @@
 function set_plot_resolution_from_file(handles)
 % Set the plot resolution based on the system file
 
+	% declare the data directory
+	configfile = './sysplotter_config';
+    pathnames = load(configfile);
 
 	%Get the system and shape change info
     system_index = get(handles.systemmenu,'Value');
@@ -13,7 +16,7 @@ function set_plot_resolution_from_file(handles)
 	load(configfile,'syspath')
 	
 	% Run the system initialization to get the specified resolutions
-	s = absolute_feval(fullfile(syspath, sys),'initialize'); 
+	s = absolute_feval(fullfile(syspath, sys),'initialize',pathnames); 
 		
 	% Set the grid range
 	set(handles.vectorresolution,'UserData',s.grid_range);

@@ -29,19 +29,11 @@ function output = sysf_diffdrive(input_mode)
 
 			%%%
 			% Local connection (functions at end of file)
-			% Denominator is optional unless the local connection has a
-			% singularity. Here, it is defined as all 1s, for illustrative
-			% purposes
 			s.A_num = @Conn_num;
-			s.A_den = @Conn_den; 
 
 
 			%%%
 			%Processing details
-
-			%Mark that system has no singularities. This is optional, with
-			%a default value of zero assumed by the code.
-			s.singularity = 0;
 
 			%Range over which to evaluate connection
 			s.grid_range = [-1,1,-1,1]*2.5;
@@ -57,7 +49,7 @@ function output = sysf_diffdrive(input_mode)
 			%Display parameters
 
 			%shape space tic locations
-			s.tic_locs.x = [-2 0 2 4 ];
+			s.tic_locs.x = [-2 0 2 4];
 			s.tic_locs.y = [-2 0 2 4];
 
 
@@ -87,10 +79,4 @@ function A_num = Conn_num(a1,a2)
 		zeros(size(a1)) zeros(size(a1));
 		ones(size(a1)) -ones(size(a1))];
 	
-end
-
-function A_den = Conn_den(a1,a2)
-
-	A_den = repmat(ones(size(a1)),3,2);
-
 end

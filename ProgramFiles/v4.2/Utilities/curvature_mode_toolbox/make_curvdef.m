@@ -1,9 +1,15 @@
-function make_curvdef(curv_fun_string,paramlist,name,attempt_analytic)
+function make_curvdef(curv_fun_string,paramlist,name,attempt_analytic,sysplotterpath,syspath)
 % curv_fun_string can be either a string expression or a symbolic
 % expression
 
 % Load the paths where files should be found
-load sysplotter_config
+if ~exist('sysplotterpath','var') || ~exist('syspath','var')
+    
+    load sysplotter_config
+    
+end
+
+% Initialize a cell structure to hold the list of functions to operate on
 flist = {};
 
 % Symbolically calculate all of the requested functions unless told

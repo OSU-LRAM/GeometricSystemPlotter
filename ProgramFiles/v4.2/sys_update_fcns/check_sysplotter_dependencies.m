@@ -1,13 +1,17 @@
 function update = check_sysplotter_dependencies(sys,shch)
 % Determine which aspects of the system and path need to be recalculated
 
+% Load the pathnames
+configfile = './sysplotter_config';
+pathnames = load(configfile);
+
 	if ~isempty(sys)
 
 		% Re-initialize system if necessary
-		update.sys_init = depcheck([sys '.m']);
+		update.sys_init = depcheck([sys '.m'],pathnames);
 
 		% Re-initialize shape change if necessary
-		update.shch_init = ~isempty(shch) && depcheck([shch '.m']);
+		update.shch_init = ~isempty(shch) && depcheck([shch '.m'],pathnames);
 
 		% Recalculate system details if necessary
 		update.sys_calc = update.sys_init || depcheck('sys_calcsystem.m',sys);

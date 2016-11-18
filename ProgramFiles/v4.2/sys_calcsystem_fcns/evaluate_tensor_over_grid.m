@@ -1,4 +1,4 @@
-function T = evaluate_tensor_over_grid(tensorfunction,grid)
+function T = evaluate_tensor_over_grid(tensorfunction,grid,ignore_singular_warning)
 
 % Check what type of output the tensorfunction produces in response to a
 % grid input (block format in which each section is one component evaluated
@@ -52,6 +52,10 @@ switch tensorfunctiontype
 
         A_cell = cell(size(grid{1})); % Build a cell array to hold the function at each point
         parfor par_idx = 1:numel(grid{1});   % Loop over all elements of the grid
+            
+            if ignore_singular_warning
+                warning('off','MATLAB:singularMatrix');
+            end
 
             % Extract the idx'th element of each grid, and put them
             % into a cell array
@@ -59,6 +63,9 @@ switch tensorfunctiontype
 
             % Evaluate the function at the idx'th point
             A_cell{par_idx} = tensorfunction(a_point{:});
+            
+            warning('on','MATLAB:singularMatrix');
+            
         end
 
         % Swap the inner and outer structure of the cell so
@@ -72,5 +79,6 @@ switch tensorfunctiontype
         error('Function type was specified as something other than block, woven, or single point')
 
 end
+
 
 end

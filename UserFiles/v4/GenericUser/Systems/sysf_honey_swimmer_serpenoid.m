@@ -1,4 +1,4 @@
-function output = sysf_honey_swimmer_serpenoid(input_mode)
+function output = sysf_honey_swimmer_serpenoid(input_mode,pathnames)
 
 	% Default arguments
 	if ~exist('input_mode','var')
@@ -22,19 +22,14 @@ function output = sysf_honey_swimmer_serpenoid(input_mode)
 
 		case 'dependency'
 
-			output.dependency = {'Utilities/curvature_mode_toolbox/backbone_from_curvature_bases.m',
-				'Utilities/curvature_mode_toolbox/curvatures/serpenoid_1.m',
-				'Utilities/curvature_mode_toolbox/curvatures/serpenoid_2.m',
-				'Utilities/LowRE_toolbox/LowRE_dissipation_metric_from_curvature_bases.m',
-				'Utilities/LowRE_toolbox/LowRE_local_connection_from_curvature_bases.m'};
+			output.dependency = fullfile(pathnames.sysplotterpath,...
+                {'Utilities/curvature_mode_toolbox/backbone_from_curvature_bases.m',...
+				'Utilities/curvature_mode_toolbox/curvatures/serpenoid_1.m',...
+				'Utilities/curvature_mode_toolbox/curvatures/serpenoid_2.m',...
+				'Utilities/LowRE_toolbox/LowRE_dissipation_metric_from_curvature_bases.m',...
+				'Utilities/LowRE_toolbox/LowRE_local_connection_from_curvature_bases.m'});
 
 		case 'initialize'
-
-			%Initialize a kinematic snake with unit values for L and R
-
-			%%%%%
-			% Filename to save to
-			output = mfilename;
 
 
 			%Functional representation of local connection
@@ -43,9 +38,6 @@ function output = sysf_honey_swimmer_serpenoid(input_mode)
 
 			%%%
 			%Processing details
-
-			%Mark that system has a singularity that needs to be accounted for
-			s.singularity = 0;
 
 			%Range over which to evaluate connection
 			s.grid_range = [-1,1,-1,1]*12;

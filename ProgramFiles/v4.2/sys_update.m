@@ -4,7 +4,8 @@ function sys_update(sys,shch,progress,handles)
 	% declare the data directory
 	configfile = './sysplotter_config';
 	load(configfile);
-
+    
+    
 	if exist('progress','var')
 	
 		%Progress bar stages, step size, and state
@@ -32,15 +33,23 @@ function sys_update(sys,shch,progress,handles)
 		[update] = decide_components(sys,shch);
 	end
 	
+    %%%%%%%%%%
 	% Recalculate the details if necessary
+
+    % Load a structure with the path names
+    pathnames = load(configfile);
 	
 	if update.sys_init
-		s = absolute_feval(fullfile(syspath, sys),'initialize'); %#ok<NASGU>
+
+        s = absolute_feval(fullfile(syspath, sys),'initialize',pathnames); %#ok<NASGU>
+        
 		save(fullfile(datapath, sys),'s')
 	end
 	
 	if update.shch_init
-		p = absolute_feval(fullfile(shchpath, shch),'initialize'); %#ok<NASGU>
+
+       p = absolute_feval(fullfile(shchpath, shch),'initialize',pathnames); %#ok<NASGU>
+        
 		save(fullfile(datapath, shch),'p')
 	end
 		

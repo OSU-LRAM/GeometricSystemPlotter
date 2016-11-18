@@ -13,13 +13,14 @@ function s = optimize_coordinate_choice(s)
     n_rows = size(vecfield,3);
 		
 	%if there are singularities present, arctan scale the vector fields
-	if s.singularity
+	if isfield(s,'singularity') && s.singularity
 		
 		[vecfield_temp, vecfield_temp_smallest_coefficient] = arctan_scale_vector_fields(vecfield);
 
 	else
 		
 		[vecfield_temp, vecfield_temp_smallest_coefficient] = deal(vecfield);
+        s.singularity = 0;
 	
 	end
 	
