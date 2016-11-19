@@ -6,12 +6,19 @@ function T = evaluate_tensor_over_grid(tensorfunction,grid,ignore_singular_warni
 % evaluated at a point, or gridded inputs result in function failure or
 % ambiguity
 
+%%%%%%%
+% Allow user to specify that singular matrix warnings can be ignored
+if ~exist('ignore_singular_warning','var')
+    ignore_singular_warning = 0;
+end
+
+
 % Extract the grid range from the grid
 grid_range = cellfun(@(g) [min(g(:)) max(g(:))],grid,'UniformOutput',false);
 grid_range = cell2mat(grid_range(:)');
 
 % Test the output of the function
-tensorfunctiontype = test_function_type(tensorfunction,grid_range);
+tensorfunctiontype = test_function_type(tensorfunction,grid_range,ignore_singular_warning);
 
 
 
@@ -55,6 +62,7 @@ switch tensorfunctiontype
             
             if ignore_singular_warning
                 warning('off','MATLAB:singularMatrix');
+                warning('off','MATLAB:illConditionedMatrix');
             end
 
             % Extract the idx'th element of each grid, and put them
@@ -65,6 +73,7 @@ switch tensorfunctiontype
             A_cell{par_idx} = tensorfunction(a_point{:});
             
             warning('on','MATLAB:singularMatrix');
+            warning('on','MATLAB:illConditionedMatrix');
             
         end
 
@@ -73,10 +82,17 @@ switch tensorfunctiontype
         % inner layer is position in the grid.
         T = celltensorconvert(A_cell);
 
+    case 'cell block'
+        
+        T = tensorfunction(grid{:});
 
+    case 'cell woven'
+        
+        T = celltensorconvert(tensorfunction(grid{:}));
+        
     otherwise
 
-        error('Function type was specified as something other than block, woven, or single point')
+        error('Function type was specified as something unexpected')
 
 end
 

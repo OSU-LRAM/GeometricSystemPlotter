@@ -1,4 +1,4 @@
-function output = sysf_diffdrive(input_mode)
+function output = sysf_diffdrive(input_mode,pathnames)
 %Return the system properties for a diffdrive car
 
 	% Default arguments
@@ -25,8 +25,8 @@ function output = sysf_diffdrive(input_mode)
 
 		case 'initialize'
 
-			%Initialize a kinematic snake with unit values for L and R
-
+			% Differential dr
+            
 			%%%
 			% Local connection (functions at end of file)
 			s.A_num = @Conn_num;
@@ -66,8 +66,7 @@ function output = sysf_diffdrive(input_mode)
 end
 
 function A_num = Conn_num(a1,a2)
-% Numerator of the local connection (remember, in this case, the
-% denominator is trivial). 
+% Numerator of the local connection (in this case, no denominator is needed). 
 %
 % Note that the function returns a single large array of values for the
 % local connection:

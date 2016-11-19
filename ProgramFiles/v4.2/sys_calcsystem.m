@@ -50,6 +50,9 @@ function output = sys_calcsystem(input_mode,systemfilename)
 			
 			%Calculate the height functions from the connection
 			s = calc_height_functions(s);
+            
+            %Build a stretch function corresponding to the metric
+            s = calc_stretch_functions(s);
 						
 			%Save out the updated system properties
 			save(outfile,'s')

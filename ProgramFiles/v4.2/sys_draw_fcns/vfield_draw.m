@@ -1,4 +1,4 @@
-function plot_info = vfield_draw(s,p,plot_info,sys,shch,convert,resolution)
+function plot_info = vfield_draw(s,p,plot_info,sys,shch,resolution)
 
     %Vector field list
     vfield_list = {'X','Y','T','Xopt','Yopt','Topt'};
@@ -27,10 +27,10 @@ function plot_info = vfield_draw(s,p,plot_info,sys,shch,convert,resolution)
 	% If the shape coordinates should be transformed, make the conversion
 	% (multiply the vectors by the inverse jacobian)
 	
-	if ~isempty(convert)
+	if ~isempty(s.convert)
 	
 		% Calculate the jacobians at the plotting points
-		Jac = arrayfun(convert.jacobian,grid{:},'UniformOutput',false);
+		Jac = arrayfun(s.convert.jacobian,grid{:},'UniformOutput',false);
 		
 		% Use the jacobians to convert the vectors
 		
@@ -58,7 +58,7 @@ function plot_info = vfield_draw(s,p,plot_info,sys,shch,convert,resolution)
 		end
 
 		% Convert the grid points to their new locations
-		[grid{:}] = convert.old_to_new_points(grid{:});
+		[grid{:}] = s.convert.old_to_new_points(grid{:});
 		
 	end
     
@@ -90,7 +90,7 @@ function plot_info = vfield_draw(s,p,plot_info,sys,shch,convert,resolution)
 		end
 			
 		% Make edges if coordinates have changed
-		if ~isempty(convert)
+		if ~isempty(s.convert)
 
 			edgeres = 30;
 
@@ -99,18 +99,18 @@ function plot_info = vfield_draw(s,p,plot_info,sys,shch,convert,resolution)
 			oldy_edge = [linspace(s.grid_range(3),s.grid_range(4),edgeres)';s.grid_range(4)*ones(edgeres,1);...
 				linspace(s.grid_range(4),s.grid_range(3),edgeres)';s.grid_range(3)*ones(edgeres,1)];
 
-			[x_edge,y_edge] = convert.old_to_new_points(oldx_edge,oldy_edge);
+			[x_edge,y_edge] = s.convert.old_to_new_points(oldx_edge,oldy_edge);
 
 			l_edge = line('Parent',ax,'Xdata',x_edge,'YData',y_edge,'Color','k','LineWidth',1);
 
 		end
 				
 		%set the display range
-		if isempty(convert)
+		if isempty(s.convert)
 			axis(ax,s.grid_range);
 		end
 		
-		if isempty(convert)
+		if isempty(s.convert)
 			axis(ax,'equal');
 			axis(ax,[min(grid{1}(:)) max(grid{1}(:)) min(grid{2}(:)) max(grid{2}(:))]);
 		else
@@ -118,15 +118,15 @@ function plot_info = vfield_draw(s,p,plot_info,sys,shch,convert,resolution)
 		end
         
         %Label the axes (two-dimensional)
-        label_shapespace_axes(ax,[],~isempty(convert));
+        label_shapespace_axes(ax,[],~isempty(s.convert));
 		
         %Set the tic marks
-        set_tics_shapespace(ax,s,convert);
+        set_tics_shapespace(ax,s,s.convert);
         
         %If there's a shape change involved, plot it
         if ~strcmp(shch,'null')
 						
-            overlay_shape_change_2d(ax,p,convert);
+            overlay_shape_change_2d(ax,p,s.convert);
             
         end
         

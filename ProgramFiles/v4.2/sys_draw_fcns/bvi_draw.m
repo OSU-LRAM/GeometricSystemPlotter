@@ -1,4 +1,4 @@
-function plot_info = bvi_draw(s,p,plot_info,sys,shch,convert,resolution) %#ok<INUSD>
+function plot_info = bvi_draw(s,p,plot_info,sys,shch,resolution) %#ok<INUSD>
 %draw the bvi plots
 
     %Get the configuration file, and extract the Colorpath

@@ -1,4 +1,4 @@
-function output = sysf_honey_swimmer_serpenoid(input_mode,pathnames)
+function output = sysf_serpenoid_lowRe(input_mode,pathnames)
 
 	% Default arguments
 	if ~exist('input_mode','var')
@@ -6,19 +6,14 @@ function output = sysf_honey_swimmer_serpenoid(input_mode,pathnames)
 		input_mode = 'initialize';
 		
 	end
-	
-	if ~exist('datapath','var')
 		
-		datapath = '';
-	end
-	
 	%%%%%%%
 	
 	switch input_mode
 
 		case 'name'
 
-			output = 'Low Re Serpenoid first modes'; % Display name
+			output = 'Viscous swimmer: Serpenoid'; % Display name
 
 		case 'dependency'
 

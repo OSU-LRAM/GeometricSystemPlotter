@@ -1,4 +1,4 @@
-function output = sysf_honey_swimmer_triangle(input_mode,pathnames)
+function output = sysf_triangle_lowRe(input_mode,pathnames)
 
 	% Default arguments
 	if ~exist('input_mode','var')
@@ -20,7 +20,7 @@ function output = sysf_honey_swimmer_triangle(input_mode,pathnames)
 
 		case 'name'
 
-			output = 'Low Re triangular wave one period'; % Display name
+			output = 'Viscous swimmer: Triangle'; % Display name
 
 		case 'dependency'
 

@@ -1,4 +1,4 @@
-function plot_info = hfun_draw(s,p,plot_info,sys,shch,convert,resolution)
+function plot_info = hfun_draw(s,p,plot_info,sys,shch,resolution)
 %Draw the height function
     
     %Get the configuration file, and extract the Colorpath
@@ -160,16 +160,16 @@ function plot_info = hfun_draw(s,p,plot_info,sys,shch,convert,resolution)
 	% (multiply the height function by the inverse of the jacobian's
 	% determinant)
 	
-	if ~isempty(convert)
+	if ~isempty(s.convert)
 			
 		% Get the value by which to scale the height function
-		ascale = arrayfun(@(x,y) 1/det(convert.jacobian(x,y)),grid{:});
+		ascale = arrayfun(@(x,y) 1/det(s.convert.jacobian(x,y)),grid{:});
 
 		% Apply the jacobian to the vectors
 		H = cellfun(@(x) x.*ascale,H,'UniformOutput',false);
 
 		% Convert the grid points to their new locations
-		[grid{:}] = convert.old_to_new_points(grid{:});
+		[grid{:}] = s.convert.old_to_new_points(grid{:});
 		
 	end
 	
@@ -203,7 +203,7 @@ function plot_info = hfun_draw(s,p,plot_info,sys,shch,convert,resolution)
 				%If there's a shape change involved, plot it
 				if ~strcmp(shch,'null')
 
-					overlay_shape_change_3d_surf(ax,p,zdata{function_number,:},convert);
+					overlay_shape_change_3d_surf(ax,p,zdata{function_number,:},s.convert);
 
 				end
 
@@ -229,13 +229,13 @@ function plot_info = hfun_draw(s,p,plot_info,sys,shch,convert,resolution)
 				%If there's a shape change involved, plot it
 				if ~strcmp(shch,'null')
 
-					overlay_shape_change_2d(ax,p,convert);
+					overlay_shape_change_2d(ax,p,s.convert);
 
 				end
 				
 				
 				% Make edges if coordinates have changed
-				if ~isempty(convert)
+				if ~isempty(s.convert)
 					
 					edgeres = 30;
 					
@@ -244,7 +244,7 @@ function plot_info = hfun_draw(s,p,plot_info,sys,shch,convert,resolution)
 					oldy_edge = [linspace(s.grid_range(3),s.grid_range(4),edgeres)';s.grid_range(4)*ones(edgeres,1);...
 						linspace(s.grid_range(4),s.grid_range(3),edgeres)';s.grid_range(3)*ones(edgeres,1)];
 
-					[x_edge,y_edge] = convert.old_to_new_points(oldx_edge,oldy_edge);
+					[x_edge,y_edge] = s.convert.old_to_new_points(oldx_edge,oldy_edge);
 					
 					l_edge = line('Parent',ax,'Xdata',x_edge,'YData',y_edge,'Color','k','LineWidth',1);
 					
@@ -256,7 +256,7 @@ function plot_info = hfun_draw(s,p,plot_info,sys,shch,convert,resolution)
 				%equal axes sized to match grid or new dimensions if
 				%stretched
 				
-				if isempty(convert)
+				if isempty(s.convert)
 					axis(ax,'equal');
 					axis(ax,[min(grid{1}(:)) max(grid{1}(:)) min(grid{2}(:)) max(grid{2}(:))]);
 				else
@@ -300,10 +300,10 @@ function plot_info = hfun_draw(s,p,plot_info,sys,shch,convert,resolution)
 
 
 		%Label the axes
-		label_shapespace_axes(ax,[],~isempty(convert));
+		label_shapespace_axes(ax,[],~isempty(s.convert));
 
 		%Set the tic marks
-		set_tics_shapespace(ax,s,convert);
+		set_tics_shapespace(ax,s,s.convert);
 
 
 

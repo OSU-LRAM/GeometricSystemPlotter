@@ -45,12 +45,7 @@ function s = evaluate_tensors_in_system_file(s,component_list,zoom_list,destinat
                 
                 % Mark what zoom level was used to create this field
                 s.(destination).(zoom_list{i,1}).type = zoom_list{i,2};
-                
-                % Turn suppressed singularity warnings back on
-                if ignore_singularity_warning
-                    pctRunOnAll('warning(''on'',''MATLAB:singularMatrix'');');
-                end
-                
+                                
             end
 
         end

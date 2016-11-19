@@ -2,6 +2,10 @@ function [A,X1,X2,Y1,Y2,T1,T2,all_syms] = four_way_symmetry(alpha1, alpha2, Axa1
 % Take three connection vector fields for a three-link system, apply their necessary symmetry
 % transformations, and average them. alpha1 and alpha2 are the joint angles where
 % the fields are evaluated, a1 and a2 are the output locations
+%
+% Input fields should be the local gradient of position with respect to
+% shape; the last section of this code negates this gradient to form the
+% local connection
 
 if ~exist('mode','var')
     mode = '3link';
@@ -193,17 +197,17 @@ for i = 1:length(fields)
 end
 
 % Extract the output
-A = -[lengthscale*averaged_fields.x{1} lengthscale*averaged_fields.x{2};
-	lengthscale*averaged_fields.y{1} lengthscale*averaged_fields.y{2};
-	averaged_fields.theta{1} averaged_fields.theta{2}];
+A = {-lengthscale*averaged_fields.x{1} -lengthscale*averaged_fields.x{2};
+	-lengthscale*averaged_fields.y{1} -lengthscale*averaged_fields.y{2};
+	-averaged_fields.theta{1} -averaged_fields.theta{2}};
 
 % Extract the output
-X1 = lengthscale*averaged_fields.x{1};
-X2 = lengthscale*averaged_fields.x{2};
+X1 = -lengthscale*averaged_fields.x{1};
+X2 = -lengthscale*averaged_fields.x{2};
 
-Y1 = lengthscale*averaged_fields.y{1};
-Y2 = lengthscale*averaged_fields.y{2};
+Y1 = -lengthscale*averaged_fields.y{1};
+Y2 = -lengthscale*averaged_fields.y{2};
 
-T1 = averaged_fields.theta{1};
-T2 = averaged_fields.theta{2};
+T1 = -averaged_fields.theta{1};
+T2 = -averaged_fields.theta{2};
 end
