@@ -29,12 +29,7 @@ hfuntype(3) = [];
 % Get the state of the Stretch menu (coordinate conversion to flatten
 % metric)
 stretchstate = get(handles.stretchmenu,'Value');
-stretchdata = get(handles.stretchmenu,'UserData');
-if ~strcmp(stretchdata{stretchstate},'null')
-	stretchpath = feval(stretchdata{stretchstate},'target');
-else
-	stretchpath = 'null';
-end
+
 	
 % Initialize the plot windows
 plots_to_make = initialize_plot_windows(box_active,plot_types,merged_plot_subtypes...
