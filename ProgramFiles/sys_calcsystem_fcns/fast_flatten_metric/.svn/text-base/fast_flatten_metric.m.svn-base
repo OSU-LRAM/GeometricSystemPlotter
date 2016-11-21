@@ -1,0 +1,90 @@
+function [convert,sol,sol_interp,sol_jacobian,sol_new_metric] = flatten_metric(x,y,M)
+% Calculate a change of coordinates to optimally flatten a metric tensor.
+% This function uses a linear-distortion metric (related to Tissot's
+% indicatrix) and finds the optimal parameterization through a
+% spring-relaxation method
+%
+% Inputs:
+% x,y are gridpoints specified by ndgrid
+% M is a function that returns a 2x2 metric tensor as a function of an xy pair
+%
+% Outputs:
+% convert: a structure of function handles:
+%	old_to_new_points: returns (x_new,y_new) corresponding to input (x_old,y_old)
+%	new_to_old_points: returns (x_old,y_old) corresponding to input (x_new,y_new)
+%	jacobian: returns the 2x2 jacobian from old to new coordinates at (x_old,y_old)
+%	new_metric: returns the 2x2 metric in the new coordinates, at (x_old,y_old)
+% sol: the ODE solution describing the deformation path of the nodal points
+%  in the parameterization from their start to final values
+% sol_interp: Converts old to new points (in the manner of
+% convert.old_to_new_points) that also takes in a time t (from 0 to 1)
+% during the relaxation period, to say how far along the evolution this
+% point conversion should be made
+
+
+	% Generate the springs in a 8-connected grid
+	[springs, blocks] = generate_springs(x);
+
+	% Find the initial lengths of the springs (the initial grid separations
+	[start_lengths] = get_spring_lengths_and_azimuths(springs,x,y);
+
+	% Calculate the lengths the springs would be if the metric could be
+	% flattened entirely
+	neutral_lengths = get_spring_neutral_lengths(springs,blocks,start_lengths,x,y,M);
+
+	%Relax the springs
+	[final_x,final_y,sol] = relax_springs(x,y,springs,neutral_lengths);
+
+	% Temporarily calculate the jacobian and new metric, to set up scaling
+	% factors
+	temp_jacobian = @(x_p,y_p) convert_bases(x,y,x_p,y_p,find_jacobian(x,y,final_x,final_y));
+	temp_new_metric = @(x_p,y_p) new_metric(x_p,y_p,M,temp_jacobian);
+	
+	% Calculate a discrete equivalent to the (new) area of the domain
+	%A = arrayquad2d(@(x,y) det(Jac(x,y)),x1,x2,y1,y2);
+	dA = arrayfun(@(x,y) det(temp_jacobian(x,y)),x,y);
+	A = sum(dA(:));
+	
+	% Calculate the integral of the stretch over the domain
+% 	tau_tot = arrayquad2d(@(x,y) metric_distortion(metric,dist_function,x,y,1)...
+% 		*det(Jac(x,y)),x1,x2,y1,y2);
+	dtau_tot = arrayfun(@(x,y) mean(tissot_stretches(temp_new_metric,x,y))...
+		*det(temp_jacobian(x,y)),x,y);
+	tau_tot = sum(dtau_tot(:));
+
+
+	% Find the mean stretch
+	meantau = (tau_tot/A);
+	
+	% Scale the final positions by the mean stretch
+	final_x = final_x/meantau;
+	final_y = final_y/meantau;
+
+	
+	
+	%Build the metric conversion functions
+	convert.old_to_new_points = @(x_old,y_old) convert_points(x,y,final_x,final_y,x_old,y_old);
+	
+	Fx = TriScatteredInterp([final_x(:) final_y(:)],x(:));
+	Fy = TriScatteredInterp([final_x(:) final_y(:)],y(:));
+	convert.new_to_old_points = @(x_new,y_new) multiTriInterp(Fx,Fy,x_new,y_new);
+	
+	convert.jacobian = @(x_p,y_p) convert_bases(x,y,x_p,y_p,find_jacobian(x,y,final_x,final_y));
+	convert.new_metric = @(x_p,y_p) new_metric(x_p,y_p,M,convert.jacobian);
+	
+	
+	
+	% Intermediate solution function
+	if nargout >= 3
+		sol_interp = @(x_old,y_old,t) convert_points_sol_interp(x,y,sol,t,x_old,y_old);
+	end
+	
+	if nargout >= 4
+		sol_jacobian = @(x_p,y_p,t) convert_bases_sol(x,y,x_p,y_p,sol,t);
+	end
+	
+	if nargout >=5
+		sol_new_metric = @(x_p,y_p,t) new_metric_sol(x_p,y_p,t,M,sol_jacobian);
+	end
+	
+end

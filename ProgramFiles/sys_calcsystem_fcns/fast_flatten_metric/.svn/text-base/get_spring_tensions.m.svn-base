@@ -1,0 +1,10 @@
+% Calculate the tension in each spring. A stretched spring has positive
+% tension. Using a linear force rule, with a spring constant of 1. (the
+% ratio of the spring constant to the first-order drag coefficient gives
+% the timescale, but we don't really care about the timescale)
+function T = get_spring_tensions(current_length,neutral_length)
+
+	%T = (current_length-neutral_length);        % Jordan
+	T = log((current_length./neutral_length)); % Kavrayskiy
+	
+end
