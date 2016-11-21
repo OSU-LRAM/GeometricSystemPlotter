@@ -73,8 +73,7 @@ function varargout = sysplotter(varargin)
 	% Only continue if the location contents are valid
 	if v
 		% Add the paths to the system directories
-		addpath(fullfile(inputpath, '/Systems'),fullfile(inputpath, '/Shape_Changes'),...
-			fullfile(inputpath, '/Stretches'));
+		addpath(fullfile(inputpath, '/Systems'),fullfile(inputpath, '/Shape_Changes'));
         
         % Assign a variable in the base workspace that points to the user
         % files

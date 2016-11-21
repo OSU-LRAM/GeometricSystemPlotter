@@ -203,7 +203,7 @@ function plot_info = hfun_draw(s,p,plot_info,sys,shch,resolution)
 				%If there's a shape change involved, plot it
 				if ~strcmp(shch,'null')
 
-					overlay_shape_change_3d_surf(ax,p,zdata{function_number,:},s.convert);
+					overlay_shape_change_3d_surf(ax,p,zdata{function_number,:},plot_info.stretch,s.convert,true);
 
 				end
 
@@ -229,7 +229,7 @@ function plot_info = hfun_draw(s,p,plot_info,sys,shch,resolution)
 				%If there's a shape change involved, plot it
 				if ~strcmp(shch,'null')
 
-					overlay_shape_change_2d(ax,p,s.convert);
+					overlay_shape_change_2d(ax,p,plot_info.stretch,s.convert);
 
 				end
 				

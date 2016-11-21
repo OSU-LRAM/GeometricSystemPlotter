@@ -1,4 +1,4 @@
-function overlay_shape_change_2d(ax,p,convert)
+function overlay_shape_change_2d(ax,p,stretch,convert)
 %overlay shape changes onto the specified axis
 
     %Get the configuration file, and extract the Colorpath
@@ -9,7 +9,7 @@ function overlay_shape_change_2d(ax,p,convert)
 	for i = 1:numel(p.phi_locus)
 
 
-		if exist('convert','var') && ~isempty(convert)
+		if stretch
 
 			[p.phi_locus_full{i}.shape(:,1), p.phi_locus_full{i}.shape(:,2)] ...
 				= convert.old_to_new_points(p.phi_locus_full{i}.shape(:,1), p.phi_locus_full{i}.shape(:,2));

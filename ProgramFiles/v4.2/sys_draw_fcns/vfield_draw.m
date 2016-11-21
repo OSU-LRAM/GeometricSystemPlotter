@@ -228,16 +228,16 @@ function plot_info = vfield_draw(s,p,plot_info,sys,shch,resolution)
 
 		end
 				
-		%set the display range
-		if ~plot_info.stretch
-			axis(ax,s.grid_range);
-		end
 		
-		if~plot_info.stretch
+		if plot_info.stretch
 			axis(ax,'equal');
 			axis(ax,[min(grid{1}(:)) max(grid{1}(:)) min(grid{2}(:)) max(grid{2}(:))]);
 		else
-			axis(ax,'equal','tight');
+			axis(ax,'equal');
+		end
+		%set the display range
+		if ~plot_info.stretch
+			axis(ax,s.grid_range);
 		end
         
         %Label the axes (two-dimensional)
@@ -249,7 +249,7 @@ function plot_info = vfield_draw(s,p,plot_info,sys,shch,resolution)
         %If there's a shape change involved, plot it
         if ~strcmp(shch,'null')
 						
-            overlay_shape_change_2d(ax,p,s.convert);
+            overlay_shape_change_2d(ax,p,plot_info.stretch,s.convert);
             
         end
         

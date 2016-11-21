@@ -14,7 +14,7 @@ function output = sysf_three_link_kinematic(input_mode,pathnames)
 
 		case 'name'
 
-			output = 'Kinematic Snake pi/2'; % Display name
+			output = 'Three-link Kinematic Snake'; % Display name
 
 		case 'dependency'
 

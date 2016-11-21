@@ -1,4 +1,4 @@
-function plot_info = beta_draw(s,p,plot_info,sys,shch,convert,resolution)
+function plot_info = beta_draw(s,p,plot_info,sys,shch,resolution)
 %Draw the height function
 
     %Get the configuration file, and extract the Colorpath
@@ -55,22 +55,16 @@ function plot_info = beta_draw(s,p,plot_info,sys,shch,convert,resolution)
 	[B,grid] = plotting_interp(B,grid,resolution,'scalar');
 
 	%%%%%
-	% If the shape coordinates should be transformed, make the conversion
-	% (multiply the height function by the inverse of the jacobian's
-	% determinant)
-	
-	if ~plot_info.stretch
+	% No need to change the value of the beta function for stretching,
+	% because it is a zero-form, not a 2-form
+		
+	if plot_info.stretch
 			
-		% Get the value by which to scale the height function
-		ascale = arrayfun(@(x,y) 1/det(convert.jacobian(x,y)),grid{:});
-
-		% Apply the jacobian to the vectors
-		B = cellfun(@(x) x.*ascale,B,'UniformOutput',false);
-
 		% Convert the grid points to their new locations
-		[grid{:}] = convert.old_to_new_points(grid{:});
+		[grid{:}] = s.convert.old_to_new_points(grid{:});
 		
 	end
+	
 	
 	
 	%Make the plots
@@ -80,7 +74,7 @@ function plot_info = beta_draw(s,p,plot_info,sys,shch,convert,resolution)
 		ax =plot_info.axes(i);
 
 		%get which height function to use
-		function_number = strmatch(plot_info.components{i}, beta_list,'exact');
+		function_number = strcmp(plot_info.components{i}, beta_list);
 
 		switch plot_info.style
 			
@@ -92,7 +86,7 @@ function plot_info = beta_draw(s,p,plot_info,sys,shch,convert,resolution)
 				%If there's a shape change involved, plot it
 				if ~strcmp(shch,'null')
 
-					overlay_shape_change_3d_surf(ax,p,zdata{function_number,:},convert);
+					overlay_shape_change_3d_surf(ax,p,zdata{function_number,:},plot_info.stretch,s.convert,false);
 
 				end
 
@@ -117,13 +111,13 @@ function plot_info = beta_draw(s,p,plot_info,sys,shch,convert,resolution)
 				%If there's a shape change involved, plot it
 				if ~strcmp(shch,'null')
 
-					overlay_shape_change_2d(ax,p,convert);
+					overlay_shape_change_2d(ax,p,plot_info.stretch,s.convert);
 
 				end
 				
 				
 				% Make edges if coordinates have changed
-				if ~isempty(convert)
+				if plot_info.stretch
 					
 					edgeres = 30;
 					
@@ -132,7 +126,7 @@ function plot_info = beta_draw(s,p,plot_info,sys,shch,convert,resolution)
 					oldy_edge = [linspace(s.grid_range(3),s.grid_range(4),edgeres)';s.grid_range(4)*ones(edgeres,1);...
 						linspace(s.grid_range(4),s.grid_range(3),edgeres)';s.grid_range(3)*ones(edgeres,1)];
 
-					[x_edge,y_edge] = convert.old_to_new_points(oldx_edge,oldy_edge);
+					[x_edge,y_edge] = s.convert.old_to_new_points(oldx_edge,oldy_edge);
 					
 					l_edge = line('Parent',ax,'Xdata',x_edge,'YData',y_edge,'Color','k','LineWidth',1);
 					
@@ -181,7 +175,7 @@ function plot_info = beta_draw(s,p,plot_info,sys,shch,convert,resolution)
 		axis(ax,'tight')
 
 		%Label the axes
-		label_shapespace_axes(ax,[],~isempty(convert));
+		label_shapespace_axes(ax,[],plot_info.stretch);
 
 		%Set the tic marks
 		set_tics_shapespace(ax,s);
@@ -205,7 +199,6 @@ function plot_info = beta_draw(s,p,plot_info,sys,shch,convert,resolution)
 			plot_info_specific.style = plot_info.style;
 			plot_info_specific.hfuntype = plot_info.hfuntype;
 			plot_info_specific.stretch = plot_info.stretch;
-			plot_info_specific.stretchpath = plot_info.stretchpath;
 
 			%set the button down callback on the plot to be sys_draw with
 			%the argument list for the current plot, and set the button

@@ -10,23 +10,33 @@ function [final_x,final_y, sol] = relax_springs(x,y,springs,neutral_lengths,tol)
 	% most recent run and the
 		
 	time_limit = 10; % Base time limit
-	tstart = 0;
 	
 	% Fast solution to prime automated convergence test
 	sol = ode45(@(t,state) relaxation_helper_function(t,state,neutral_lengths,springs),[0 time_limit/10],IC);
-	ytest = sol.y(:,end);
 	
+    current_x = x;
+    current_y = y;
+    
+    counter = 1;
 	while 1
 		
 		% Integrate the spring relaxation
 		sol = odextend(sol, @(t,state) relaxation_helper_function(t,state,neutral_lengths,springs),time_limit);
 		
-		% Get the change since the last run, and the change since the start
-		output_change = sqrt(sum((sol.y(:,end)-ytest).^2))
-		total_change = sqrt(sum((sol.y(:,end)-IC_start).^2))
+% 		% Get the change since the last run, and the change since the start
+% 		output_change = sqrt(sum((sol.y(:,end)-ytest).^2));
+% 		total_change = sqrt(sum((sol.y(:,end)-IC_start).^2));
+        
+        % Get the current lengths of the springs
+        current_x(:) = sol.y(1:(end/2),end);
+        current_y(:) = sol.y((end/2 + 1):end,end);
+        current_lengths = get_spring_lengths_and_azimuths(springs,current_x,current_y);
+        
+        % Get the current velocities of the points
+        current_velocities = relaxation_helper_function(0,sol.y(:,end),neutral_lengths,springs);
 		
-		%If the system has converged, stop integrating
-		if output_change <= tol*total_change
+		%If the system has converged or safety counter has run out, stop integrating
+		if (max(current_velocities) <= tol*min(current_lengths)) || counter > 6;
 			
 			break
 			
@@ -35,7 +45,7 @@ function [final_x,final_y, sol] = relax_springs(x,y,springs,neutral_lengths,tol)
 			%double the time limit
 			time_limit = 2*time_limit;
 			
-			ytest = sol.y(:,end);
+			counter = counter + 1;
 			
 			
 		end

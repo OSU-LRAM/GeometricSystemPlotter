@@ -1,4 +1,4 @@
-function plot_info = xy_draw_helper(s,p,plot_info,sys,shch,convert,optselect);
+function plot_info = xy_draw_helper(s,p,plot_info,sys,shch,optselect);
 % Draw the displacement locus indicated by optselect
 	
 	%Ensure that there are figure axes to plot into, and create new windows
@@ -193,7 +193,6 @@ function plot_info = xy_draw_helper(s,p,plot_info,sys,shch,convert,optselect);
 		plot_info_specific.style = plot_info.style;
 		plot_info_specific.hfuntype = plot_info.hfuntype;
 		plot_info_specific.stretch = plot_info.stretch;
-		plot_info_specific.stretchpath = plot_info.stretchpath;
 
 		%set the button down callback on the plot to be sys_draw with
 		%the argument list for the current plot, and set the button

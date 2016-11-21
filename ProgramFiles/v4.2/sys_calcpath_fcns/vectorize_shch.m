@@ -201,7 +201,8 @@ function B = doublewrap(A,classname)
 	% Check to make sure all contents are of the right class
 	class_test = zeros(numel(A),1);
 	for i = 1:numel(A)
-		class_test(i) = all(cellfun(@(x) isa(x,classname),A{i}));
+        class_test_pieces = cellfun(@(x) isa(x,classname),A{i});
+		class_test(i) = all(class_test_pieces(:));
 	end
 
 	if all(class_test)

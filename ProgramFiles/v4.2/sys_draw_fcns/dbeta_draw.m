@@ -81,7 +81,7 @@ function plot_info = dbeta_draw(s,p,plot_info,sys,shch,resolution)
         quiver(ax,grid{:},V{field_number,1},V{field_number,2},'k','LineWidth',2)
         
 		% Make edges if coordinates have changed
-		if ~isempty(s.convert)
+		if plot_info.stretch
 
 			edgeres = 30;
 
@@ -97,12 +97,12 @@ function plot_info = dbeta_draw(s,p,plot_info,sys,shch,resolution)
 		end
 		
 		%set the display range
-		if isempty(s.convert)
+		if plot_info.stretch
 			axis(ax,s.grid_range);
 			axis(ax,'square')
 		else
             %square axes
-			axis(ax,'equal')
+			axis(ax,'equal','tight')
 		end
         
         %Label the axes (two-dimensional)
@@ -130,8 +130,7 @@ function plot_info = dbeta_draw(s,p,plot_info,sys,shch,resolution)
             plot_info_specific.components = plot_info.components(i);
             plot_info_specific.category = 'dbeta';
 			plot_info_specific.stretch = plot_info.stretch;
-			plot_info_specific.stretchpath = plot_info.stretchpath;
-
+            
             %set the button down callback on the plot to be sys_draw with
             %the argument list for the current plot
             set(plot_info.axes(i),'ButtonDownFcn',{@sys_draw_dummy_callback,plot_info_specific,sys,shch});

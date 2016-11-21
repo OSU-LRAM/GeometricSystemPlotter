@@ -5,6 +5,15 @@ function update = check_sysplotter_dependencies(sys,shch)
 configfile = './sysplotter_config';
 pathnames = load(configfile);
 
+% Verify that the system and the shape change both take two arguments
+if ~isempty(sys) && nargin(sys) ~= 2;
+    error('System function does not take two arguments')
+end
+
+if ~isempty(shch) && nargin(shch) ~= 2;
+    error('Shape change function does not take two arguments')
+end
+
 	if ~isempty(sys)
 
 		% Re-initialize system if necessary
