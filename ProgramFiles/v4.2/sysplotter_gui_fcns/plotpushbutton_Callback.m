@@ -33,7 +33,7 @@ stretchstate = get(handles.stretchmenu,'Value');
 	
 % Initialize the plot windows
 plots_to_make = initialize_plot_windows(box_active,plot_types,merged_plot_subtypes...
-	,plot_style,hfuntype,stretchstate,stretchpath,handles,source_number_text);
+	,plot_style,hfuntype,stretchstate,handles,source_number_text);
 
 
 %%%%%%%%%%%

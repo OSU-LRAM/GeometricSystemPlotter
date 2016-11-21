@@ -16,23 +16,6 @@ function plot_info = sys_draw(plot_structure,sys,shch,progress,update,resolution
 	%load the system and path data
 	load(fullfile(datapath, plot_data_file),'s','p')
 
-	% check for a coordinate transform request
-	if ~isempty(plot_structure) && isfield(plot_structure(1),'stretch') && plot_structure(1).stretch
-
-		% Add the necessary paths
-		addpath(('~/Documents/MATLAB/metric_toolbox/fast_flatten_metric/'))
-
-
-		% Load the convert structure
-		load(plot_structure(1).stretchpath,'convert')
-
-	else
-
-		% Create a blank convert standin
-		convert = [];
-
-	end
-
 	%plot all plots called for
 	for i = 1:length(plot_structure)
 

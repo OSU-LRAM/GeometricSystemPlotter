@@ -1,5 +1,5 @@
 function plots_to_make = initialize_plot_windows(box_active,plot_types,merged_plot_subtypes...
-	,plot_style,hfuntype,stretchstate,stretchpath,handles,source_number_text)
+	,plot_style,hfuntype,stretchstate,handles,source_number_text)
 
 	%%%%%
     %Determine how many windows to create
@@ -52,9 +52,11 @@ function plots_to_make = initialize_plot_windows(box_active,plot_types,merged_pl
 			%Decide which kind of height function to show
 			plots_to_make(end,1).hfuntype = hfuntype;
 
-			% set the stretch on each component
-			plots_to_make(end,1).stretch = ~strcmp(stretchpath,'null');
-			plots_to_make(end,1).stretchpath = stretchpath;
+			% set the stretch on each component. Menu item 1 is no stretch,
+			% 2 is stretch (and if we offer multiple stretches in the
+			% future, this will pass on higher values into the plotting
+			% function)
+			plots_to_make(end,1).stretch = stretchstate-1;
 
 			%set the plots_to_make components
             plots_to_make(end,1).components = merged_plot_subtypes{i}(box_active{i}(2:end));

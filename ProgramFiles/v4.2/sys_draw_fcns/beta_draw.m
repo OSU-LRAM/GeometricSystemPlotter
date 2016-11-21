@@ -59,7 +59,7 @@ function plot_info = beta_draw(s,p,plot_info,sys,shch,convert,resolution)
 	% (multiply the height function by the inverse of the jacobian's
 	% determinant)
 	
-	if ~isempty(convert)
+	if ~plot_info.stretch
 			
 		% Get the value by which to scale the height function
 		ascale = arrayfun(@(x,y) 1/det(convert.jacobian(x,y)),grid{:});

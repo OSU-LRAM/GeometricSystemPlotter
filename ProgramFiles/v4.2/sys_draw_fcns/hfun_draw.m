@@ -160,7 +160,7 @@ function plot_info = hfun_draw(s,p,plot_info,sys,shch,resolution)
 	% (multiply the height function by the inverse of the jacobian's
 	% determinant)
 	
-	if ~isempty(s.convert)
+	if plot_info.stretch
 			
 		% Get the value by which to scale the height function
 		ascale = arrayfun(@(x,y) 1/det(s.convert.jacobian(x,y)),grid{:});
@@ -184,7 +184,7 @@ function plot_info = hfun_draw(s,p,plot_info,sys,shch,resolution)
         ax =plot_info.axes(i);
         
         %get which height function to use
-        function_number = strmatch(plot_info.components{i}, hfun_list,'exact');
+        function_number = strcmp(plot_info.components{i}, hfun_list);
         
 		switch plot_info.style
 			
@@ -235,7 +235,7 @@ function plot_info = hfun_draw(s,p,plot_info,sys,shch,resolution)
 				
 				
 				% Make edges if coordinates have changed
-				if ~isempty(s.convert)
+				if plot_info.stretch
 					
 					edgeres = 30;
 					
@@ -256,11 +256,11 @@ function plot_info = hfun_draw(s,p,plot_info,sys,shch,resolution)
 				%equal axes sized to match grid or new dimensions if
 				%stretched
 				
-				if isempty(s.convert)
+				if plot_info.stretch
 					axis(ax,'equal');
 					axis(ax,[min(grid{1}(:)) max(grid{1}(:)) min(grid{2}(:)) max(grid{2}(:))]);
 				else
-					axis('equal','tight');
+					axis(ax,'equal','tight');
 				end
 				
 				%set the color map
@@ -322,9 +322,8 @@ function plot_info = hfun_draw(s,p,plot_info,sys,shch,resolution)
 			plot_info_specific.style = plot_info.style;
 			plot_info_specific.hfuntype = plot_info.hfuntype;
 			plot_info_specific.stretch = plot_info.stretch;
-			plot_info_specific.stretchpath = plot_info.stretchpath;
 
-			%set the button down callback on the plot to be sys_draw with
+            %set the button down callback on the plot to be sys_draw with
 			%the argument list for the current plot, and set the button
 			%down callback for the mesh to the same
 			set(plot_info.axes(i),'ButtonDownFcn',{@sys_draw_dummy_callback,plot_info_specific,sys,shch});
