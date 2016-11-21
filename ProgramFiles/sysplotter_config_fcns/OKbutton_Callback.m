@@ -14,7 +14,7 @@ function OKbutton_Callback(hObject, eventdata, handles)
 	syspath = fullfile(inputpath,'Systems');
 	shchpath = fullfile(inputpath,'Shape_Changes');
 	stretchpath = fullfile(inputpath,'Stretches');
-	datapath = fullfile(inputpath,  '/sysplotter_data/', deepestFolder);
+	datapath = fullfile(inputpath,  '/sysplotter_data/');
 	
 	
 	% Get the location of the Hodge-Helmholtz function

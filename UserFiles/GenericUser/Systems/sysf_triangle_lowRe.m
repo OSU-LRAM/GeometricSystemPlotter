@@ -5,7 +5,7 @@ function output = sysf_triangle_lowRe(input_mode,pathnames)
 		
 		input_mode = 'initialize';
 		
-    end
+	end
     
     
     %%%%
@@ -82,8 +82,8 @@ function output = sysf_triangle_lowRe(input_mode,pathnames)
             
 			%densities for various operations
 			s.density.vector = [1 1]*11; %density to display vector field
-			s.density.scalar = [1 1]*11; %density to display scalar functions
-			s.density.eval = [1 1]*11;   %density for function evaluations
+			s.density.scalar = [1 1]*21; %density to display scalar functions
+			s.density.eval = [1 1]*21;   %density for function evaluations
             s.density.metric_eval = [1 1]*11;
 			s.finite_element_density = 11;
 

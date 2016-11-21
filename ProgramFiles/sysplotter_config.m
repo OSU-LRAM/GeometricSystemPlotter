@@ -68,7 +68,7 @@ addpath('Utilities');
 addpath('Utilities/gait_gui_draw')
     
 	% Default values for HH and refpoint paths
-    set(handles.inputpathconfig,'String',GetFullPath('../../UserFiles/v4/GenericUser'))
+    set(handles.inputpathconfig,'String',GetFullPath('../UserFiles/GenericUser'))
 	set(handles.HodgeHelmholtzconfig,'String','HodgeHelmholtz')
 	set(handles.Refpointconfig,'String','RefPointOptimizer')
 	set(handles.Colorconfig,'String','sys_draw_fcns/colorsets/color_Red.m')
