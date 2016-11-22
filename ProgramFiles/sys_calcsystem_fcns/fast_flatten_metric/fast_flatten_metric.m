@@ -37,11 +37,17 @@ function [convert,sol] = fast_flatten_metric(grid,metric,mask)
 	% flattened entirely
 	[neutral_lengths,mean_neutral_length] = get_spring_neutral_lengths(springs,blocks,start_deltas,grid{:},metric);
     
-    % Scale the initial positions by the ratio between the mean neutral
-    % length and the mean initial length
-    x_scaled = (grid{1}/geomean(start_lengths))*mean_neutral_length;
-    y_scaled = (grid{2}/geomean(start_lengths))*mean_neutral_length;
+%     % Scale the initial positions by the ratio between the mean neutral
+%     % length and the mean initial length (this puts roughly half the
+%     % springs initially in tension and half in compression
+%     x_scaled = (grid{1}/geomean(start_lengths))*mean_neutral_length;
+%     y_scaled = (grid{2}/geomean(start_lengths))*mean_neutral_length;
 
+    % Scale the initial positions by the geometric mean of the starting
+    % lengths (this puts roughly half the springs initially in tension and
+    % half in compression)
+    x_scaled = (grid{1}/geomean(start_lengths));
+    y_scaled = (grid{2}/geomean(start_lengths));
     
     %%%%%
     % Masking functions for non-rectangular regions of the shape space
@@ -64,8 +70,13 @@ function [convert,sol] = fast_flatten_metric(grid,metric,mask)
     
     %%%%%%%%%%
     % Processing step
-    %Relax the springs
-	[final_x,final_y,sol] = relax_springs(x_scaled,y_scaled,springs,neutral_lengths,0.01);
+    % Relax the springs, with neutral lengths scaled by the mean of the
+    % neutral lengths so that the average neutral length is 1
+	[final_x,final_y,sol] = relax_springs(x_scaled,y_scaled,springs,neutral_lengths/mean_neutral_length,0.01);
+    
+    % restore actual probelm scale
+    final_x = final_x*mean_neutral_length;
+    final_y = final_y*mean_neutral_length;
     
 	% Convert the metric to each location's tensor at a single
 	% location
