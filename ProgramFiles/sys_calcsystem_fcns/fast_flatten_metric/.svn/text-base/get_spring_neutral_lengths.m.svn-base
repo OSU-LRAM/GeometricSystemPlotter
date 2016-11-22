@@ -1,0 +1,92 @@
+% This finds the neutral length of each spring, which is its length if the
+% box it's part of is premultiplied by sqrt(M)^-1. For springs that are part of
+% two boxes, the neutral length is taken as the average across the two
+% boxes
+function Ln = get_spring_neutral_lengths(springs,blocks,start_lengths,x,y,M)
+
+	%%%%Get a set of x,y points at the mean position of each cell	
+	n_x = size(x,1);
+	n_y = size(x,2);
+	
+	% Center-point in x direction, with robustness against non-square
+	% blocks
+	xc = ((x(2:n_x,1:(n_y-1)) - x(1:(n_x-1),1:(n_y-1)))/2 + x(1:(n_x-1),1:(n_y-1)) + ...
+		(x(2:n_x,2:n_y) - x(1:(n_x-1),2:n_y))/2 + x(1:(n_x-1),2:n_y))/2;
+	
+	% Center-point in y direction
+	yc = ((y(1:(n_x-1), 2:n_y) - y(1:(n_x-1),1:(n_y-1)))/2 + y(1:(n_x-1),1:(n_y-1)) + ...
+		(y(2:n_x,2:n_y) - y(2:n_x,1:(n_y-1)))/2 + y(2:n_x,1:(n_y-1)))/2;
+	
+	% Evaluate the metric function at each point in the grid
+	metric = arrayfun(@(xp,yp)(M(xp,yp)),xc,yc,'UniformOutput',false);
+	
+	%%%%%%%%%%
+	% Make a cell array of the coordinates of the four nodes associated
+	% with each block, translated to be centered on (xc,yc), and then
+	% transformed by the inverse of the metric
+	
+	% make a cell array with block data in it
+	blocks_cell = num2cell(blocks,2);
+	
+	% Nodes associated with each block
+	blocks_nodes = cellfun(@(block) springs(block(1,1:2),1:2),blocks_cell,'UniformOutput',false);
+	
+	% Positions of nodes in each block
+	blocks_node_positions = cellfun(@(node) [x(node(:))';y(node(:))'],blocks_nodes,'UniformOutput',false);
+	
+	% Positions of nodes in each block when block is centered on (0,0)
+	blocks_node_positions_local = ...
+		cellfun(@(positions,xp,yp) positions-repmat([xp;yp],[1,size(positions,2)])...
+		,blocks_node_positions,num2cell(xc(:)),num2cell(yc(:)),'UniformOutput',false);
+
+% 	% Calculate the eigenvectors and values of the metric tensor
+% 	[eigvec,eigval] = cellfun(@(m) eig((m)),metric,'UniformOutput',false);	
+% 
+% 	% Local positions of nodes after being transformed by
+% 	% the metric
+% 	blocks_node_positions_local_transformed = ...
+% 		cellfun(@(vec,val,c)vec*sqrt(val)*c,eigvec(:),eigval(:) ...
+% 		,blocks_node_positions_local,'UniformOutput',false);
+
+	% Calculate the svd of the metric tensor
+	[u,s,v] = cellfun(@(m) svd((m)),metric,'UniformOutput',false);
+	
+	% Local positions of nodes after being transformed by
+	% the metric
+	blocks_node_positions_local_transformed = ...
+		cellfun(@(u,s,v,c)(u*sqrt(s)*v')*c,u(:),s(:),v(:) ...
+		,blocks_node_positions_local,'UniformOutput',false);
+% 	blocks_node_positions_local_transformed = ...
+% 		cellfun(@(u,s,v,c)(sqrt(s)*v')*c,u(:),s(:),v(:) ...
+% 		,blocks_node_positions_local,'UniformOutput',false);
+
+	
+	%%%%%%%
+	% Find the spring lengths of the transformed blocks
+	metric_inverted_spring_lengths = ...
+		cellfun(@(b) sqrt([...          % Take square roots all at once
+			sum((b(:,3)-b(:,1)).^2)... % Left
+			,sum((b(:,4)-b(:,2)).^2)... % Right
+			,sum((b(:,2)-b(:,1)).^2)... % Bottom
+			,sum((b(:,4)-b(:,3)).^2)... % Top
+			,sum((b(:,4)-b(:,1)).^2)... % p45
+			,sum((b(:,3)-b(:,2)).^2)]) ... % m45
+			,blocks_node_positions_local_transformed,'UniformOutput',false);
+	
+		
+	% Flatten the spring lengths into an array
+	metric_inverted_spring_lengths_flat = cell2mat(metric_inverted_spring_lengths);
+	
+	% Average the spring lengths found for each spring
+	Ln = zeros(size(springs,1),1);
+	for i = 1:length(Ln)
+		
+		Ln(i) = mean(metric_inverted_spring_lengths_flat(blocks == i));
+		
+	end
+	
+	% Scale the neutral spring lengths so that the mean element will change
+	% as little as possible
+	Ln = Ln * geomean(start_lengths./Ln);
+
+end
