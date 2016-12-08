@@ -241,7 +241,7 @@ function plot_info = vfield_draw(s,p,plot_info,sys,shch,resolution)
 		end
         
         %Label the axes (two-dimensional)
-        label_shapespace_axes(ax,[],~isempty(s.convert));
+        label_shapespace_axes(ax,[],plot_info.stretch);
 		
         %Set the tic marks
         set_tics_shapespace(ax,s,s.convert);

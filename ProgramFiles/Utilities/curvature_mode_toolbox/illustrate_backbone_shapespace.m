@@ -1,4 +1,18 @@
-function illustrate_backbone_shapespace(curvdef,paramvalues)
+function illustrate_backbone_shapespace(curvdef,paramvalues,orientation)
+
+% Specify orientation as midpoint-tangent unless specified otherwise
+if ~exist('orientation','var')
+    orientation = 'midpoint-tangent';
+end
+
+% Identify what kind of backbone is being drawn
+if isa(curvdef,'function_handle')
+    fatbackbone_function = @fatbackbone_from_general_curvature;
+elseif iscell(curvdef) && all(cellfun(@(x) isa(x,'function_handle'),curvdef))
+    fatbackbone_function = @fatbackbone_from_curvature_bases;
+else
+    error('Unsupported curvature definition')
+end
 
 % Get the gradient of parameter values in the first two dimensions
 [~,grid_spacing_x] = gradient(paramvalues{1});
@@ -26,13 +40,13 @@ for idx = 1:numel(paramvalues{1})
     blnth = .9 * max(grid_spacing_x(idx),grid_spacing_y(idx));
     
     %Generate the backbone locus
-    B = fatbackbone_from_general_curvature(curvdef,p,blnth,blnth/20);
+    B = fatbackbone_function(curvdef,p,blnth,blnth/20,orientation);
     
     for idx2 = 1:2
-        B(:,idx2) = B(:,idx2) + p(idx2);% - mean(B(:,idx2));
+        B(:,idx2) = B(:,idx2) + p(idx2);
     end
     
     % draw the backbone at the specified location
-    plot(B(:,1),B(:,2),'Parent',axh)
+    plot(B(:,1),B(:,2),'Parent',axh,'Color','k')
 
 end
