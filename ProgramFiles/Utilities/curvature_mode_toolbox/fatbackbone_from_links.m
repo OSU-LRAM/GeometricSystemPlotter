@@ -1,4 +1,4 @@
-function [B,h] = fatbackbone_from_curvature_bases(kappa_basis_input,r,L,width,orientation)
+function [B,h] = fatbackbone_from_links(linklengths,r,L,width,orientation)
 
     % Specify orientation as midpoint-tangent unless specified otherwise
     if ~exist('orientation','var')
