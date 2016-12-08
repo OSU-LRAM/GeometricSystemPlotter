@@ -1,1 +1,1 @@
-# GSP-Generic-Version
+# GeometricSystemPlotter
