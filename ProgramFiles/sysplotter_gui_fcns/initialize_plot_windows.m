@@ -1,5 +1,5 @@
 function plots_to_make = initialize_plot_windows(box_active,plot_types,merged_plot_subtypes...
-	,plot_style,hfuntype,stretchstate,handles,source_number_text)
+	,plot_style,CCFtype,stretchstate,handles,source_number_text)
 
 	%%%%%
     %Determine how many windows to create
@@ -50,7 +50,7 @@ function plots_to_make = initialize_plot_windows(box_active,plot_types,merged_pl
 			end
 				
 			%Decide which kind of height function to show
-			plots_to_make(end,1).hfuntype = hfuntype;
+			plots_to_make(end,1).CCFtype = CCFtype;
 
 			% set the stretch on each component. Menu item 1 is no stretch,
 			% 2 is stretch (and if we offer multiple stretches in the

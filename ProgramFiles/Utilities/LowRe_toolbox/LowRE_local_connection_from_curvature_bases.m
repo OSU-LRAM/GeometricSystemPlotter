@@ -28,7 +28,7 @@ function dOmega = connection_helper(s,h,J,c,drag_ratio) %#ok<INUSL>
 % Calculate the derivative of the local connection as it's built up along
 % the backbone
 
-	% Midpoint-tangent-frame force jacobian
+	% Convert velocity to local velocity
 	gdot_to_xi_local = [cos(h(3)) sin(h(3)) 0;
 			-sin(h(3)) cos(h(3)) 0;
 			0 0 1];

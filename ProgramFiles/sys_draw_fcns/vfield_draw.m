@@ -43,10 +43,10 @@ function plot_info = vfield_draw(s,p,plot_info,sys,shch,resolution)
 		% Use the jacobians to convert the vectors
 		
 		% Iterate over all connection vector fields present
-		for i = 1:size(V,1)
+        for i = 1:size(V,1)
 			
 			% Iterate over all vectors present
-			for j = 1:numel(V{i,1})
+            for j = 1:numel(V{i,1})
 				
 				% Extract all components of the relevant vector
 				tempVin = cellfun(@(x) x(j),V(i,:));
@@ -56,11 +56,11 @@ function plot_info = vfield_draw(s,p,plot_info,sys,shch,resolution)
 				tempVout = Jac{j}\tempVin(:);
 				
 				% Replace vector components
-				for k = 1:size(V,2)
+                for k = 1:size(V,2)
 					
 					V{i,k}(j) = tempVout(k);
 					
-				end
+                end
 				
             end
             
@@ -73,10 +73,10 @@ function plot_info = vfield_draw(s,p,plot_info,sys,shch,resolution)
 		% with the stretch transformation
 		
 		% Iterate over all coordinate vector fields present
-		for i = 1:size(V_coord,1)
+        for i = 1:size(V_coord,1)
 			
 			% Iterate over all vectors present
-			for j = 1:numel(V_coord{i,1})
+            for j = 1:numel(V_coord{i,1})
 				
 				% Extract all components of the relevant vector
 				tempVin = cellfun(@(x) x(j),V_coord(i,:));
@@ -98,12 +98,12 @@ function plot_info = vfield_draw(s,p,plot_info,sys,shch,resolution)
         
         % Rotate the coordinate vectors to get normals
         V_norm = repmat({zeros(size(V{1}))},numel(grid));
-        if numel(grid) == 2;
+        if numel(grid) == 2
             
             V_norm = {V_coord{2,2} -V_coord{2,1};
                 -V_coord{1,2} V_coord{1,1}};
                 
-        elseif numel(grid) == 3;
+        elseif numel(grid) == 3
             
             V_norm = {V_coord{3,3} V_coord{3,2} -V_coord{3,1}; % z coord field around y
                 -V_coord{1,2} V_coord{1,1} -V_coord{1,3}; % x around z
@@ -177,13 +177,13 @@ function plot_info = vfield_draw(s,p,plot_info,sys,shch,resolution)
             end
 
             % Apply edgemask_merged to all the fields in this row of V 
-             for idxB = 1:size(V,2)
+            for idxB = 1:size(V,2)
 
                 V{idxA,idxB}(edgemask_merged) = 0;
 
             end       
         end
-    end    
+	end    
     
     %%%
     %If there's a singularity, use arctan scaling on the magnitude of the
