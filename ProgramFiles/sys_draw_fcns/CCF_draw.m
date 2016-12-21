@@ -1,12 +1,12 @@
-function plot_info = hfun_draw(s,p,plot_info,sys,shch,resolution)
-%Draw the height function
+function plot_info = CCF_draw(s,p,plot_info,sys,shch,resolution)
+%Draw the constraint curvature function
     
     %Get the configuration file, and extract the Colorpath
 	configfile = './sysplotter_config';
 	load(configfile,'Colorset');
 
-    %height function list
-    hfun_list = {'X','Y','T','Xopt','Yopt','Topt'};
+    %constraint curvature function list
+    CCF_list = {'X','Y','T','Xopt','Yopt','Topt'};
 
     %Ensure that there are figure axes to plot into, and create new windows
     %for those axes if necessary
@@ -16,12 +16,12 @@ function plot_info = hfun_draw(s,p,plot_info,sys,shch,resolution)
 	n_dim = numel(s.grid.eval);
 	
 	% get the number of position dimensions
-	n_g = numel(s.height);
+	n_g = numel(s.DA);
     
 	%if there is a singularity, deal with it for display
 	if s.singularity
 		
-		hfun_addendum = '_scaled';
+		CCF_addendum = '_scaled';
 		
 		singularity_location = logical(sum(cat(3,s.vecfield.eval.singularities{:}),3));
 		%singularity_location = imdilate(singularity_location,[0 1 0;1 1 1;0 1 0]);
@@ -31,7 +31,7 @@ function plot_info = hfun_draw(s,p,plot_info,sys,shch,resolution)
 		
 	else
 		
-		hfun_addendum = '';
+		CCF_addendum = '';
 		
 		ztext = 'H';
 		
@@ -39,22 +39,22 @@ function plot_info = hfun_draw(s,p,plot_info,sys,shch,resolution)
 
     
     %%%%%
-    %Height function drawing
+    %constraint curvature function drawing
     
-    %Extract the height function
+    %Extract the constraint curvature function
 	
-	%choose which height function to plot
-	switch plot_info.hfuntype
+	%choose which constraint curvature function to plot
+	switch plot_info.CCFtype
 		
-		case 'cH'
+		case 'DA'
 			
-			H = cat(1,s.(['height_corrected' hfun_addendum])...
-				,s.(['height_optimized_corrected' hfun_addendum]));
+			H = cat(1,s.(['DA' CCF_addendum])...
+				,s.(['DA_optimized' CCF_addendum]));
 			
 			if n_dim == 2
 				
-				h1name = 'height_corrected';
-				h2name = 'height_optimized_corrected';
+				h1name = 'DA';
+				h2name = 'DA_optimized';
 				
 				h1 = cell(n_g,1);
 				h2 = cell(n_g,1);
@@ -63,7 +63,7 @@ function plot_info = hfun_draw(s,p,plot_info,sys,shch,resolution)
 				
 					for i = 1:numel(p.phi_locus)
 
-						for j = 1:numel(p.phi_locus_full{i}.height)
+						for j = 1:numel(p.phi_locus_full{i}.dA)
 
 							h1{j}{i} = p.phi_locus_full{i}.(h1name){j};
 							h2{j}{i} = p.phi_locus_full{i}.(h2name){j};
@@ -78,15 +78,15 @@ function plot_info = hfun_draw(s,p,plot_info,sys,shch,resolution)
 				
 			end
 			
-		case 'oH'
+		case 'dA'
 			
-			H = cat(1,s.(['height' hfun_addendum])...
-				,s.(['height_optimized' hfun_addendum]));
+			H = cat(1,s.(['dA' CCF_addendum])...
+				,s.(['dA_optimized' CCF_addendum]));
 			
 			if n_dim == 2
 				
-				h1name = 'height';
-				h2name = 'height_optimized';
+				h1name = 'dA';
+				h2name = 'dA_optimized';
 				
 				h1 = cell(n_g,1);
 				h2 = cell(n_g,1);
@@ -94,7 +94,7 @@ function plot_info = hfun_draw(s,p,plot_info,sys,shch,resolution)
 				if ~strcmp(shch,'null')
 					for i = 1:numel(p.phi_locus)
 
-						for j = 1:numel(p.phi_locus_full{i}.height)
+						for j = 1:numel(p.phi_locus_full{i}.dA)
 
 							h1{j}{i} = p.phi_locus_full{i}.(h1name){j};
 							h2{j}{i} = p.phi_locus_full{i}.(h2name){j};
@@ -109,19 +109,19 @@ function plot_info = hfun_draw(s,p,plot_info,sys,shch,resolution)
 			end			
 			
 			
-		case 'dH'
+		case 'LA'
 						
-			H = cat(1,cellfun(@(x,y) x-y,s.(['height_corrected'  hfun_addendum])...
-				,s.(['height' hfun_addendum]),'UniformOutput',false)...
-				,cellfun(@(x,y) x-y,s.(['height_optimized_corrected' hfun_addendum])...
-				,s.(['height_optimized' hfun_addendum]),'UniformOutput',false));
+			H = cat(1,cellfun(@(x,y) x-y,s.(['DA'  CCF_addendum])...
+				,s.(['dA' CCF_addendum]),'UniformOutput',false)...
+				,cellfun(@(x,y) x-y,s.(['DA_optimized' CCF_addendum])...
+				,s.(['dA_optimized' CCF_addendum]),'UniformOutput',false));
 			
 			if n_dim == 2
 				
-				h1aname = 'height_corrected';
-				h1bname = 'height';
-				h2aname = 'height_optimized_corrected';
-				h2bname = 'height_optimized';
+				h1aname = 'DA';
+				h1bname = 'dA';
+				h2aname = 'DA_optimized';
+				h2bname = 'dA_optimized';
 				
 				h1 = cell(n_g,1);
 				h2 = cell(n_g,1);
@@ -129,7 +129,7 @@ function plot_info = hfun_draw(s,p,plot_info,sys,shch,resolution)
 				if ~strcmp(shch,'null')
 					for i = 1:numel(p.phi_locus)
 
-						for j = 1:numel(p.phi_locus_full{i}.height)
+						for j = 1:numel(p.phi_locus_full{i}.dA)
 
 							h1{j}{i} = p.phi_locus_full{i}.(h1aname){j}-p.phi_locus_full{i}.(h1bname){j};
 							h2{j}{i} = p.phi_locus_full{i}.(h2aname){j}-p.phi_locus_full{i}.(h2bname){j};
@@ -144,7 +144,7 @@ function plot_info = hfun_draw(s,p,plot_info,sys,shch,resolution)
 			end						
 		otherwise
 			
-			error('Unknown height function type')
+			error('Unknown CCF function type')
 			
 	end
     
@@ -157,12 +157,12 @@ function plot_info = hfun_draw(s,p,plot_info,sys,shch,resolution)
 	
 	%%%%%
 	% If the shape coordinates should be transformed, make the conversion
-	% (multiply the height function by the inverse of the jacobian's
+	% (multiply the constraint curvature function by the inverse of the jacobian's
 	% determinant)
 	
 	if plot_info.stretch
 			
-		% Get the value by which to scale the height function
+		% Get the value by which to scale the constraint curvature function
 		ascale = arrayfun(@(x,y) 1/det(s.convert.jacobian(x,y)),grid{:});
 
 		% Apply the jacobian to the vectors
@@ -183,8 +183,8 @@ function plot_info = hfun_draw(s,p,plot_info,sys,shch,resolution)
         %call up the relevant axis
         ax =plot_info.axes(i);
         
-        %get which height function to use
-        function_number = strcmp(plot_info.components{i}, hfun_list);
+        %get which constraint curvature function to use
+        function_number = strcmp(plot_info.components{i}, CCF_list);
         
 		switch plot_info.style
 			
@@ -196,7 +196,7 @@ function plot_info = hfun_draw(s,p,plot_info,sys,shch,resolution)
 % 					
 % 				end
 				
-				%Plot the height function
+				%Plot the constraint curvature function
 				meshhandle = surf(ax,grid{:},H{function_number});
 				
 				
@@ -223,7 +223,7 @@ function plot_info = hfun_draw(s,p,plot_info,sys,shch,resolution)
 				
 			case 'contour'
 				
-				%Plot the height function
+				%Plot the constraint curvature function
 				[junk, meshhandle] = contour(ax,grid{:},H{function_number},7,'linewidth',2);
 				
 				%If there's a shape change involved, plot it
@@ -269,7 +269,7 @@ function plot_info = hfun_draw(s,p,plot_info,sys,shch,resolution)
 				
 			otherwise
 				
-				error('Unknown plot style for the height function')
+				error('Unknown plot style for the constraint curvature function')
 				
 		end
 
@@ -318,9 +318,9 @@ function plot_info = hfun_draw(s,p,plot_info,sys,shch,resolution)
 			%build a plot_info structure for just the current plot
 			plot_info_specific.axes = 'new';
 			plot_info_specific.components = plot_info.components(i);
-			plot_info_specific.category = 'hfun';
+			plot_info_specific.category = 'CCF';
 			plot_info_specific.style = plot_info.style;
-			plot_info_specific.hfuntype = plot_info.hfuntype;
+			plot_info_specific.CCFtype = plot_info.CCFtype;
 			plot_info_specific.stretch = plot_info.stretch;
 
             %set the button down callback on the plot to be sys_draw with
@@ -331,20 +331,20 @@ function plot_info = hfun_draw(s,p,plot_info,sys,shch,resolution)
 
 		else
 
-			set(get(ax,'Parent'),'Name',[hfun_list{function_number} ' Height Function'])
+			set(get(ax,'Parent'),'Name',[CCF_list{function_number} ' Constraint Curvature Function'])
 
-			%Mark this figure as a height function
+			%Mark this figure as a constraint curvature function
 			udata = get(plot_info.figure(i),'UserData');
 			
 			switch plot_info.style
 				
 				case 'surface'
 					
-					udata.plottype = 'hfun-surface';
+					udata.plottype = 'CCF-surface';
 					
 				case 'contour'
 					
-					udata.plottype = 'hfun-contour';
+					udata.plottype = 'CCF-contour';
 					
 			end
 			

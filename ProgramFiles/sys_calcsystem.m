@@ -49,7 +49,7 @@ function output = sys_calcsystem(input_mode,systemfilename)
 			s = optimize_coordinate_choice(s);
 			
 			%Calculate the height functions from the connection
-			s = calc_height_functions(s);
+			s = calc_constraint_curvature(s);
             
             %Build a stretch function corresponding to the metric
             s = calc_stretch_functions(s);

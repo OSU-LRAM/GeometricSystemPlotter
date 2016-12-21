@@ -191,8 +191,6 @@ function plot_info = xy_draw_helper(s,p,plot_info,sys,shch,optselect);
 			plot_info_specific.category = 'xyopt';
 		end
 		plot_info_specific.style = plot_info.style;
-		plot_info_specific.hfuntype = plot_info.hfuntype;
-		plot_info_specific.stretch = plot_info.stretch;
 
 		%set the button down callback on the plot to be sys_draw with
 		%the argument list for the current plot, and set the button

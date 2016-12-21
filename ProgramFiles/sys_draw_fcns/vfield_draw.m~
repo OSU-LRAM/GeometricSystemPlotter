@@ -1,24 +1,24 @@
-function plot_info = dbeta_draw(s,p,plot_info,sys,shch,resolution)
+function plot_info = vfield_draw(s,p,plot_info,sys,shch,resolution)
 
     %Vector field list
-    vfield_list = {'X','Y','T'};
-     
+    vfield_list = {'X','Y','T','Xopt','Yopt','Topt'};
+	
 	% Get the number of dimensions
 	n_dim = numel(s.grid.eval);
     
     %Ensure that there are figure axes to plot into, and create new windows
     %for those axes if necessary
-    plot_info = ensure_figure_axes(plot_info);        
-    %%%
-    %put vector field commands here
+    plot_info = ensure_figure_axes(plot_info);    
     
-    %Extract the display vector field
-    %V = cat(4,s.B_optimized.disp.gradE_x,s.B_optimized.disp.gradE_y);
-    V =	s.B_optimized.disp.gradBeta;
+    %%%%%%%
+    % Get the vector field and interpolate into the specified grid
 	
-    %Extract the plotting grid
+    % Extract the display vector field
+    V = cat(1,s.vecfield.display.content.Avec,s.vecfield.display.content.Avec_optimized);
+    % Extract the plotting grid
     grid = s.grid.vector;
-
+    
+	
 	%%
 	% Convert the vector field to the plotting grid specified in the gui
 	[V,grid] = plotting_interp(V,grid,resolution,'vector');
@@ -98,12 +98,12 @@ function plot_info = dbeta_draw(s,p,plot_info,sys,shch,resolution)
         
         % Rotate the coordinate vectors to get normals
         V_norm = repmat({zeros(size(V{1}))},numel(grid));
-        if numel(grid) == 2
+        if numel(grid) == 2;
             
             V_norm = {V_coord{2,2} -V_coord{2,1};
                 -V_coord{1,2} V_coord{1,1}};
                 
-        elseif numel(grid) == 3
+        elseif numel(grid) == 3;
             
             V_norm = {V_coord{3,3} V_coord{3,2} -V_coord{3,1}; % z coord field around y
                 -V_coord{1,2} V_coord{1,1} -V_coord{1,3}; % x around z
@@ -177,13 +177,13 @@ function plot_info = dbeta_draw(s,p,plot_info,sys,shch,resolution)
             end
 
             % Apply edgemask_merged to all the fields in this row of V 
-            for idxB = 1:size(V,2)
+             for idxB = 1:size(V,2)
 
                 V{idxA,idxB}(edgemask_merged) = 0;
 
             end       
         end
-	end    
+    end    
     
     %%%
     %If there's a singularity, use arctan scaling on the magnitude of the

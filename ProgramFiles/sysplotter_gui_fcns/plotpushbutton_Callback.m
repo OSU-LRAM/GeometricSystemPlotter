@@ -23,8 +23,8 @@ source_number_text = source_name(end);
 	get_box_values(source_number_text,handles); %#ok<ASGLU>
 
 %get the height function type to plot
-hfuntype = get(findobj(handles.(['hfunradio' source_number_text]),'Value',1),'Tag');
-hfuntype(3) = [];
+CCFtype = get(findobj(handles.(['CCFradio' source_number_text]),'Value',1),'Tag');
+CCFtype(3) = [];
 
 % Get the state of the Stretch menu (coordinate conversion to flatten
 % metric)
@@ -33,7 +33,7 @@ stretchstate = get(handles.stretchmenu,'Value');
 	
 % Initialize the plot windows
 plots_to_make = initialize_plot_windows(box_active,plot_types,merged_plot_subtypes...
-	,plot_style,hfuntype,stretchstate,handles,source_number_text);
+	,plot_style,CCFtype,stretchstate,handles,source_number_text);
 
 
 %%%%%%%%%%%
