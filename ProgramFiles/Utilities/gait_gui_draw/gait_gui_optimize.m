@@ -26,7 +26,7 @@ period = 2*pi;
 
 
 n_plot = 100;
-t_plot = linspace(0,period,n_plot);
+t_plot = linspace(0,period,n_plot+1);
 
 alpha1_plot = ppval(spline_alpha1,t_plot);
 alpha2_plot = ppval(spline_alpha2,t_plot);
@@ -35,8 +35,9 @@ f=fullfile(datapath,strcat(current_system,'_calc.mat'));
 load(f);
 
 y=optimalgaitgenerator(s,2,100);
-alpha1_optimalplot = [y(1:100)',y(1)];
-alpha2_optimalplot = [y(101:200)',y(101)];
+alpha1 = [y(1:100)',y(1)]';
+alpha2 = [y(101:200)',y(101)]';
+t=t_plot;
 
 % Provide zdata to line if necessary
 maxZ = 0;
@@ -49,7 +50,7 @@ if ~isempty(hAxChildren)
    end
 end
 
-gaitline = line('Parent',hAx,'XData',alpha1_optimalplot,'YData',alpha2_optimalplot,'ZData',maxZ*ones(size(alpha1_optimalplot)),'Color',Colorset.spot,'LineWidth',5);
+gaitline = line('Parent',hAx,'XData',alpha1,'YData',alpha2,'ZData',maxZ*ones(size(alpha1)),'Color',Colorset.spot,'LineWidth',5);
 
 %%%% Ask the user for a filename
 current_dir = pwd; % Remember where we started
@@ -64,11 +65,11 @@ cd(current_dir)    % Go back to original directory
 
 % If the user didn't hit cancel, save the data and create a shchf file that
 % reads the data and interprets it as a gait.
-% if ~usercancel
+%  if ~usercancel
     
     % Save the data to a parameters file
 %     save(fullfile(shchpath,paramfilename),'alpha1','alpha2','t')
-    save(fullfile(shchpath,strcat(paramfilenamebare,'_optimal.mat')),'alpha1_optimalplot','alpha2_optimalplot','t')
+    save(fullfile(shchpath,strcat(paramfilenamebare,'_optimal.mat')),'alpha1','alpha2','t')
     
     % Create the file if it doesn't already exist; future work could be
     % more fine-grained about this (making sure that any patches are
@@ -85,8 +86,19 @@ cd(current_dir)    % Go back to original directory
     refresh_handle = findall(0,'tag','refresh_gui');  % Get the handle for the button
     refresh_handle.Callback(refresh_handle,0)       % Push the refresh button
     
-% end
-        
+%  end
+  
+ shch_index = get(handles.shapechangemenu,'Value');
+shch_names = get(handles.shapechangemenu,'UserData');
+
+current_shch = shch_names{shch_index};
+
+[rn,cn]=find(strcmp(shch_names,['shchf_' paramfilenamebare '_optimal']));
+set(handles.shapechangemenu,'Value',rn(1));
+active=0;
+% shapechangemenu_Callback(hObject, eventdata, handles,active)
+
+ plot_info = plotpushbutton_Callback(findall(0,'tag','plotpushbutton3'), eventdata, handles);   
     
 
 end

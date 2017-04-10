@@ -142,6 +142,8 @@ current_shch = shch_names{shch_index};
 
 [rn,cn]=find(strcmp(shch_names,['shchf_' paramfilenamebare]));
 set(handles.shapechangemenu,'Value',rn(1));
+active=0;
+% shapechangemenu_Callback(hObject, eventdata, handles,active)
 
  plot_info = plotpushbutton_Callback(findall(0,'tag','plotpushbutton3'), eventdata, handles);    
 
