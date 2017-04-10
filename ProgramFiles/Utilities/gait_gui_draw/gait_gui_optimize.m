@@ -97,7 +97,7 @@ current_shch = shch_names{shch_index};
 set(handles.shapechangemenu,'Value',rn(1));
 active=0;
 % shapechangemenu_Callback(hObject, eventdata, handles,active)
-
+enable_disable_shch_plots(hObject,eventdata,handles)
  plot_info = plotpushbutton_Callback(findall(0,'tag','plotpushbutton3'), eventdata, handles);   
     
 
