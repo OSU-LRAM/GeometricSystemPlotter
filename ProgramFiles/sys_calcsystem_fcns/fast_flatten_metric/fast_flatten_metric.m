@@ -26,16 +26,20 @@ function [convert,sol] = fast_flatten_metric(grid,metric,mask)
 % during the relaxation period, to say how far along the evolution this
 % point conversion should be made
 
-	
+    %Dualize the grid, so that the metric values calculated on the grid are
+    %at the center of a cell made from the new gridpoints
+    [xc,yc] = dualize_grid(grid{:},1);
+    griddual = {xc;yc};
+
     %Build springs from grid
-	[springs, blocks] = generate_springs(grid{1});
+	[springs, blocks] = generate_springs(griddual{1});
 
 	% Find the initial lengths of the springs (the initial grid separations
-	[start_lengths,~,start_deltas] = get_spring_lengths_and_azimuths(springs,grid{:});
+	[start_lengths,~,start_deltas] = get_spring_lengths_and_azimuths(springs,griddual{:});
 
 	% Calculate the lengths the springs would be if the metric could be
 	% flattened entirely
-	[neutral_lengths,mean_neutral_length] = get_spring_neutral_lengths(springs,blocks,start_deltas,grid{:},metric);
+	[neutral_lengths,mean_neutral_length] = get_spring_neutral_lengths(springs,blocks,start_deltas,metric);
     
 %     % Scale the initial positions by the ratio between the mean neutral
 %     % length and the mean initial length (this puts roughly half the
@@ -46,8 +50,8 @@ function [convert,sol] = fast_flatten_metric(grid,metric,mask)
     % Scale the initial positions by the geometric mean of the starting
     % lengths (this puts roughly half the springs initially in tension and
     % half in compression)
-    x_scaled = (grid{1}/geomean(start_lengths));
-    y_scaled = (grid{2}/geomean(start_lengths));
+    x_scaled = (griddual{1}/geomean(start_lengths));
+    y_scaled = (griddual{2}/geomean(start_lengths));
     
     %%%%%
     % Masking functions for non-rectangular regions of the shape space
@@ -58,7 +62,7 @@ function [convert,sol] = fast_flatten_metric(grid,metric,mask)
     end
     
     % Apply the mask to the points
-    masked_points = mask(grid{1}(:),grid{2}(:));
+    masked_points = mask(griddual{1}(:),griddual{2}(:));
     
     % Generate a mask for the springs, that returns zero if either end of
     % the spring is outside the target region.
@@ -89,17 +93,18 @@ function [convert,sol] = fast_flatten_metric(grid,metric,mask)
 	%Build the output functions
 	
 	% Convert points
-	convert.old_to_new_points = @(x_old,y_old) convert_points(grid{:},final_x,final_y,x_old,y_old);
-	Fx = TriScatteredInterp([final_x(:) final_y(:)],grid{1}(:));
-	Fy = TriScatteredInterp([final_x(:) final_y(:)],grid{2}(:));
+	convert.old_to_new_points = @(x_old,y_old) convert_points(griddual{:},final_x,final_y,x_old,y_old);
+	Fx = TriScatteredInterp([final_x(:) final_y(:)],griddual{1}(:));
+	Fy = TriScatteredInterp([final_x(:) final_y(:)],griddual{2}(:));
 	convert.new_to_old_points = @(x_new,y_new) multiTriInterp(Fx,Fy,x_new,y_new);
 	
 	% Jacobian from old to new tangent vectors
-	final_jacobian = find_jacobian(grid{:},final_x,final_y);
-	convert.jacobian = @(x_p,y_p) interpolate_cellwise_tensor(grid{:},x_p,y_p,final_jacobian);
+	final_jacobian = find_jacobian(griddual{:},final_x,final_y);
+	convert.jacobian = @(x_p,y_p) interpolate_cellwise_tensor(griddual{:},x_p,y_p,final_jacobian);
 	
 	% Metric in new space
-	final_new_metric = cellfun(@(j,m) j'\m/j,celltensorconvert(final_jacobian),(metric),'UniformOutput',false);
+    final_jacobian_metric = arrayfun(convert.jacobian,grid{:},'UniformOutput',false);
+	final_new_metric = cellfun(@(j,m) j'\m/j,final_jacobian_metric,(metric),'UniformOutput',false);
 	convert.new_metric = @(x_p,y_p) interpolate_cellwise_tensor(grid{:},x_p,y_p,celltensorconvert(final_new_metric));
 	convert.old_metric = @(x_p,y_p) interpolate_cellwise_tensor(grid{:},x_p,y_p,celltensorconvert(metric));
     
