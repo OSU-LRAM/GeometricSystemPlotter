@@ -48,7 +48,7 @@ function output = sys_calcsystem(input_mode,systemfilename)
 			%Calculate optimal coordinate choice
 			s = optimize_coordinate_choice(s);
 			
-			%Calculate the height functions from the connection
+			%Calculate the constraint curvature functions from the connection
 			s = calc_constraint_curvature(s);
             
             %Build a stretch function corresponding to the metric
