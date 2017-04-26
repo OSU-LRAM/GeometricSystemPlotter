@@ -22,7 +22,7 @@ function varargout = sysplotter(varargin)
 
 % Edit the above text to modify the response to help sysplotter
 
-% Last Modified by GUIDE v2.5 21-Apr-2017 14:10:54
+% Last Modified by GUIDE v2.5 26-Apr-2017 14:47:43
 
     addpath('./Utilities')
 
@@ -164,17 +164,4 @@ function varargout = sysplotter_OutputFcn(hObject, eventdata, handles)
 	% Get default command line output from handles structure
 	varargout{1} = handles.output;
 
-end
-
-
-% --- Executes on button press in pushbutton20.
-function pushbutton20_Callback(hObject, eventdata, handles)
-% hObject    handle to pushbutton20 (see GCBO)
-% eventdata  reserved - to be defined in a future version of MATLAB
-% handles    structure with handles and user data (see GUIDATA)
- plot_info = plotpushbutton_Callback_optimize(findall(0,'tag','plotpushbutton3'), eventdata, handles);
-
-% Execute the gait_gui_draw command
-    gait_gui_optimize(plot_info(1).axes(1),hObject, eventdata, handles);
-waitbar2a(1,handles.progresspanel,'Finished Plotting')
 end
