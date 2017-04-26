@@ -8,6 +8,9 @@ function gait_gui_draw_Callback(hObject, eventdata, handles)
 plot_info = plotpushbutton_Callback(findall(0,'tag','plotpushbutton3'), eventdata, handles);
 
 % Execute the gait_gui_draw command
-    gait_gui_draw(plot_info(1).axes(1));
+    gait_gui_draw(plot_info(1).axes(1),hObject, eventdata, handles);
+    
+%     set(handles.shapechangemenu,'Value',rn(1));
+%     plot_info = plotpushbutton_Callback(hObject, eventdata, handles); 
 
 end

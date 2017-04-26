@@ -25,7 +25,7 @@ range_mid = num2cell((range_start+range_end)/2);
 % supply the point twice as if it were two grid points
 double_midpoint = mat2tiles([range_mid{:} range_mid{:}],size(range_mid));
 vector_input = 1;
-A_test = tensorfunction(range_mid{:}); % This is to make the system throw an error if tensorfunction is bad, because the try line on double_midpoint will treat an error as indicating a non-vector function
+A_test_single = tensorfunction(range_mid{:}); % This is to make the system throw an error if tensorfunction is bad, because the try line on double_midpoint will treat an error as indicating a non-vector function
 try
 
     A_test = tensorfunction(double_midpoint{:}); %#ok<NASGU>
@@ -63,6 +63,12 @@ elseif iscell(A_test)
         
     end
         
+% If the output is not a cell array, and A_test does not have twice as many
+% entries as A_test_single, then this function doesn't handle vector inputs
+% properly, and should be marked as single
+elseif numel(A_test) ~= 2*numel(A_test_single)
+    
+    tensorfunctiontype = 'single point';
     
 % If the function appears able to take vector input and return non-cell output, test to see if the
 % output is block or woven

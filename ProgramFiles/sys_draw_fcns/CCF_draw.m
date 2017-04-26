@@ -2,7 +2,8 @@ function plot_info = CCF_draw(s,p,plot_info,sys,shch,resolution)
 %Draw the constraint curvature function
     
     %Get the configuration file, and extract the Colorpath
-	configfile = './sysplotter_config';
+	configfile = 'sysplotter_config';
+    configfile = fullfile(fileparts(mfilename('fullpath')),'..',configfile);
 	load(configfile,'Colorset');
 
     %constraint curvature function list
@@ -300,7 +301,7 @@ function plot_info = CCF_draw(s,p,plot_info,sys,shch,resolution)
 
 
 		%Label the axes
-		label_shapespace_axes(ax,[],~isempty(s.convert));
+		label_shapespace_axes(ax,[],plot_info.stretch);
 
 		%Set the tic marks
 		set_tics_shapespace(ax,s,s.convert);
