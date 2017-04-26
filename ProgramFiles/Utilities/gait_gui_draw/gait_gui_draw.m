@@ -133,6 +133,10 @@ if ~usercancel
     refresh_handle = findall(0,'tag','refresh_gui');  % Get the handle for the button
     refresh_handle.Callback(refresh_handle,0)       % Push the refresh button
     
+else
+    
+    return
+    
 end
 
 shch_index = get(handles.shapechangemenu,'Value');
