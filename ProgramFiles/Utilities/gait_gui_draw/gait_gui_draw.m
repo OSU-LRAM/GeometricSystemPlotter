@@ -1,4 +1,4 @@
-function gait_gui_draw(hAx)
+function gait_gui_draw(hAx,hObject, eventdata, handles)
 
 % Load the sysplotter configuration information
 load sysplotter_config
@@ -63,6 +63,10 @@ t_plot = linspace(0,period,n_plot);
 
 alpha1_plot = ppval(spline_alpha1,t_plot);
 alpha2_plot = ppval(spline_alpha2,t_plot);
+
+% y=optimalgaitgenerator(s,2,100);
+% alpha1_optimalplot = y(:,1)';
+% alpha2_optimalplot = y(:,2)';
 
 % Provide zdata to line if necessary
 maxZ = 0;
@@ -129,8 +133,22 @@ if ~usercancel
     refresh_handle = findall(0,'tag','refresh_gui');  % Get the handle for the button
     refresh_handle.Callback(refresh_handle,0)       % Push the refresh button
     
-end
-        
+else
     
+    return
+    
+end
+
+shch_index = get(handles.shapechangemenu,'Value');
+shch_names = get(handles.shapechangemenu,'UserData');
+
+current_shch = shch_names{shch_index};
+
+[rn,cn]=find(strcmp(shch_names,['shchf_' paramfilenamebare]));
+set(handles.shapechangemenu,'Value',rn(1));
+active=0;
+% shapechangemenu_Callback(hObject, eventdata, handles,active)
+enable_disable_shch_plots(hObject,eventdata,handles)
+ plot_info = plotpushbutton_Callback(findall(0,'tag','plotpushbutton3'), eventdata, handles);    
 
 end

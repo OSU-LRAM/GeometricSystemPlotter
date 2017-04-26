@@ -36,7 +36,7 @@ end
 
 % Take the derivative of the curvature with respect to each parameter
 if attempt_analytic(3)
-    d_curv_dp_fun = jacobian(curv_fun,sym(paramlist)).';
+    d_curv_dp_fun = jacobian(curv_fun,sym(paramlist));
     flist = [flist,{d_curv_dp_fun}];
 else
     flist = [flist,{[]}];
