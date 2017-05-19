@@ -14,14 +14,14 @@ function p = find_loci(s,p)
     n_dim = numel(s.grid.eval);
     
 	% number of position dimensions
-	n_g = size(s.height,1);
+	n_g = size(s.dA,1);
 	
 	% cell array to hold evaluated loci for the paths
     p.phi_locus = cell(size(p.phi_def));
 	
 	% List the functions on which to project the shape paths
 	fields = fieldnames(s);
-	project_list = fields(strncmp('height',fields,6));	
+	project_list = fields(strncmpi('dA',fields,2));	
 
     %calculate path loci and generate useful forms of the gait function
 	for i = 1:n_paths

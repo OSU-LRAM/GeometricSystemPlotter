@@ -20,7 +20,7 @@ function plot_info = beta_draw(s,p,plot_info,sys,shch,resolution)
 	n_dim = numel(s.grid.eval);
 	
 	% get the number of position dimensions
-	n_g = numel(s.height);
+	n_g = numel(s.dA);
 
 	% Set up the zdata for the plot
 	if ~strcmp(shch,'null')
@@ -197,7 +197,7 @@ function plot_info = beta_draw(s,p,plot_info,sys,shch,resolution)
 			plot_info_specific.components = plot_info.components(i);
 			plot_info_specific.category = 'beta';
 			plot_info_specific.style = plot_info.style;
-			plot_info_specific.hfuntype = plot_info.hfuntype;
+			plot_info_specific.CCFtype = plot_info.CCFtype;
 			plot_info_specific.stretch = plot_info.stretch;
 
 			%set the button down callback on the plot to be sys_draw with
@@ -214,11 +214,11 @@ function plot_info = beta_draw(s,p,plot_info,sys,shch,resolution)
 				
 				case 'surface'
 					
-					udata.plottype = 'hfun-surface';
+					udata.plottype = 'CCF-surface';
 					
 				case 'contour'
 					
-					udata.plottype = 'hfun-contour';
+					udata.plottype = 'CCF-contour';
 					
 			end
 			

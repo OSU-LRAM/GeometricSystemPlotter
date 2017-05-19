@@ -7,7 +7,7 @@ function [box_names, box_active, box_values, box_enabled, plot_types,...
     %build the list of plot boxes for the column
     
     %classes of plot
-    plot_types = {'vfield','hfun','bvi','disp','beta','dbeta','xy','xyopt'};
+    plot_types = {'vfield','CCF','bvi','disp','beta','dbeta','xy','xyopt'};
     
     %plot or subplot for each coordinate
     plot_style = {'plot','plot','subplot','subplot','plot','plot','single','single'};

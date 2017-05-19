@@ -1,10 +1,10 @@
-%Calculate the height functions from the connection
-function s = calc_height_functions(s)
+%Calculate the constraint curvature functions from the connection
+function s = calc_constraint_curvature(s)
 
 	%Apply to both raw and optimized connections
 	Avec_names = {'','_optimized'};
 	
-	for i = 1:length(Avec_names);
+	for i = 1:length(Avec_names)
 
 		%Extract the high density "eval" vector field
 		vecfield = s.vecfield.eval.content.(['Avec' Avec_names{i}]);
@@ -25,15 +25,15 @@ function s = calc_height_functions(s)
 
 		if n_col <= 3
 	
-			s.(['height' Avec_names{i}]) = cell(n_rows,(n_col^2 - n_col)/2);
-			s.(['height' Avec_names{i} '_corrected']) = cell(n_rows,(n_col^2 - n_col)/2);
+			s.(['dA' Avec_names{i}]) = cell(n_rows,(n_col^2 - n_col)/2);
+			s.(['DA' Avec_names{i}]) = cell(n_rows,(n_col^2 - n_col)/2);
 			
 				
 		
 		else % For dimensions not yet implemented. The 'return' skips over the processing that would break for string input
 					
-			s.(['height' Avec_names{i}]) = 'Exterior derivative for n>3 not yet implemented';
-			s.(['height' Avec_names{i} '_corrected']) = 'Exterior derivative for n>3 not yet implemented';
+			s.(['dA' Avec_names{i}]) = 'Exterior derivative for n>3 not yet implemented';
+			s.(['DA' Avec_names{i}]) = 'Exterior derivative for n>3 not yet implemented';
 				
 			return
 				
@@ -74,13 +74,13 @@ function s = calc_height_functions(s)
 				= curl(grid{inputorder},vecfield_meshgrid{:}); %#ok<NASGU>
 
 			% Convert the data back into ndgrid ordering
-			s.(['height' Avec_names{i}])(j,:) = cellfun(@(x) permute(x,inputorder),curlfield,'UniformOutput',false);
+			s.(['dA' Avec_names{i}])(j,:) = cellfun(@(x) permute(x,inputorder),curlfield,'UniformOutput',false);
 			
 		end
 			
 		% Duplicate the exterior derivative to initiate a
 		% Lie-bracket corrected version
-		s.(['height' Avec_names{i} '_corrected']) = s.(['height' Avec_names{i}]);
+		s.(['DA' Avec_names{i}]) = s.(['dA' Avec_names{i}]);
 
 		% Apply the lie bracket correction term
 		correction = cell(n_rows,size(basis_ordering,1));
@@ -89,21 +89,21 @@ function s = calc_height_functions(s)
 			correction(:,k) = cellfun(@(x) x, se2_local_lie_bracket(vecfield(:,basis_ordering(k,1)),vecfield(:,basis_ordering(k,2))),'UniformOutput',false);
 
 		end
-		s.(['height' Avec_names{i} '_corrected']) ...
-			= cellfun(@(x,y) x + y, s.(['height' Avec_names{i} '_corrected']), correction,'UniformOutput',false);
+		s.(['DA' Avec_names{i}]) ...
+			= cellfun(@(x,y) x + y, s.(['DA' Avec_names{i}]), correction,'UniformOutput',false);
 		
 		
 		%%%%%%%%%%
-		% Get the percentage of the total height function contributed by
-		% the curl. First pair of lines calculates translational (using
+		% Get the percentage of the total constraint curvature contributed by
+		% the exterior_derivative. First pair of lines calculates translational (using
 		% pythagorean sum of x and y components). Final line gets
 		% rotational (which should always be 1 for SE(2))
-		s.(['height' Avec_names{i} '_ratio']) =...
-			{(s.(['height' Avec_names{i}]){1}.^2+s.(['height' Avec_names{i}]){2}.^2).^(.5)...
-			./(s.(['height' Avec_names{i} '_corrected']){1}.^2+s.(['height' Avec_names{i} '_corrected']){2}.^2).^(.5);
-			zeros(size(s.(['height' Avec_names{i}]){2}));
+		s.(['DA' Avec_names{i} '_ratio']) =...
+			{(s.(['dA' Avec_names{i}]){1}.^2+s.(['dA' Avec_names{i}]){2}.^2).^(.5)...
+			./(s.(['DA' Avec_names{i}]){1}.^2+s.(['DA' Avec_names{i}]){2}.^2).^(.5);
+			zeros(size(s.(['dA' Avec_names{i}]){2}));
 			%
-			s.(['height' Avec_names{i}]){3}./s.(['height' Avec_names{i} '_corrected']){3}};
+			s.(['dA' Avec_names{i}]){3}./s.(['DA' Avec_names{i}]){3}};
 		
 		
 		
@@ -114,28 +114,28 @@ function s = calc_height_functions(s)
 			for k = 1:numel(correction)
 				
 				temp = ...
-					arctan_scale_vector_fields({s.(['height' Avec_names{i}]){k}...
-					,zeros(size(s.(['height' Avec_names{i}]){k}))});
+					arctan_scale_vector_fields({s.(['dA' Avec_names{i}]){k}...
+					,zeros(size(s.(['dA' Avec_names{i}]){k}))});
 				
-				s.(['height' Avec_names{i} '_scaled']){k,1} = temp{1};
+				s.(['dA' Avec_names{i} '_scaled']){k,1} = temp{1};
 				
 				temp = ...
-					arctan_scale_vector_fields({s.(['height' Avec_names{i} '_corrected']){k}...
-					, zeros(size(s.(['height' Avec_names{i}]){k}))}); %.* (1-s.vecfield.eval.singularities{1});
+					arctan_scale_vector_fields({s.(['DA' Avec_names{i}]){k}...
+					, zeros(size(s.(['dA' Avec_names{i}]){k}))}); %.* (1-s.vecfield.eval.singularities{1});
 			
-				s.(['height' Avec_names{i} '_corrected_scaled']){k,1} = temp{1};
+				s.(['DA' Avec_names{i} '_scaled']){k,1} = temp{1};
 				
 			end
 			
 			
-			% Scale the height function nonconservative-to-total ratio values
+			% Scale the constraint curvature function nonconservative-to-total ratio values
 			for k = 1:3
 				
 				temp = ...
-					arctan_scale_vector_fields({s.(['height' Avec_names{i} '_ratio']){k}...
-					, zeros(size(s.(['height' Avec_names{i}]){k}))}); %.* (1-s.vecfield.eval.singularities{1});
+					arctan_scale_vector_fields({s.(['DA' Avec_names{i} '_ratio']){k}...
+					, zeros(size(s.(['dA' Avec_names{i}]){k}))}); %.* (1-s.vecfield.eval.singularities{1});
 			
-				s.(['height' Avec_names{i} '_ratio_scaled']){k,1} = temp{1};
+				s.(['DA' Avec_names{i} '_ratio_scaled']){k,1} = temp{1};
 				
 			end
 

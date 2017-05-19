@@ -6,27 +6,33 @@ function plot_info = disp_draw(s,p,plot_info,sys,shch,convert,resolution) %#ok<I
 	load(configfile,'Colorset');
 	
 	% define a color/linestyle list
+	linelist = {Colorset.spot, '-';
+		Colorset.secondary, '--';
+		'k' ,':';
+		Colorset.spot, '--';
+		Colorset.secondary, ':';
+		'k' ,'-'};
 	
-	switch plot_info.linestyle
-		
-		case 'mono'
-			
-			linelist = {Colorset.spot, '-'};
-			
-		case 'cycle'
-	
-            linelist = {Colorset.spot, '-';
-                Colorset.secondary, '--';
-                'k' ,':';
-                Colorset.spot, '--';
-                Colorset.secondary, ':';
-                'k' ,'-'};
-		
-		otherwise
-			
-			error('Unexpected value for plot_info.linestyle')			
-			
-	end
+% 	switch plot_info.linestyle
+% 		
+% 		case 'mono'
+% 			
+% 			linelist = {Colorset.spot, '-'};
+% 			
+% 		case 'cycle'
+% 	
+%             linelist = {Colorset.spot, '-';
+%                 Colorset.secondary, '--';
+%                 'k' ,':';
+%                 Colorset.spot, '--';
+%                 Colorset.secondary, ':';
+%                 'k' ,'-'};
+% 		
+% 		otherwise
+% 			
+% 			error('Unexpected value for plot_info.linestyle')			
+% 			
+% 	end
 
 	% Number of position space dimensions
 	n_dim = size(p.G_locus{1}{1}.G,2);
