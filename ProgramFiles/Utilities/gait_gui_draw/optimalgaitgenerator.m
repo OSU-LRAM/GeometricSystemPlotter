@@ -30,11 +30,11 @@ for i=1:1:dimension
     fa{i}=fit(t',[P1(:,i);P1(1,i)],'fourier5');
 end
 
-figure(1)
-plot(fa{1},t',[P1(:,1);P1(1,1)])
-
-figure(2)
-plot(fa{2},t',[P1(:,2);P1(1,2)])
+% figure(1)
+% plot(fa{1},t',[P1(:,1);P1(1,1)])
+% 
+% figure(2)
+% plot(fa{2},t',[P1(:,2);P1(1,2)])
 
 
 %%
