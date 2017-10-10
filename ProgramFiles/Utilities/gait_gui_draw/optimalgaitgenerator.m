@@ -27,14 +27,14 @@ t=1:1:npoints+1;
 fa=cell(dimension);
 
 for i=1:1:dimension
-    fa{i}=fit(t',[P1(:,i);P1(1,i)],'fourier5');
+    fa{i}=fit(t',[P1(:,i);P1(1,i)],'fourier4');
 end
 
-% figure(1)
-% plot(fa{1},t',[P1(:,1);P1(1,1)])
-% 
-% figure(2)
-% plot(fa{2},t',[P1(:,2);P1(1,2)])
+figure(1)
+plot(fa{1},t',[P1(:,1);P1(1,1)])
+
+figure(2)
+plot(fa{2},t',[P1(:,2);P1(1,2)])
 
 
 %%
@@ -65,7 +65,7 @@ beq=[];
 % ub=2.2*ones(200,1);
  nonlcon1=[];
 
-nu={'a0';'a1';'b1';'a2';'b2';'a3';'b3';'a4';'b4';'a5';'b5';'w'};%
+nu={'a0';'a1';'b1';'a2';'b2';'a3';'b3';'a4';'b4';'w'};%
  lb1=[];
  ub1=[];
 
@@ -82,7 +82,7 @@ end
 
 for i=1:1:n
     for j=1:dimension
-        y1(i,j)=yf(1,j)+yf(2,j)*cos(i*yf(end,j))+yf(3,j)*sin(i*yf(end,j))+yf(4,j)*cos(2*i*yf(end,j))+yf(5,j)*sin(2*i*yf(end,j))+yf(6,j)*cos(3*i*yf(end,j))+yf(7,j)*sin(3*i*yf(end,j))+yf(8,j)*cos(4*i*yf(end,j))+yf(9,j)*sin(4*i*yf(end,j))+yf(10,j)*cos(5*i*yf(end,j))+yf(11,j)*sin(5*i*yf(end,j));
+        y1(i,j)=yf(1,j)+yf(2,j)*cos(i*yf(end,j))+yf(3,j)*sin(i*yf(end,j))+yf(4,j)*cos(2*i*yf(end,j))+yf(5,j)*sin(2*i*yf(end,j))+yf(6,j)*cos(3*i*yf(end,j))+yf(7,j)*sin(3*i*yf(end,j))+yf(8,j)*cos(4*i*yf(end,j))+yf(9,j)*sin(4*i*yf(end,j));%+yf(10,j)*cos(5*i*yf(end,j))+yf(11,j)*sin(5*i*yf(end,j));%+yf(12,j)*cos(6*i*yf(end,j))+yf(13,j)*sin(6*i*yf(end,j));
     end    
 end
 y=y1(:);
@@ -107,7 +107,7 @@ afactor=0.001;
 coeff=y;
 for i=1:1:n
     for j=1:dimension
-        y1(i,j)=y(1,j)+y(2,j)*cos(i*y(end,j))+y(3,j)*sin(i*y(end,j))+y(4,j)*cos(2*i*y(end,j))+y(5,j)*sin(2*i*y(end,j))+y(6,j)*cos(3*i*y(end,j))+y(7,j)*sin(3*i*y(end,j))+y(8,j)*cos(4*i*y(end,j))+y(9,j)*sin(4*i*y(end,j))+y(10,j)*cos(5*i*y(end,j))+y(11,j)*sin(5*i*y(end,j));;%
+        y1(i,j)=y(1,j)+y(2,j)*cos(i*y(end,j))+y(3,j)*sin(i*y(end,j))+y(4,j)*cos(2*i*y(end,j))+y(5,j)*sin(2*i*y(end,j))+y(6,j)*cos(3*i*y(end,j))+y(7,j)*sin(3*i*y(end,j))+y(8,j)*cos(4*i*y(end,j))+y(9,j)*sin(4*i*y(end,j));%+y(10,j)*cos(5*i*y(end,j))+y(11,j)*sin(5*i*y(end,j));%+y(12,j)*cos(6*i*y(end,j))+y(13,j)*sin(6*i*y(end,j));%
     end    
 end
 clear y
@@ -144,7 +144,8 @@ else
     lineint=lineint;
     invert=0;
 end
-
+% max(y)
+% min(y)
 
 %% for checking purposes
 
@@ -337,12 +338,20 @@ end
 %% changey/dcoeff
 
 chy=cell(dimension,1);
-
-for i=1:1:dimension
-    for j=1:1:n
-        chy{i}(:,j)=[1;cos(j*coeff(end,i));sin(j*coeff(end,i));cos(2*j*coeff(end,i));sin(2*j*coeff(end,i));cos(3*j*coeff(end,i));sin(3*j*coeff(end,i));cos(4*j*coeff(end,i));sin(4*j*coeff(end,i));cos(5*j*coeff(end,i));sin(5*j*coeff(end,i))];%
+% if invert == 0
+    for i=1:1:dimension
+        for j=1:1:n
+            chy{i}(:,j)=[1;cos(j*coeff(end,i));sin(j*coeff(end,i));cos(2*j*coeff(end,i));sin(2*j*coeff(end,i));cos(3*j*coeff(end,i));sin(3*j*coeff(end,i));cos(4*j*coeff(end,i));sin(4*j*coeff(end,i))];%cos(5*j*coeff(end,i));sin(5*j*coeff(end,i))];%;cos(6*j*coeff(end,i));sin(6*j*coeff(end,i))];%
+        end
     end
-end
+% else
+%     for i=1:1:dimension
+%         for j=1:1:n
+%             chy{i}(:,n+1-j)=[1;cos(j*coeff(end,i));sin(j*coeff(end,i));cos(2*j*coeff(end,i));sin(2*j*coeff(end,i));cos(3*j*coeff(end,i));sin(3*j*coeff(end,i));cos(4*j*coeff(end,i));sin(4*j*coeff(end,i));cos(5*j*coeff(end,i));sin(5*j*coeff(end,i))];%
+%         end
+%     end
+% end
+
 
 %% properly orienting jacobians
 % invert
@@ -370,7 +379,7 @@ end
 totaljacobian=jacobiandisp/totalstroke-lineint*jacobianstroke/totalstroke^2+jacobianeqi;
 
 for i=1:1:dimension
-    for j=1:1:11
+    for j=1:1:9  %%%don't hardcode
         jacobiandispfourier(j,i)=chy{i}(j,:)*jacobiandisp(:,i);
         jacobianstrokefourier(j,i)=chy{i}(j,:)*jacobianstroke(:,i);
         jacobianeqifourier(j,i)=chy{i}(j,:)*jacobianeqi(:,i);
@@ -401,21 +410,23 @@ end
 
 % totaljacobian=jacobiandispfourier+jacobianeqifourier;%+((lineint)*jacobianstrokefourier)/(1*totalstroke)+4*jacobianeqifourier;
 %totaljacobianfourier=jacobiandispfourier/totalstroke-((lineint)*jacobianstrokefourier)/(1*totalstroke)^2+2*jacobianeqifourier;
-% for i=1:n
-%     for j=1:1:dimension
-%         totaljacobianc(i,j)=chy{j}(:,i)'*totaljacobianfourier(:,j);
-%         jacobiandispc(i,j)=chy{j}(:,i)'*jacobiandispfourier(:,j);
-%         jacobianstrokec(i,j)=chy{j}(:,i)'*jacobianstrokefourier(:,j);
-%     end
-% end
-%         totaljacobianctemp=totaljacobianc;
-%         jacobiandispctemp=jacobiandispc;
-%         jacobianstrokectemp=jacobianstrokec;
-% for i=1:1:n
-%     jacobiandispc(i,:)=jacobiandispctemp(n+1-i,:);
-%     jacobianstrokec(i,:)=jacobianstrokectemp(n+1-i,:);
-%     totaljacobianc(i,:)=totaljacobianctemp(n+1-i,:);
-% end
+
+%%% if invert==1
+for i=1:n
+    for j=1:1:dimension
+        totaljacobianc(i,j)=chy{j}(:,i)'*totaljacobianfourier(:,j);
+        jacobiandispc(i,j)=chy{j}(:,i)'*jacobiandispfourier(:,j);
+        jacobianstrokec(i,j)=chy{j}(:,i)'*jacobianstrokefourier(:,j);
+    end
+end
+        totaljacobianctemp=totaljacobianc;
+        jacobiandispctemp=jacobiandispc;
+        jacobianstrokectemp=jacobianstrokec;
+for i=1:1:n
+    jacobiandispc(i,:)=jacobiandispctemp(n+1-i,:);
+    jacobianstrokec(i,:)=jacobianstrokectemp(n+1-i,:);
+    totaljacobianc(i,:)=totaljacobianctemp(n+1-i,:);
+end
 
 % jacobiandispfourier=jacobiandispfourier;%+jacobianeqifourier;
 %% minimizing negative of efficiency
@@ -449,35 +460,35 @@ end
 
 %% Debugging and plotting
 
-% for i=1:n
-%     G(i)=y(i,1);
-%     H(i)=y(i,2);
-% %     P(i)=y(i,3);
-% %     I(i)=1*jacobianstroketemp(i,1);
-% %     J(i)=1*jacobianstroketemp(i,2);
-%     I(i)=1*jacobianstrokec(i,1);
-%     J(i)=1*jacobianstrokec(i,2);
-% %     N(i)=1*jacobianstroke(i,3);
-% %     K(i)=jacobiandisptemp(i,1);
-%     K(i)=jacobiandispc(i,1);
-% %     K1(i)=jacobianforward(i,1);
-% %     L(i)=jacobiandisptemp(i,2);
-%     L(i)=jacobiandispc(i,2);
-% %     L1(i)=jacobianforward(i,2);
-% %     Q(i)=jacobiandisp(i,3);
-%     B(i)=totaljacobianc(i,1);
-%     B1(i)=totaljacobian(i,1);
-%     C(i)=totaljacobianc(i,2);
-%     C1(i)=totaljacobian(i,2);
-% %     D(i)=totaljacobian(i,3);
-%     O(i)=jacobianeqi(i,1);
-%     S(i)=jacobianeqi(i,2);
-% %     R(i)=jacobianeqi(i,3);
-% %     heightx(i)=height(i,1);
-% %     heighty(i)=height(i,2); 
-% %     heightz(i)=height(i,3);
-% %     heightcrosscheck(i)=height(i,:)*jacobiandisp(i,:)';
-% end
+for i=1:n
+    G(i)=y(i,1);
+    H(i)=y(i,2);
+%     P(i)=y(i,3);
+%     I(i)=1*jacobianstroketemp(i,1);
+%     J(i)=1*jacobianstroketemp(i,2);
+    I(i)=1*jacobianstrokec(i,1);
+    J(i)=1*jacobianstrokec(i,2);
+%     N(i)=1*jacobianstroke(i,3);
+%     K(i)=jacobiandisptemp(i,1);
+    K(i)=jacobiandispc(i,1);
+%     K1(i)=jacobianforward(i,1);
+%     L(i)=jacobiandisptemp(i,2);
+    L(i)=jacobiandispc(i,2);
+%     L1(i)=jacobianforward(i,2);
+%     Q(i)=jacobiandisp(i,3);
+    B(i)=totaljacobianc(i,1);
+    B1(i)=totaljacobian(i,1);
+    C(i)=totaljacobianc(i,2);
+    C1(i)=totaljacobian(i,2);
+%     D(i)=totaljacobian(i,3);
+    O(i)=jacobianeqi(i,1);
+    S(i)=jacobianeqi(i,2);
+%     R(i)=jacobianeqi(i,3);
+%     heightx(i)=height(i,1);
+%     heighty(i)=height(i,2); 
+%     heightz(i)=height(i,3);
+%     heightcrosscheck(i)=height(i,:)*jacobiandisp(i,:)';
+end
 % % % % 
 % % % % 
 % clf(figure(6)) %%jacobiandisp
@@ -518,7 +529,7 @@ end
 % clf(figure(8)) %%% totaljacobian
 % figure(8)
 % scale=0;
-% quiver(G,H,B,C,scale1)
+%  quiver(G,H,B,C,scale1)
 % hold on
 % quiver(G,H,B1,C1,scale1)
 % 
@@ -556,7 +567,7 @@ end
 % plot(y(:,1),y(:,2))
 % axis equal
 % 
-% pause(0.1)
+%  pause(0.1)
 
 
 
@@ -626,7 +637,7 @@ function [A,Aeq]=nonlcon(y,s,n,dimension,lb,ub)
 coeff=y;
 for i=1:1:n+1
     for j=1:dimension
-        y1(i,j)=y(1,j)+y(2,j)*cos(i*y(end,j))+y(3,j)*sin(i*y(end,j))+y(4,j)*cos(2*i*y(end,j))+y(5,j)*sin(2*i*y(end,j))+y(6,j)*cos(3*i*y(end,j))+y(7,j)*sin(3*i*y(end,j));
+        y1(i,j)=y(1,j)+y(2,j)*cos(i*y(end,j))+y(3,j)*sin(i*y(end,j))+y(4,j)*cos(2*i*y(end,j))+y(5,j)*sin(2*i*y(end,j))+y(6,j)*cos(3*i*y(end,j))+y(7,j)*sin(3*i*y(end,j))+y(8,j)*cos(4*i*y(end,j))+y(9,j)*sin(4*i*y(end,j));%+y(10,j)*cos(5*i*y(end,j))+y(11,j)*sin(5*i*y(end,j));%+y(12,j)*cos(6*i*y(end,j))+y(13,j)*sin(6*i*y(end,j));
     end    
 end
 
@@ -638,11 +649,13 @@ b=length(y2);
 
 A1=y2+lb;%-2.2*ones(b,1);
 A2=-y2-ub;%2.2*ones(b,1);
+A3=y1(1,:)'-y1(n+1,:)'-[0.05;0.05];
+A4=-y1(1,:)'+y1(n+1,:)'-[0.05;0.05];
 
 A=[A1;A2];
 
-Aeq=y1(1,:)'-y1(n+1,:)';
-
+% Aeq=y1(1,:)'-y1(n+1,:)';
+Aeq=0;
 
 end
 % function [net_disp_orig, net_disp_opt, cost] = evaluate_displacement_and_cost1(s,p,tspan,ConnectionEval,IntegrationMethod,resolution)

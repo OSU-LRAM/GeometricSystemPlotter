@@ -34,8 +34,8 @@ alpha2_plot = ppval(spline_alpha2,t_plot);
 
 f=fullfile(datapath,strcat(current_system,'_calc.mat'));
 load(f);
-lb=0.9*[s.grid_range(1)*ones(n_plot+1,1);s.grid_range(3)*ones(n_plot+1,1)];%0.9 was points value
-ub=0.9*[s.grid_range(2)*ones(n_plot+1,1);s.grid_range(4)*ones(n_plot+1,1)];
+lb=0.8*[s.grid_range(1)*ones(n_plot+1,1);s.grid_range(3)*ones(n_plot+1,1)];%0.9 was points value
+ub=0.8*[s.grid_range(2)*ones(n_plot+1,1);s.grid_range(4)*ones(n_plot+1,1)];
 y=optimalgaitgenerator(s,2,n_plot,alpha1_plot,alpha2_plot,lb,ub);
 alpha1 = [y(1:100)',y(1)]';
 alpha2 = [y(101:200)',y(101)]';
