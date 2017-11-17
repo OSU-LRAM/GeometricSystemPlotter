@@ -30,9 +30,12 @@ function OKbutton_Callback(hObject, eventdata, handles)
     
     % Additional hard-coded paths
     sysplotterpath = pwd;
+    
+    % propertyfile
+    propertyFilePath = fullfile(get(handles.displayConfigFile,'String'));
 
     % Save the path info to a file for sysplotter to refer to
-    save('sysplotter_config','inputpath','syspath','shchpath','stretchpath','datapath','HHpath','Refpointpath','Colorset','Colorpath','sysplotterpath');
+    save('sysplotter_config','inputpath','syspath','shchpath','stretchpath','datapath','HHpath','Refpointpath','Colorset','Colorpath','sysplotterpath','propertyFilePath');
     
     % Update the sysplotter_inputpath variable in the workspace
     assignin('base','sysplotter_inputpath',inputpath);

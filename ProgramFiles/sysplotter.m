@@ -148,8 +148,9 @@ load(configfile,'Colorset');
 waitbar2a(0,handles.progresspanel,'waitbartext','Waiting for input',...
     'barcolor',Colorset.spot);
 
-
-
+% Update the handles with the desired properties
+load(configfile,'propertyFilePath');
+propertyDataLoader(handles,propertyFilePath)
 	
 end
 
