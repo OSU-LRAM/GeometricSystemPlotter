@@ -30,11 +30,11 @@ for i=1:1:dimension
     fa{i}=fit(t',[P1(:,i);P1(1,i)],'fourier4');
 end
 
-figure(1)
-plot(fa{1},t',[P1(:,1);P1(1,1)])
-
-figure(2)
-plot(fa{2},t',[P1(:,2);P1(1,2)])
+% figure(1)
+% plot(fa{1},t',[P1(:,1);P1(1,1)])
+% 
+% figure(2)
+% plot(fa{2},t',[P1(:,2);P1(1,2)])
 
 
 %%
@@ -466,14 +466,16 @@ for i=1:n
 %     P(i)=y(i,3);
 %     I(i)=1*jacobianstroketemp(i,1);
 %     J(i)=1*jacobianstroketemp(i,2);
-    I(i)=1*jacobianstrokec(i,1);
-    J(i)=1*jacobianstrokec(i,2);
+    I(i)=1*jacobianstroke(i,1);
+    J(i)=1*jacobianstroke(i,2);
 %     N(i)=1*jacobianstroke(i,3);
 %     K(i)=jacobiandisptemp(i,1);
-    K(i)=jacobiandispc(i,1);
+    K(i)=jacobiandisp(i,1);
+    K1(i) = jacobiandispc(i,1);
 %     K1(i)=jacobianforward(i,1);
 %     L(i)=jacobiandisptemp(i,2);
-    L(i)=jacobiandispc(i,2);
+    L(i)=jacobiandisp(i,2);
+    L1(i)=jacobiandispc(i,2);
 %     L1(i)=jacobianforward(i,2);
 %     Q(i)=jacobiandisp(i,3);
     B(i)=totaljacobianc(i,1);
@@ -497,6 +499,7 @@ end
 % scale1=1;
 % quiver(G,H,K,L,scale1)
 % hold on
+% quiver(G,H,K1,L1,scale1)
 % % quiver(G,H,heightx,heighty,scale1)
 % plot(G,H)
 % axis equal
@@ -519,13 +522,13 @@ end
 % clf(figure(7)) %%jacobianstroke
 % figure(7)
 % scale=0;
-% % quiver(G,H,K,L,scale)
+% quiver(G,H,K,L,scale)
 % quiver(G,H,I,J,scale1)
 % hold on
 % plot(G,H)
 % axis equal
 % hold off
-% % % % % 
+% % % % 
 % clf(figure(8)) %%% totaljacobian
 % figure(8)
 % scale=0;

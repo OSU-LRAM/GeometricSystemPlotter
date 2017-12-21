@@ -8,6 +8,9 @@ function [A, h, J,Omega] = LowRE_local_connection_from_stretchable_curvature(cur
 % c: drag per unit length
 % drag_ratio: ratio of lateral to longitudinal drag
 
+% stretch function 
+stretch_fun = curvdef(cparams,'stretch');
+
 % Specified integration limits
 int_limit = L*[-0.5 0.5];
 
@@ -16,7 +19,7 @@ int_limit = L*[-0.5 0.5];
 
 % Now integrate to get the pfaffian
 %Omega_sol = ode45( @(s,Omega) connection_helper(s,h(s),J(s)),int_limit,zeros(3,3+length(r)));
-Omega_sol = ode_multistart(@ode45,@(s,Omega) connection_helper(s,h(s),J(s),c,drag_ratio),int_limit,int_limit(1),zeros(3,3+length(cparams)));
+Omega_sol = ode_multistart(@ode45,@(s,Omega) connection_helper(s,h(s),J(s),c,drag_ratio,stretch_fun),int_limit,int_limit(1),zeros(3,3+length(cparams)));
 
 Omega = reshape(Omega_sol(int_limit(end)),3,[]);
 
@@ -24,9 +27,12 @@ A = Omega(:,1:3)\Omega(:,4:end);
 
 end
 
-function dOmega = connection_helper(s,h,J,c,drag_ratio) %#ok<INUSL>
+function dOmega = connection_helper(s,h,J,c,drag_ratio,stretch_fun) %#ok<INUSL>
 % Calculate the derivative of the local connection as it's built up along
 % the backbone
+
+    % stretch constant for multiplication
+    lambda = stretch_fun(s);
 
 	% Midpoint-tangent-frame force jacobian
 	gdot_to_xi_local = [cos(h(3)) sin(h(3)) 0;
@@ -35,12 +41,12 @@ function dOmega = connection_helper(s,h,J,c,drag_ratio) %#ok<INUSL>
 		
 	% Local drag, based on unit longitudinal drag, lateral according to the ratio, no local
 	% torsional drag, multiplied by drag coefficient
-	xi_local_to_F_local = [-1 0 0;0 -drag_ratio 0;0 0 0]*c;
+	xi_local_to_F_local = [-1 0 0;0 -drag_ratio 0;0 0 0]*c*lambda; % add in lambda term before c, constant depending on backbone location
 	
 	% Force local element applies at midpoint-tangent-frame
 	F_local_to_F_midpoint = [cos(h(3)) -sin(h(3)) 0;
-			sin(h(3)) cos(h(3)) 0;
-			0 0 1];
+                             sin(h(3))  cos(h(3)) 0;
+                             0          0         1];
 		
 	% Moment around midpoint frame induced by force
 	F_midpoint_to_FM_midpoint = [1 0 0; 0 1 0; -h(2) h(1) 1];
@@ -49,7 +55,7 @@ function dOmega = connection_helper(s,h,J,c,drag_ratio) %#ok<INUSL>
 	omega2 = F_midpoint_to_FM_midpoint * F_local_to_F_midpoint...
 		* xi_local_to_F_local * gdot_to_xi_local * J;
 	
-		% body velocity component of pfaffian
+	% body velocity component of pfaffian
 	omega1 = F_midpoint_to_FM_midpoint * F_local_to_F_midpoint...
 		* xi_local_to_F_local * gdot_to_xi_local * [1 0 -h(2); 0 1 h(1); 0 0 1];
 	
