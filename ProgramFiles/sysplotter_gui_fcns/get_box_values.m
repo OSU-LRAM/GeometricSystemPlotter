@@ -107,6 +107,17 @@ function [box_names, box_active, box_values, box_enabled, plot_types,...
     %Active boxes are both checked and enabled
     box_active = cellfun(@(x,y) x & y,box_values , box_enabled,'UniformOutput',false);
 	
+    num_checks = 0; 
+    for i = 1:numel(box_values)
+        
+        num_checks = num_checks + sum(box_values{1,i}(2:end));
 
+    end
+
+    if num_checks == 0
+        error('Warning: No checkboxes selected.')
+        %             return
+    end
+    
     
 end
