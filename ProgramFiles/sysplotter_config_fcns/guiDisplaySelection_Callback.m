@@ -11,17 +11,19 @@ propertyMenuValue = get(handles.guiDisplaySelection,'Value');
 %
 if propertyMenuValue == 1 % default
     if ispc
-        propertyFile = 'propertyDataPC.mat';
+        propertyFile = 'propertyDataWindows.mat';
     elseif ismac
-        propertyFile = 'propertyDataMAC.mat';
+        propertyFile = 'propertyDataMacOS.mat';
     elseif isunix
-        propertyFile = 'propertyDataUNIX.mat';
+        propertyFile = 'propertyDataLinux.mat';
     end
 elseif propertyMenuValue == 2 % PC
-    propertyFile = 'propertyDataPC.mat';
+    propertyFile = 'propertyDataWindows.mat';
 elseif propertyMenuValue == 3 % MAC
-    propertyFile = 'propertyDataMAC.mat';
-elseif propertyMenuValue == 4 % Custom
+    propertyFile = 'propertyDataMacOS.mat';
+elseif propertyMenuValue == 4 % MAC
+    propertyFile = 'propertyDataLinux.mat';
+elseif propertyMenuValue == 5 % Custom (currently unavailable)
     %         uiopen
     propertyFile = uigetfile('*.mat','Select Property File');
 end

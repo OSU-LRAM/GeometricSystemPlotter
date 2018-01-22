@@ -176,51 +176,75 @@ end
 
 
 %% Preliminaries for calculation
+yvalues=cell(n,dimension);
+interpstateheight=cell(1,dimension);
+interpmetricgrid=cell(1,dimension);
+height=zeros(n,dimension*(dimension-1)/2);
+metric1=zeros(n,dimension,dimension);
+metric=cell(1,n);
+metricgrad1=zeros(n,dimension,dimension,dimension);
+metricgrad=cell(n,dimension);
 
 for i=1:1:n
     for j=1:1:dimension
-        yvalues{j}=y(i,j);
+        yvalues{i,j}=y(i,j);
     end
-    
+
     for j=1:1:dimension
         interpstateheight{j}=s.grid.eval{j,1};
         interpmetricgrid{j}=s.grid.metric_eval{j,1};
     end
-    
+end
+
+
     for j=1:dimension*(dimension-1)/2
-        height(i,j)=interpn(interpstateheight{:},s.DA_optimized{1,j},yvalues{:},'cubic');
+        height(:,j)=interpn(interpstateheight{:},s.DA_optimized{1,j},y(:,1),y(:,2),'cubic');
     end
-    
-    metricsize=dimension*dimension;
-    
+
+%     metricsize=dimension*dimension;
+
     for j=1:1:dimension
         for k=1:1:dimension
-            metric{i}(j,k)=interpn(interpmetricgrid{:},s.metricfield.metric_eval.content.metric{j,k},yvalues{:},'cubic');
+            metric1(:,j,k)=interpn(interpmetricgrid{:},s.metricfield.metric_eval.content.metric{j,k},y(:,1),y(:,2),'cubic');
         end
     end
 % metric{i}=eye(2);
-    
+    for i=1:n
+        for j=1:1:dimension
+            for k=1:1:dimension
+                metric{i}(j,k)=metric1(i,j,k);
+            end
+        end
+    end
+
     for l=1:1:dimension
         for m=1:1:dimension
             if m==l
-                yvalues2{m}=y(i,m)+afactor;
-                yvalues1{m}=y(i,m)-afactor;
+                y2(:,m)=y(:,m)+afactor*ones(length(y),1);
+                y1(:,m)=y(:,m)-afactor*ones(length(y),1);
             else
-                yvalues2{m}=y(i,m);
-                yvalues1{m}=y(i,m);
+                y2(:,m)=y(:,m);
+                y1(:,m)=y(:,m);
             end
         end
+        for j=1:1:dimension
+            for k=1:1:dimension
+                metricgrad1(:,l,j,k)=(interpn(interpmetricgrid{:},s.metricfield.metric_eval.content.metric{j,k},y2(:,1),y2(:,2),'cubic')-interpn(interpmetricgrid{:},s.metricfield.metric_eval.content.metric{j,k},y1(:,1),y1(:,2),'cubic'))/(2*afactor);
+            end
+        end
+        for i=1:n
             for j=1:1:dimension
                 for k=1:1:dimension
-                    metricgrad{i,l}(j,k)=(interpn(interpmetricgrid{:}, s.metricfield.metric_eval.content.metric{j,k}, yvalues2{:},'cubic')-interpn(interpmetricgrid{:}, s.metricfield.metric_eval.content.metric{j,k}, yvalues1{:},'cubic'))/(2*afactor);
+                    metricgrad{i,l}(j,k)=metricgrad1(i,l,j,k);
                 end
             end
-        
+        end
     end
-end
+
+
 
 % for i=2:1:n-1
-%     lengthjacdisp(i)= sqrt((y(i-1,1)-y(i+1,1))^2+(y(i-1,2)-y(i+1,2))^2+(y(i-1,3)-y(i+1,3))^2);
+%     lengthjacdisp(i)=sqrt((y(i-1,1)-y(i+1,1))^2+(y(i-1,2)-y(i+1,2))^2+(y(i-1,3)-y(i+1,3))^2);
 % end
 % lengthjacdisp(1)=sqrt((y(n,1)-y(2,1))^2+(y(n,2)-y(2,2))^2+(y(n,3)-y(2,3))^2);
 % lengthjacdisp(n)=sqrt((y(n-1,1)-y(1,1))^2+(y(n-1,2)-y(1,2))^2+(y(n-1,3)-y(1,3))^2);
@@ -273,7 +297,7 @@ jacobianstroke(n,:)=(-(((metric{n}+metric{1})/2)*delp{n}')'-(delp{n}*((metric{n}
 
 
 %% Jacobiandisp-jacobian for displacement produced by gait
-
+jacobiandisp = zeros(n,dimension);
 for i=2:1:n-1
     jacobiandisp(i,:)=jacobiandispcalculator3(y(i-1,:),y(i,:),y(i+1,:),height(i,:),dimension);
 end
@@ -281,7 +305,7 @@ jacobiandisp(1,:)=jacobiandispcalculator3(y(n,:),y(1,:),y(2,:),height(1,:),dimen
 jacobiandisp(n,:)=jacobiandispcalculator3(y(n-1,:),y(n,:),y(1,:),height(n,:),dimension);
 
 %% Jacobianeqi-term that keeps points eqi distant from each other
-
+jacobianeqi = zeros(n,dimension);
 
 for i=2:n-1;
 %     y(i-1,:)

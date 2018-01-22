@@ -65,7 +65,7 @@ resolution.scalar_range = get(handles.scalarresolution,'UserData');
 plot_info = sys_draw(plots_to_make,current_system,current_shch,handles.progresspanel,1,resolution,handles);
 
 %Show full progress bar
-waitbar2a(1,handles.progresspanel,'Optimizing')
+waitbar2a(0.8,handles.progresspanel,'Optimizing')
 
 
 end

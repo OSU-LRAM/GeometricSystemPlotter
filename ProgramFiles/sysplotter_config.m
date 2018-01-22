@@ -96,11 +96,11 @@ addpath('Utilities/gait_gui_draw')
     end
     % Check version and set default property file
     if ispc
-        propertyFile = 'propertydataPC.mat';
+        propertyFile = 'propertyDataWindows.mat';
     elseif ismac
-        propertyFile = 'propertydataMAC.mat';
+        propertyFile = 'propertyDataMacOS.mat';
     elseif isunix
-        propertyFile = 'propertydataUNIX.mat';
+        propertyFile = 'propertyDataLinux.mat';
     end
     set(handles.displayConfigFile,'String',propertyFile)
 

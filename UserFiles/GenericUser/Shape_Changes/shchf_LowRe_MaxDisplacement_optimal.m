@@ -1,4 +1,4 @@
-function output = shchf_piecewise_seed_b_100_optimal(input_mode,pathnames)
+function output = shchf_LowRe_MaxDisplacement_optimal(input_mode,pathnames)
 
 	% Default argument
 	if ~exist('input_mode','var')
@@ -8,14 +8,14 @@ function output = shchf_piecewise_seed_b_100_optimal(input_mode,pathnames)
 	end
 		
 	% Name the .mat file with the fourier coefficients
-	paramfile = 'piecewise_seed_b_100_optimal';
+	paramfile = 'LowRe_MaxDisplacement_optimal';
 	
 	
 	switch input_mode
 		
 		case 'name'
 			
-			output = 'piecewise_seed_b_100_optimal';
+			output = 'LowRe_MaxDisplacement_optimal';
 			
 		case 'dependency'
 			

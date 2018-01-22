@@ -15,8 +15,24 @@ shch_names = get(handles.shapechangemenu,'UserData');
 
 current_shch = shch_names{shch_index};
 
-g=fullfile(shchpath,strcat(current_shch(7:end),'.mat'));
-load(g);
+% insert warning/adjustment if file doesn't exist here.
+% save(fullfile([sysplotter_inputpath '\Shape_Changes'],paramfilename),'alpha1','alpha2','t');
+
+g1 = fullfile(shchpath,strcat(current_shch(7:end),'.mat'));
+g2 = fullfile(datapath,strcat(current_system,'__',current_shch,'.mat'));
+if exist(g1,'file') == 2
+    load(g1);
+elseif exist(g2,'file') == 2
+    load(g2);
+    if numel(p.phi_fun_full) == 1
+        t = p.time_full{1,1};
+        a12 = p.phi_fun_full{1,1}(t);
+        alpha1 = a12(:,1);
+        alpha2 = a12(:,2);
+    else
+        error('Cannot optimize: more than one gait displayed.')
+    end
+end
 
 endslope1 = (alpha1(2)-alpha1(end-1))/(t(end)-t(end-2));
 endslope2 = (alpha2(2)-alpha2(end-1))/(t(end)-t(end-2));

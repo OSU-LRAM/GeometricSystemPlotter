@@ -1,15 +1,16 @@
 % GUI data saver test
 
-function GUI_property_scraper(handles)
+function GUI_property_scraper(handles,props)
 
-% list of things we want to grab from the GUI. GUIDE property inspector
-% lists all properties that can be set by the user. 
-% Tag is read first, and everything else can be written using that tag
-% props = {'Tag','BackgroundColor','Enable','FontName','FontSize','FontWeight',...
-%          'InnerPosition','OuterPosition','Position','String','Value','Visible'}';
-props = {'BackgroundColor','Enable','FontName','FontSize','FontWeight',...
-         'Position','String','Value','Visible'}';
+% looks at the GUI with specified HANDLES and records requested properties (PROPS).
+% if PROPS does not exist, loads the default used to create existing PC,
+% Mac, Linux files. 
 
+if ~exist('props','var')
+    props = {'BackgroundColor','Enable','FontName','FontSize','FontWeight',...
+        'Position','String','Value','Visible'}';
+end
+     
 % get the names of all the objects in the GUI
 tagNames = fieldnames(handles);
 propertyList.Tag = tagNames;

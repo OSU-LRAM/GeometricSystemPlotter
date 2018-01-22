@@ -1,6 +1,6 @@
 % visual property editor function
 
-function propertyDataLoader(handles,propertyFile)
+function GUI_property_loader(handles,propertyFile)
 
 load(propertyFile);
 props = propertyList.propSelections;
