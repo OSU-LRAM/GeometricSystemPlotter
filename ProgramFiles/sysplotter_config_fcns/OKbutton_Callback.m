@@ -32,7 +32,7 @@ function OKbutton_Callback(hObject, eventdata, handles)
     sysplotterpath = pwd;
     
     % propertyfile
-    propertyfilepath = [sysplotterpath,'\',get(handles.displayConfigFile,'String')];
+    propertyfilepath = fullfile(sysplotterpath,get(handles.displayConfigFile,'String'));
 
     % Save the path info to a file for sysplotter to refer to
     save('sysplotter_config','inputpath','syspath','shchpath','stretchpath','datapath','HHpath','Refpointpath','Colorset','Colorpath','sysplotterpath','propertyfilepath');

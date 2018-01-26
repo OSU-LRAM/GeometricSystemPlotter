@@ -30,7 +30,7 @@ elseif exist(g2,'file') == 2
         alpha1 = a12(:,1);
         alpha2 = a12(:,2);
     else
-        error('Cannot optimize: more than one gait displayed.')
+        error('Selected gait file has more than one cycle. Optimizer only works on single cycles.')
     end
 end
 

@@ -45,7 +45,7 @@ current_system = system_names{system_index};
 
 shch_index = get(handles.shapechangemenu,'Value');
 shch_names = get(handles.shapechangemenu,'UserData');
-shch_index=1;
+shch_index = 1;
 
 current_shch = shch_names{shch_index};
 % current_shch='null';
