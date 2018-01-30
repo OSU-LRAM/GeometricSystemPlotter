@@ -75,11 +75,16 @@ current_dir = pwd; % Remember where we started
 cd(shchpath)       % Move to shape change directory
 
 
-paramfilename=[current_shch(7:end) '.mat'];
-[~,paramfilenamebare,ext] = fileparts(paramfilename);
+% paramfilename=[current_shch(7:end) '.mat'];
+% [~,paramfilenamebare,ext] = fileparts(paramfilename);
 
 cd(current_dir)    % Go back to original directory
 %%%%
+
+sysf_func = str2func(current_system);
+shch_func = str2func(current_shch);
+paramfiledisplaytext = ['Opt: [',sysf_func('name'),'] [',shch_func('name'),'] Xeff'];
+paramfiletext = ['opt_',current_system(6:end),'_',current_shch(7:end),'_Xeff'];
 
 % If the user didn't hit cancel, save the data and create a shchf file that
 % reads the data and interprets it as a gait.
@@ -87,17 +92,18 @@ cd(current_dir)    % Go back to original directory
     
     % Save the data to a parameters file
 %     save(fullfile(shchpath,paramfilename),'alpha1','alpha2','t')
-    save(fullfile(shchpath,strcat(paramfilenamebare,'_optimal.mat')),'alpha1','alpha2','t')
+%     save(fullfile(shchpath,strcat(paramfilenamebare,'_optimal.mat')),'alpha1','alpha2','t')
+    save(fullfile(shchpath,strcat(paramfiletext,'.mat')),'alpha1','alpha2','t')
     
     % Create the file if it doesn't already exist; future work could be
     % more fine-grained about this (making sure that any patches are
     % applied vs not overwriting any hand-edits the user made) and allowing
     % user to enter a prettier string for the display name here.
     
-    
-    if ~exist(fullfile(shchpath,['shchf_' paramfilenamebare '_optimal.m']),'file')
-        
-        gait_gui_draw_make_shchf([paramfilenamebare '_optimal'], [paramfilenamebare '_optimal'] )
+    % ['shchf_' paramfilenamebare '.m']
+    if ~exist(fullfile(shchpath,['shchf_' paramfiletext '.m']),'file')
+        % [paramfilenamebare '_optimal'], [paramfilenamebare '_optimal']
+        gait_gui_draw_make_shchf(paramfiletext,paramfiledisplaytext)
         
     end
     
@@ -110,8 +116,8 @@ cd(current_dir)    % Go back to original directory
 shch_names = get(handles.shapechangemenu,'UserData');
 
 current_shch = shch_names{shch_index};
-
-[rn,cn]=find(strcmp(shch_names,['shchf_' paramfilenamebare '_optimal']));
+%                              ['shchf_' paramfilenamebare '_optimal']
+[rn,cn]=find(strcmp(shch_names,['shchf_' paramfiletext]));
 set(handles.shapechangemenu,'Value',rn(1));
 active=0;
 % shapechangemenu_Callback(hObject, eventdata, handles,active)
