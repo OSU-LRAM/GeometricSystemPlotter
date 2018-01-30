@@ -108,7 +108,15 @@ function [xi, dcost] = get_velocities(t,s,gait,ConnectionEval)
 	switch ConnectionEval
 		case 'functional'
 			
-			A = s.A_num(shapelist{:})./s.A_den(shapelist{:});
+            if isfield(s,'A_den')
+			
+                A = s.A_num(shapelist{:})./s.A_den(shapelist{:});
+                
+            else
+                
+                A = s.A_num(shapelist{:});
+                
+            end
 			
 			M = s.metric(shapelist{:});
 
@@ -116,7 +124,7 @@ function [xi, dcost] = get_velocities(t,s,gait,ConnectionEval)
 			
 			A = -cellfun(@(C) interpn(s.grid.eval{:},C,shapelist{:}),s.vecfield.eval.content.Avec);
 			
-			M =  cellfun(@(C) interpn(s.grid.metric_eval{:},C,shapelist{:}),s.metricfield.metric_eval.content.metric);
+			M =  interp_posdef(s.grid.metric_eval,s.metricfield.metric_eval.content.metric,shapelist);%cellfun(@(C) interpn(s.grid.metric_eval{:},C,shapelist{:}),s.metricfield.metric_eval.content.metric);
 			
 		otherwise
 			error('Unknown method for evaluating local connection');

@@ -51,8 +51,8 @@ function output = sysf_three_link_lowRe(input_mode,pathnames)
 			%Display parameters
 
 			%shape space tic locations
-			s.tic_locs.x = [-1 0 1]*1;
-			s.tic_locs.y = [-1 0 1]*1;
+			s.tic_locs.x = [-1 0 1]*1.5;
+			s.tic_locs.y = [-1 0 1]*1.5;
 
 
 			%%%%
@@ -69,9 +69,11 @@ end
 function A=Fullconnection3link(alpha1,alpha2,drag_ratio)
 
 % Specify geometry and fluid properties
+
 l1=(1/3)/2; %Half-length of link 1
 l2=(1/3)/2; %Half-length of link 2
 l3=(1/3)/2; %Half-length of link 3
+
 
 k=1;       %Fluid drag coefficient (only affects absolute cost of motion)
 

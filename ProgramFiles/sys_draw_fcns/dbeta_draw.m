@@ -275,7 +275,7 @@ function plot_info = dbeta_draw(s,p,plot_info,sys,shch,resolution)
 			
 			%Mark this figure as a vector field
 			udata = get(plot_info.figure(i),'UserData');
-			udata.plottype = 'vfield';
+			udata.plottype = 'dbeta';
 			set(plot_info.figure(i),'UserData',udata);
 
         

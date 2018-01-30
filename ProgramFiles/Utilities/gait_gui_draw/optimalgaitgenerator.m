@@ -121,7 +121,9 @@ pointvalues=y;
 
 %% Calculating cost and displacement per gait
 g=10;
+
 p.phi_def = @(t) interp1( linspace(0,g,n+1), [pointvalues; pointvalues(1,:)], t);
+
 for i=1:1:n-1
     velocityvalues(i,:)=n*(pointvalues(i+1,:)-pointvalues(i,:))/g;
 end
@@ -185,7 +187,14 @@ metric=cell(1,n);
 metricgrad1=zeros(n,dimension,dimension,dimension);
 metricgrad=cell(n,dimension);
 
+height = zeros(n,dimension*(dimension-1)/2);
+metric = repmat({zeros(dimension)},[n 1]);
+yvalues1 = cell(dimension,1);
+yvalues2 = cell(dimension,1);
+metricgrad = repmat({zeros(dimension)},[n,dimension]);
+
 for i=1:1:n
+
     for j=1:1:dimension
         yvalues{i,j}=y(i,j);
     end
@@ -202,6 +211,7 @@ end
     end
 
 %     metricsize=dimension*dimension;
+
 
     for j=1:1:dimension
         for k=1:1:dimension

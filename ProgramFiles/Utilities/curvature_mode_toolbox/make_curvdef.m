@@ -20,7 +20,8 @@ end
 
 % Turn the curvature function from a string into a symbolic expression
 if attempt_analytic(1)
-    curv_fun = sym(curv_fun_string);
+    syms(paramlist{:},'s');
+    curv_fun = eval(curv_fun_string);
     flist = [flist,{curv_fun}];
 else
     flist = [flist,{[]}];
@@ -28,7 +29,7 @@ end
 
 % Integrate the curvature function along the backbone
 if attempt_analytic(2)
-    int_curv_ds_fun = int(curv_fun,'s',0,'s');
+    int_curv_ds_fun = int(curv_fun,'s');
     flist = [flist,{int_curv_ds_fun}];
 else
     flist = [flist,{[]}];
@@ -45,7 +46,7 @@ end
 % Integrate the parameter-derivative of the curvature function along the
 % backbone
 if attempt_analytic(4)
-    int_d_curv_dp_ds_fun = int(d_curv_dp_fun,'s',0,'s');
+    int_d_curv_dp_ds_fun = int(d_curv_dp_fun,'s');
     flist = [flist,{int_d_curv_dp_ds_fun}];
 else
     flist = [flist,{[]}];
@@ -180,10 +181,11 @@ for idx = 1:numel(fnamelist)
                                    ,''...
                                    ,'%% Make dummy integration function'...
                                    ,['d_curv_dp_fun_dummy = curv_' name '(cell2mat(params),''dcurvature'');']...
-                                   ,'dcurvature = @(s,~) d_curv_dp_fun_dummy(s);'...
+                                   ,'dcurvature = @(s,~) d_curv_dp_fun_dummy(s)'';'...
                                    ,''...
                                    ,'%% Integral of the integrand function along s'...
-                                   ,'output = ode_multistart(@ode45,dcurvature,all_limits,0,zeros(size(params(:).'')));'}; 
+                                   ,'dummy_output = ode_multistart(@ode45,dcurvature,all_limits,0,zeros(size(params(:).'')));'...
+                                   ,'output = @(t) transpose(dummy_output(t));'}; 
                                
             otherwise
                 
