@@ -94,7 +94,15 @@ addpath('Utilities/gait_gui_draw')
     else
         set(handles.OKbutton,'enable','off');
     end
-
+    % Check version and set default property file
+    if ispc
+        propertyFile = 'propertyDataWindows.mat';
+    elseif ismac
+        propertyFile = 'propertyDataMacOS.mat';
+    elseif isunix
+        propertyFile = 'propertyDataLinux.mat';
+    end
+    set(handles.displayConfigFile,'String',propertyFile)
 
 end
 

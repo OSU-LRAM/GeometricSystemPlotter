@@ -7,10 +7,10 @@ function [box_names, box_active, box_values, box_enabled, plot_types,...
     %build the list of plot boxes for the column
     
     %classes of plot
-    plot_types = {'vfield','CCF','bvi','disp','beta','dbeta','xy','xyopt'};
+    plot_types = {'vfield','CCF','mfield','disp','beta','dbeta','xy','xyopt'};
     
     %plot or subplot for each coordinate
-    plot_style = {'plot','plot','subplot','subplot','plot','plot','single','single'};
+    plot_style = {'plot','plot','plot','subplot','plot','plot','single','single'};
     
     %text for the different components
     plot_subtypes = cat(1,repmat({{'X','Y','T'}},[6 1]),repmat({{'traj','net','BVI','cBVI'}},[2 1]));
@@ -37,6 +37,18 @@ function [box_names, box_active, box_values, box_enabled, plot_types,...
 	merged_plot_subtypes{strcmp('dbeta',plot_types)}...
 		(cellfun(@(x) ~isempty(x),(strfind(...
 		merged_plot_subtypes{strcmp('dbeta',plot_types)},'opt')))) = [];
+    
+    merged_plot_subtypes{strcmp('mfield',plot_types)}...
+        (cellfun(@(x) ~isempty(x),(strfind(...
+        merged_plot_subtypes{strcmp('mfield',plot_types)},'Xopt')))) = [];
+        
+    merged_plot_subtypes{strcmp('mfield',plot_types)}...
+        (cellfun(@(x) ~isempty(x),(strfind(...
+        merged_plot_subtypes{strcmp('mfield',plot_types)},'Y')))) = [];
+    
+    merged_plot_subtypes{strcmp('mfield',plot_types)}...
+        (cellfun(@(x) ~isempty(x),(strfind(...
+        merged_plot_subtypes{strcmp('mfield',plot_types)},'T')))) = [];
 	
 	% Trim out redundant names from the xy plot boxes (which handle
 	% optimized and not optimized more separately
@@ -95,6 +107,17 @@ function [box_names, box_active, box_values, box_enabled, plot_types,...
     %Active boxes are both checked and enabled
     box_active = cellfun(@(x,y) x & y,box_values , box_enabled,'UniformOutput',false);
 	
+    num_checks = 0; 
+    for i = 1:numel(box_values)
+        
+        num_checks = num_checks + sum(box_values{1,i}(2:end));
 
+    end
+
+    if num_checks == 0
+        error('Warning: No checkboxes selected.')
+        %             return
+    end
+    
     
 end

@@ -96,8 +96,6 @@ function varargout = sysplotter(varargin)
 	addpath(HHpath)
 	addpath(Refpointpath)
 
-
-
 	% Begin initialization code - DO NOT EDIT
 	gui_Singleton = 1;
 	gui_State = struct('gui_Name',       mfilename, ...
@@ -148,8 +146,9 @@ load(configfile,'Colorset');
 waitbar2a(0,handles.progresspanel,'waitbartext','Waiting for input',...
     'barcolor',Colorset.spot);
 
-
-
+% Update the handles with the desired properties
+load(configfile,'propertyfilepath');
+GUI_property_loader(handles,propertyfilepath)
 	
 end
 

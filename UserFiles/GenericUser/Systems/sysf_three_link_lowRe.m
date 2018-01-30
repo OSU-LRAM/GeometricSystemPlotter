@@ -69,9 +69,11 @@ end
 function A=Fullconnection3link(alpha1,alpha2,drag_ratio)
 
 % Specify geometry and fluid properties
-l1=1/6; %Half-length of link 1
-l2=1/6; %Half-length of link 2
-l3=1/6; %Half-length of link 3
+
+l1=(1/3)/2; %Half-length of link 1
+l2=(1/3)/2; %Half-length of link 2
+l3=(1/3)/2; %Half-length of link 3
+
 
 k=1;       %Fluid drag coefficient (only affects absolute cost of motion)
 
