@@ -36,6 +36,6 @@ end
 
 function output = reshape_truncate_jacobian(J)
 
-    output = J(2:end)';
+    output = J(:,2:end);
     
 end

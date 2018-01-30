@@ -76,6 +76,7 @@ pointvalues=y;
 %% Calculating cost and displacement per gait
 g=10;
 p.phi = @(t) interp1( linspace(0,g,n+1), [pointvalues; pointvalues(1,:)], t);
+velocityvalues = zeros(n-1,size(pointvalues,2));
 for i=1:1:n-1
     velocityvalues(i,:)=n*(pointvalues(i+1,:)-pointvalues(i,:))/g;
 end
@@ -102,21 +103,32 @@ end
 
 %% Preliminaries for calculation
 
+height = zeros(n,dimension*(dimension-1)/2);
+metric = repmat({zeros(dimension)},[n 1]);
+yvalues1 = cell(dimension,1);
+yvalues2 = cell(dimension,1);
+metricgrad = repmat({zeros(dimension)},[n,dimension]);
+
 for i=1:1:n
-    for j=1:1:dimension
-        yvalues{j}=y(i,j);
-    end
+%     for j=1:1:dimension
+%         yvalues{j}=y(i,j);
+%     end
     
-    for j=1:1:dimension
-        interpstateheight{j}=s.grid.eval{j,1};
-        interpmetricgrid{j}=s.grid.metric_eval{j,1};
-    end
+    yvalues = num2cell(y(i,:));
+
+%     for j=1:1:dimension
+%         interpstateheight{j}=s.grid.eval{j,1};
+%         interpmetricgrid{j}=s.grid.metric_eval{j,1};
+%     end
+
+    interpstateheight = s.grid.eval(:,1);
+    interpmetricgrid = s.grid.metric_eval(:,1);
     
-    for j=1:dimension*(dimension-1)/2
+    for j=1:size(height,2)
         height(i,j)=interpn(interpstateheight{:},s.DA_optimized{1,j},yvalues{:},'cubic');
     end
     
-    metricsize=dimension*dimension;
+%    metricsize=dimension*dimension;
     
     for j=1:1:dimension
         for k=1:1:dimension
