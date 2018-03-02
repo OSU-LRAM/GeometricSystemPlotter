@@ -45,17 +45,17 @@ int_limit = [-0.5 0.5];
 
 discont = [];
 
-for i = 1:length(r)
-	
-	if nargout(kappa_basis_input{i}) < 2
-		% No discontinuities
-	else
-		% second argument is vector of discontinuity locations
-		[junk,new_discont] = kappa_basis_input{i}(0); %#ok<ASGLU>
-		discont = [discont torow(new_discont)];		 %#ok<AGROW>
-	end
-	
-end
+% for i = 1:length(r)
+% 	
+% 	if nargout(kappa_basis_input{i}) < 2
+% 		% No discontinuities
+% 	else
+% 		% second argument is vector of discontinuity locations
+% 		[junk,new_discont] = kappa_basis_input{i}(0); %#ok<ASGLU>
+% 		discont = [discont torow(new_discont)];		 %#ok<AGROW>
+% 	end
+% 	
+% end
 
 %%%%%%%%%%%%%%%%
 % Sort the discontinuities into the integration limit vector

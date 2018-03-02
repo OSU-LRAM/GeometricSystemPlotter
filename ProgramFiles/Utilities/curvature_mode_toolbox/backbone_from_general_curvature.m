@@ -29,7 +29,7 @@ if nargout == 2
     jacobian_sol = ode_multistart(@ode45,@(s,J) J_helper(s,J,dcurvdef,h_norm(s)),all_limits,0,zeros(2*length(dcurvdef(0)),1));
 
     % Concatenate xy and theta jacobians.
-    J = @(s) cat(1,reshape(L*jacobian_sol(toz(s/L)),2,[],length(s)),ipermute(J_theta_fun(s/L),[2,3,1]));
+    J = @(s) cat(1,reshape(L*jacobian_sol(toz(s/L)),2,[],length(s)),permute(J_theta_fun(s/L),[3,2,1]));
 
 end
 
@@ -60,7 +60,7 @@ function dJ = J_helper(s,J,dcurvdef,h) %#ok<INUSL>
 	
 	for i = 1:nvars
 		
-		int_basis = dcurvdef_eval(i,:);
+		int_basis = dcurvdef_eval(:,i);
 		
 		dJ(:,i) = [-sin(h(3)) -cos(h(3));
 			cos(h(3)) -sin(h(3))] * [int_basis; 0];

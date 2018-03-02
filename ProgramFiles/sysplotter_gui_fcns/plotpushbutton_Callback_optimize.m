@@ -45,11 +45,8 @@ current_system = system_names{system_index};
 
 shch_index = get(handles.shapechangemenu,'Value');
 shch_names = get(handles.shapechangemenu,'UserData');
-shch_index=1;
 
 current_shch = shch_names{shch_index};
-% current_shch='null';
-
 
 %%%%%%%%%%%%%%
 % Get the desired vector and scalar plotting resolutions
@@ -65,7 +62,7 @@ resolution.scalar_range = get(handles.scalarresolution,'UserData');
 plot_info = sys_draw(plots_to_make,current_system,current_shch,handles.progresspanel,1,resolution,handles);
 
 %Show full progress bar
-waitbar2a(1,handles.progresspanel,'Optimizing')
+waitbar2a(0.8,handles.progresspanel,'Optimizing')
 
 
 end
