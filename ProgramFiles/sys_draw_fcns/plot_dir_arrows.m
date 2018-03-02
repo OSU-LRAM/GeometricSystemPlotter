@@ -1,4 +1,4 @@
-function arrow_lines = plot_dir_arrows(x,y,n,varargin)
+function arrow_lines = plot_dir_arrows(x,y,n,isomap,s,varargin)
 %Plots the direction arrows for a parametric path [x(t),y(t)] at n points
 
 if n ~=0
@@ -51,8 +51,10 @@ if n ~=0
 
     barbs_y = [ tip_pos(:,2) first_barb_end(:,2);
                 tip_pos(:,2) second_barb_end(:,2)];
+            
+    H_path = griddata(isomap.x_new,isomap.y_new,isomap.HF_isomap,barbs_x,barbs_y);
 
     %plot the arrowheads
-    arrow_lines = line(barbs_x',barbs_y',varargin{:});
+    arrow_lines = line(barbs_x',barbs_y',H_path',varargin{:});
     
 end

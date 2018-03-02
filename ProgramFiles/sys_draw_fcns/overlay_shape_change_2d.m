@@ -1,4 +1,4 @@
-function overlay_shape_change_2d(ax,p,stretch,convert)
+function overlay_shape_change_2d(ax,p,stretch,convert,isomap,s)
 %overlay shape changes onto the specified axis
 
     %Get the configuration file, and extract the Colorpath
@@ -23,10 +23,12 @@ function overlay_shape_change_2d(ax,p,stretch,convert)
             pathpoints{idx} = p.phi_locus_full{i}.shape(:,idx);
         end
         
-		line(pathpoints{:},'Color',Colorset.spot,'LineWidth',5,'Parent',ax);
+        H_path = griddata(isomap.x_new,isomap.y_new,isomap.HF_isomap,pathpoints{1},pathpoints{2});
+        
+		line(pathpoints{:},'ZData',H_path,'Color',Colorset.spot,'LineWidth',5,'Parent',ax);
 
 		%draw the direction arrows on the line
-		plot_dir_arrows(p.phi_locus_full{i}.shape(:,1),p.phi_locus_full{i}.shape(:,2),p.phi_arrows{i}{1},'Color',Colorset.spot,'LineWidth',4,'Parent',ax);
+		plot_dir_arrows(p.phi_locus_full{i}.shape(:,1),p.phi_locus_full{i}.shape(:,2),p.phi_arrows{i}{1},isomap,s,'Color',Colorset.spot,'LineWidth',4,'Parent',ax);
 
 		%draw the start/end markers
 		if ~isempty(p.phi_locus_full{i}.marker.shape)

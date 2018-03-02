@@ -15,14 +15,31 @@ shch_names = get(handles.shapechangemenu,'UserData');
 
 current_shch = shch_names{shch_index};
 
-g=fullfile(shchpath,strcat(current_shch(7:end),'.mat'));
-load(g);
+% insert warning/adjustment if file doesn't exist here.
+% save(fullfile([sysplotter_inputpath '\Shape_Changes'],paramfilename),'alpha1','alpha2','t');
+
+g1 = fullfile(shchpath,strcat(current_shch(7:end),'.mat'));
+g2 = fullfile(datapath,strcat(current_system,'__',current_shch,'.mat'));
+if exist(g1,'file') == 2
+    load(g1);
+elseif exist(g2,'file') == 2
+    load(g2);
+    if numel(p.phi_fun_full) == 1
+        t = p.time_full{1,1};
+        a12 = p.phi_fun_full{1,1}(t);
+        alpha1 = a12(:,1);
+        alpha2 = a12(:,2);
+    else
+        error('Selected gait file has more than one cycle. Optimizer only works on single cycles.')
+    end
+end
 
 endslope1 = (alpha1(2)-alpha1(end-1))/(t(end)-t(end-2));
 endslope2 = (alpha2(2)-alpha2(end-1))/(t(end)-t(end-2));
 spline_alpha1 = spline(t,[endslope1;alpha1(:);endslope1]);
 spline_alpha2 = spline(t,[endslope2;alpha2(:);endslope2]);
 period = 2*pi;
+
 
 
 n_plot = 100;
@@ -33,8 +50,8 @@ alpha2_plot = ppval(spline_alpha2,t_plot);
 
 f=fullfile(datapath,strcat(current_system,'_calc.mat'));
 load(f);
-lb=0.9*[s.grid_range(1)*ones(n_plot,1);s.grid_range(3)*ones(n_plot,1)];
-ub=0.9*[s.grid_range(2)*ones(n_plot,1);s.grid_range(4)*ones(n_plot,1)];
+lb=0.8*[s.grid_range(1)*ones(n_plot+1,1);s.grid_range(3)*ones(n_plot+1,1)];%0.9 was points value
+ub=0.8*[s.grid_range(2)*ones(n_plot+1,1);s.grid_range(4)*ones(n_plot+1,1)];
 y=optimalgaitgenerator(s,2,n_plot,alpha1_plot,alpha2_plot,lb,ub);
 alpha1 = [y(1:100)',y(1)]';
 alpha2 = [y(101:200)',y(101)]';
@@ -58,11 +75,16 @@ current_dir = pwd; % Remember where we started
 cd(shchpath)       % Move to shape change directory
 
 
-paramfilename=[current_shch(7:end) '.mat'];
-[~,paramfilenamebare,ext] = fileparts(paramfilename);
+% paramfilename=[current_shch(7:end) '.mat'];
+% [~,paramfilenamebare,ext] = fileparts(paramfilename);
 
 cd(current_dir)    % Go back to original directory
 %%%%
+
+sysf_func = str2func(current_system);
+shch_func = str2func(current_shch);
+paramfiledisplaytext = ['Opt: [',sysf_func('name'),'] [',shch_func('name'),'] Xeff'];
+paramfiletext = ['opt_',current_system(6:end),'_',current_shch(7:end),'_Xeff'];
 
 % If the user didn't hit cancel, save the data and create a shchf file that
 % reads the data and interprets it as a gait.
@@ -70,17 +92,18 @@ cd(current_dir)    % Go back to original directory
     
     % Save the data to a parameters file
 %     save(fullfile(shchpath,paramfilename),'alpha1','alpha2','t')
-    save(fullfile(shchpath,strcat(paramfilenamebare,'_optimal.mat')),'alpha1','alpha2','t')
+%     save(fullfile(shchpath,strcat(paramfilenamebare,'_optimal.mat')),'alpha1','alpha2','t')
+    save(fullfile(shchpath,strcat(paramfiletext,'.mat')),'alpha1','alpha2','t')
     
     % Create the file if it doesn't already exist; future work could be
     % more fine-grained about this (making sure that any patches are
     % applied vs not overwriting any hand-edits the user made) and allowing
     % user to enter a prettier string for the display name here.
     
-    
-    if ~exist(fullfile(shchpath,['shchf_' paramfilenamebare '_optimal.m']),'file')
-        
-        gait_gui_draw_make_shchf([paramfilenamebare '_optimal'], [paramfilenamebare '_optimal'] )
+    % ['shchf_' paramfilenamebare '.m']
+    if ~exist(fullfile(shchpath,['shchf_' paramfiletext '.m']),'file')
+        % [paramfilenamebare '_optimal'], [paramfilenamebare '_optimal']
+        gait_gui_draw_make_shchf(paramfiletext,paramfiledisplaytext)
         
     end
     
@@ -93,8 +116,8 @@ cd(current_dir)    % Go back to original directory
 shch_names = get(handles.shapechangemenu,'UserData');
 
 current_shch = shch_names{shch_index};
-
-[rn,cn]=find(strcmp(shch_names,['shchf_' paramfilenamebare '_optimal']));
+%                              ['shchf_' paramfilenamebare '_optimal']
+[rn,cn]=find(strcmp(shch_names,['shchf_' paramfiletext]));
 set(handles.shapechangemenu,'Value',rn(1));
 active=0;
 % shapechangemenu_Callback(hObject, eventdata, handles,active)

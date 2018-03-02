@@ -29,11 +29,13 @@ CCFtype(3) = [];
 % Get the state of the Stretch menu (coordinate conversion to flatten
 % metric)
 stretchstate = get(handles.stretchmenu,'Value');
+stretch_names = get(handles.stretchmenu,'UserData');
+current_stretch = stretch_names(stretchstate);
 
 	
 % Initialize the plot windows
 plots_to_make = initialize_plot_windows(box_active,plot_types,merged_plot_subtypes...
-	,plot_style,CCFtype,stretchstate,handles,source_number_text);
+	,plot_style,CCFtype,stretchstate,current_stretch,handles,source_number_text);
 
 
 %%%%%%%%%%%
@@ -59,7 +61,7 @@ resolution.scalar_range = get(handles.scalarresolution,'UserData');
 
 %Call the draw function
 %    test_plot(plots_to_make,current_system,current_shch)
-plot_info = sys_draw(plots_to_make,current_system,current_shch,handles.progresspanel,1,resolution,handles);
+plot_info = sys_draw(plots_to_make,current_system,current_shch,current_stretch,handles.progresspanel,1,resolution,handles);
 
 %Show full progress bar
 waitbar2a(1,handles.progresspanel,'Finished plotting')

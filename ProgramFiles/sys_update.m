@@ -1,4 +1,4 @@
-function sys_update(sys,shch,progress,handles)
+function sys_update(sys,shch,stretch,progress,handles)
     %Make sure data in the plot file is up to date
 	
 	% declare the data directory
@@ -60,7 +60,7 @@ function sys_update(sys,shch,progress,handles)
 	end
 	
 	if update.sys_calc
-		sys_calcsystem('calculate',sys);
+		sys_calcsystem('calculate',sys,stretch);
 	end
 	
 	if exist('progress','var')

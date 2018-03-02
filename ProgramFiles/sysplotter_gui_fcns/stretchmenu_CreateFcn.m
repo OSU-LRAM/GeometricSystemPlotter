@@ -9,8 +9,9 @@ function stretchmenu_CreateFcn(hObject, eventdata, handles)
     set(hObject,'BackgroundColor','white');
     
     
-    % Set the menu options to be unstretched or metric-stretched
-    set(hObject,'String',{'No stretch';'Metric stretch'});
+    % Set the menu options to be unstretched, metric-stretched or
+    % metric-surface
+    set(hObject,'String',{'No stretch';'Metric stretch';'Metric surface'});
     
 
   

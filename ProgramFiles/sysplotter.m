@@ -22,14 +22,14 @@ function varargout = sysplotter(varargin)
 
 % Edit the above text to modify the response to help sysplotter
 
-% Last Modified by GUIDE v2.5 26-Apr-2017 14:47:43
+% Last Modified by GUIDE v2.5 01-Feb-2018 14:55:59
 
     addpath('./Utilities')
 
 	%path to gui functions
 	addpath(genpath(GetFullPath('sysplotter_gui_fcns')), genpath(GetFullPath('sys_calcpath_fcns')),...
 		genpath(GetFullPath('sys_calcsystem_fcns')), genpath(GetFullPath('sys_draw_fcns')), ...
-		genpath(GetFullPath('sys_update_fcns')),genpath(GetFullPath('sysplotter_config_fcns')),genpath(GetFullPath('Utilities')))
+		genpath(GetFullPath('sys_update_fcns')),genpath(GetFullPath('sysplotter_config_fcns')),genpath(GetFullPath('Utilities')),genpath(GetFullPath('Animation')))
 
 	%%%
 	% Ensure that system files are properly accessible
@@ -96,8 +96,6 @@ function varargout = sysplotter(varargin)
 	addpath(HHpath)
 	addpath(Refpointpath)
 
-
-
 	% Begin initialization code - DO NOT EDIT
 	gui_Singleton = 1;
 	gui_State = struct('gui_Name',       mfilename, ...
@@ -148,8 +146,9 @@ load(configfile,'Colorset');
 waitbar2a(0,handles.progresspanel,'waitbartext','Waiting for input',...
     'barcolor',Colorset.spot);
 
-
-
+% Update the handles with the desired properties
+load(configfile,'propertyfilepath');
+GUI_property_loader(handles,propertyfilepath)
 	
 end
 

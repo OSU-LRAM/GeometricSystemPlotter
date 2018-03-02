@@ -1,5 +1,5 @@
 function plots_to_make = initialize_plot_windows(box_active,plot_types,merged_plot_subtypes...
-	,plot_style,CCFtype,stretchstate,handles,source_number_text)
+	,plot_style,CCFtype,stretchstate,current_stretch,handles,source_number_text)
 
 	%%%%%
     %Determine how many windows to create
@@ -32,7 +32,13 @@ function plots_to_make = initialize_plot_windows(box_active,plot_types,merged_pl
 
 					error('Unexpected value for height function appearance toggle')
 
-			end
+            end
+            
+            if strcmp(current_stretch,'metric_surface')
+                
+                plots_to_make(end,1).style = 'pcolor';
+                
+            end
 			
 			switch get(handles.(['color' source_number_text]),'Value')
 
@@ -57,6 +63,8 @@ function plots_to_make = initialize_plot_windows(box_active,plot_types,merged_pl
 			% future, this will pass on higher values into the plotting
 			% function)
 			plots_to_make(end,1).stretch = stretchstate-1;
+            plots_to_make(end,1).stretch_name = current_stretch;
+            
 
 			%set the plots_to_make components
             plots_to_make(end,1).components = merged_plot_subtypes{i}(box_active{i}(2:end));

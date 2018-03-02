@@ -42,17 +42,17 @@ function output = sysf_three_link_lowRe(input_mode,pathnames)
 
 			%densities for various operations
 			s.density.vector = [11 11 ]; %density to display vector field
-			s.density.scalar = [21 21 ]; %density to display scalar functions
-			s.density.eval = [21 21 ];   %density for function evaluations
+			s.density.scalar = [11 11 ]; %density to display scalar functions
+			s.density.eval = [11 11 ];   %density for function evaluations
             s.density.metric_eval = [11 11]; %density for metric evaluation
-			s.finite_element_density = 21;
+			s.finite_element_density = 11;
 
             %%%
 			%Display parameters
 
 			%shape space tic locations
-			s.tic_locs.x = [-1 0 1]*1;
-			s.tic_locs.y = [-1 0 1]*1;
+			s.tic_locs.x = [-1 0 1]*1.5;
+			s.tic_locs.y = [-1 0 1]*1.5;
 
 
 			%%%%
@@ -69,9 +69,11 @@ end
 function A=Fullconnection3link(alpha1,alpha2,drag_ratio)
 
 % Specify geometry and fluid properties
-l1=0.33/2; %Half-length of link 1
-l2=0.33/2; %Half-length of link 2
-l3=0.33/2; %Half-length of link 3
+
+l1=(1/3)/2; %Half-length of link 1
+l2=(1/3)/2; %Half-length of link 2
+l3=(1/3)/2; %Half-length of link 3
+
 
 k=1;       %Fluid drag coefficient (only affects absolute cost of motion)
 

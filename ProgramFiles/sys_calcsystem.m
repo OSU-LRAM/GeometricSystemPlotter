@@ -1,4 +1,4 @@
-function output = sys_calcsystem(input_mode,systemfilename)
+function output = sys_calcsystem(input_mode,systemfilename,stretch)
 %Numerically evaluate the local connection and height function from the
 %symbolic defination, including special accounting for singularities.
 
@@ -52,7 +52,7 @@ function output = sys_calcsystem(input_mode,systemfilename)
 			s = calc_constraint_curvature(s);
             
             %Build a stretch function corresponding to the metric
-            s = calc_stretch_functions(s);
+            s = calc_stretch_functions(s,stretch);
 						
 			%Save out the updated system properties
 			save(outfile,'s')

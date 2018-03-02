@@ -1,0 +1,23 @@
+function robot = draw_swimmer(robot,suppress_line)
+
+robot.links = draw_set(robot.links);
+
+if ~exist('suppress_line','var') || (suppress_line == 0)
+
+%Put the center-dot at the ref position
+%set(robot.center,'XData',robot.ref_pos(1),'YData',robot.ref_pos(2),'Zdata',3)
+
+dashed_line = [0:.2:2; (0:.2:2)+.12; NaN(size(0:.2:2))]/3;
+
+dashed_line_x = dashed_line(:);
+dashed_line_y = zeros(size(dashed_line_x));
+
+dashed_line_xy = ([cos(robot.ref_pos(3)) -sin(robot.ref_pos(3)); sin(robot.ref_pos(3)) cos(robot.ref_pos(3))] * [dashed_line_x'; dashed_line_y'])';
+
+dashed_line_xy = [-dashed_line_xy(end:-1:1,:); dashed_line_xy([1,end-1],:)];
+
+set(robot.orientation,'XData',dashed_line_xy(:,1)+robot.ref_pos(1),'YData',dashed_line_xy(:,2)+robot.ref_pos(2),'ZData',2.5*ones(size(dashed_line_xy(:,1))));
+
+end
+
+end
