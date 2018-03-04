@@ -133,7 +133,7 @@ end
 
 if isempty(File)  % Accept empty matrix as input:
    if ischar(File) || isnumeric(File)
-      File = cd;
+      File = pwd;
       return;
    else
       error(['JSimon:', mfilename, ':BadTypeInput1'], ...
@@ -163,7 +163,7 @@ if isWIN  % Windows: --------------------------------------------------------
    FileLen = length(File);
    if isUNC == 0                        % File is not a UNC path
       % Leading file separator means relative to current drive or base folder:
-      ThePath = cd;
+      ThePath = pwd;
       if File(1) == FSep
          if strncmp(ThePath, '\\', 2)   % Current directory is a UNC path
             sepInd  = strfind(ThePath, '\');
@@ -222,7 +222,7 @@ else         % Linux, MacOS: ---------------------------------------------------
       
    elseif strncmpi(File, FSep, 1) == 0
       % Append relative path to current folder:
-      ThePath = cd;
+      ThePath = pwd;
       if ThePath(length(ThePath)) == FSep
          File = [ThePath, File];
       else
