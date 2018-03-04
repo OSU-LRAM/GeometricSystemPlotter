@@ -87,7 +87,7 @@ function output = AA_SHCHFILENAME(input_mode,pathnames)
 			%path resolution
 			p.phi_res = 50;
 			
-
+			p.cBVI_method = 'simple';
 
 
 			%%%%
