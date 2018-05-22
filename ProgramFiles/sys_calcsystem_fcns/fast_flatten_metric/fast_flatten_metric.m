@@ -112,8 +112,8 @@ function [convert,sol] = fast_flatten_metric(grid,metric,method,mask)
         jacobian = find_jacobian(griddual{:},final_x,final_y);
         Jacobian = @(x_p,y_p) interpolate_cellwise_tensor(griddual{:},x_p,y_p,jacobian);
         
-        jacobian3 = find_jacobian3(griddual{:},final_x,final_y,final_z);
-        Jacobian3 = @(x_p,y_p) interpolate_cellwise_tensor(griddual{:},x_p,y_p,jacobian);
+%         jacobian3 = find_jacobian3(griddual{:},final_x,final_y,final_z);
+%         Jacobian3 = @(x_p,y_p) interpolate_cellwise_tensor(griddual{:},x_p,y_p,jacobian);
         % Calculate the new jacobian evaluated at the grid points
         jacobian_metric = arrayfun(Jacobian,grid{:},'UniformOutput',false);
         new_metric = cellfun(@(j,m) j'\m/j,jacobian_metric,(metric),'UniformOutput',false);
