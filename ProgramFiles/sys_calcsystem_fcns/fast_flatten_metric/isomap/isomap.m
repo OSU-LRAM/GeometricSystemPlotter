@@ -1,4 +1,4 @@
-function [final_x, final_y, rv, D,EI] = isomap(x, y, springs, neutral_lengths, w, plot3d)
+function [final_x, final_y,final_z, rv, D,EI] = isomap(x, y, springs, neutral_lengths, w, plot3d)
 % Runs underlying MDS to finish Isomap
 % x, y, springs, and neutral_lengths are from springs computation
 % plot3d tells whether or not to plot 3d manifold
@@ -39,9 +39,10 @@ function [final_x, final_y, rv, D,EI] = isomap(x, y, springs, neutral_lengths, w
 %         axis equal;
     end
     
-    new_coords = Y.coords{2,1};
+    new_coords = Y.coords{3,1};
     final_x = reshape(new_coords(1,:), size(x));
     final_y = reshape(new_coords(2,:), size(y));
+    final_z = reshape(new_coords(3,:), size(y));
     rv = R(2);
     
     % export extra info

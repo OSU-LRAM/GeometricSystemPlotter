@@ -73,6 +73,9 @@ function [convert,sol] = fast_flatten_metric(grid,metric,method,mask)
     % Append the masked springs attribute onto the end of the spring array
     springs = [springs,masked_springs]; 
     
+    if strcmp(method, 'null')
+        method = 'metric_stretch';
+    end
     
     % Find the flattened coordinates
     if strcmp(method, 'metric_stretch')
@@ -83,7 +86,7 @@ function [convert,sol] = fast_flatten_metric(grid,metric,method,mask)
         convert.rv = stress(D_old, final_x, final_y);
     elseif strcmp(method, 'metric_surface')
         varargin = [1 1];
-        [final_x, final_y, R, D,EI] = isomap(x_scaled, y_scaled, springs, neutral_lengths, varargin(1), varargin(2));
+        [final_x, final_y,final_z, R, D,EI] = isomap(x_scaled, y_scaled, springs, neutral_lengths, varargin(1), varargin(2));
         convert.rv = R;
         convert.D = D;
     else
@@ -108,6 +111,9 @@ function [convert,sol] = fast_flatten_metric(grid,metric,method,mask)
         	% Jacobian from old to new tangent vectors
         jacobian = find_jacobian(griddual{:},final_x,final_y);
         Jacobian = @(x_p,y_p) interpolate_cellwise_tensor(griddual{:},x_p,y_p,jacobian);
+        
+        jacobian3 = find_jacobian3(griddual{:},final_x,final_y,final_z);
+        Jacobian3 = @(x_p,y_p) interpolate_cellwise_tensor(griddual{:},x_p,y_p,jacobian);
         % Calculate the new jacobian evaluated at the grid points
         jacobian_metric = arrayfun(Jacobian,grid{:},'UniformOutput',false);
         new_metric = cellfun(@(j,m) j'\m/j,jacobian_metric,(metric),'UniformOutput',false);

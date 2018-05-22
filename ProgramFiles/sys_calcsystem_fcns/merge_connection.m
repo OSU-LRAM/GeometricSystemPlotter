@@ -21,7 +21,7 @@ function s = merge_connection(s)
             s.vecfield.(zoom_list{m}).content.Avec = ...
                 cellfun(@(A) -A, s.vecfield.(zoom_list{m}).content.A_num,'UniformOutput',false);
             
-        else % Divide in the denominator, but look for and handle singularities while doing this
+        else % Divide in the denominator, but look for and handle singularities while doing this9
             
         % The negative sign in the local connection is applied here.
         

@@ -4,7 +4,7 @@ function plot_info = CCF_draw(s,p,plot_info,sys,shch,resolution)
     %Get the configuration file, and extract the Colorpath
 	configfile = 'sysplotter_config';
     configfile = fullfile(fileparts(mfilename('fullpath')),'..',configfile);
-	100
+	load(configfile,'Colorset');
 
     %constraint curvature function list
     CCF_list = {'X','Y','T','Xopt','Yopt','Topt'};
