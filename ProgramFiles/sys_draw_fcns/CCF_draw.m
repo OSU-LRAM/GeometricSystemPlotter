@@ -277,7 +277,10 @@ function plot_info = CCF_draw(s,p,plot_info,sys,shch,resolution)
 
                 [x_new, y_new] = s.convert.old_to_new_points(grid{1},grid{2});
                 
-                HF_isomap = interpn(s.convert.EI.A,s.convert.EI.B,s.convert.EI.C,x_new, y_new);
+                C = (s.convert.EI.C);
+                C = reshape(smooth(C(:)),[],14);
+                
+                HF_isomap = interpn(s.convert.EI.A,s.convert.EI.B,C,x_new, y_new,'cubic');
                 
                 isomap.x_new = x_new;
                 isomap.y_new = y_new;
@@ -313,7 +316,7 @@ function plot_info = CCF_draw(s,p,plot_info,sys,shch,resolution)
 
 					[x_edge,y_edge] = s.convert.old_to_new_points(oldx_edge,oldy_edge);
                     
-                    HF_isomap_edge = interpn(s.convert.EI.A,s.convert.EI.B,s.convert.EI.C,x_edge,y_edge);
+                    HF_isomap_edge = interpn(s.convert.EI.A,s.convert.EI.B,C,x_edge,y_edge);
 					
 					l_edge = line('Parent',ax,'Xdata',x_edge,'YData',y_edge,'ZData',HF_isomap_edge,'Color','k','LineWidth',1);
                     
@@ -335,7 +338,7 @@ function plot_info = CCF_draw(s,p,plot_info,sys,shch,resolution)
 				end
 				
 				%set the color map
-				coloration = Colorset.colormap_contour;
+				coloration = Colorset.colormap;
 
 				
 			otherwise

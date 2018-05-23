@@ -28,10 +28,13 @@ function [final_x, final_y,final_z, rv, D,EI] = isomap(x, y, springs, neutral_le
         dx = .05;
         dy = .05;
 
-        x_edge = [floor(min(a)):dx:ceil(max(a))];
-        y_edge = [floor(min(b)):dy:ceil(max(b))];
+%         x_edge = [floor(min(a)):dx:ceil(max(a))];
+%         y_edge = [floor(min(b)):dy:ceil(max(b))];
+
+        x_edge = linspace(min(a),max(a),14);%[(min(a)+0.01):dx:(max(a)-0.01)];
+        y_edge = linspace(min(b),max(b),14);%[(min(b)+0.01):dy:(max(b)-0.01)];
         [A,B] = ndgrid(x_edge,y_edge);
-        C = griddata(a,b,c,A,B);
+        C = griddata(a,b,c,A,B,'nearest');
 
 %         figure;
 % %         mesh(A,B,C);
@@ -44,6 +47,10 @@ function [final_x, final_y,final_z, rv, D,EI] = isomap(x, y, springs, neutral_le
     final_y = reshape(new_coords(2,:), size(y));
     final_z = reshape(new_coords(3,:), size(y));
     rv = R(2);
+    
+%     final_x = symmetry_vector(final_x);
+%     final_y = symmetry_vector(final_y);
+%     final_z = symmetry_vector(final_z);
     
     % export extra info
     EI.A = A;
