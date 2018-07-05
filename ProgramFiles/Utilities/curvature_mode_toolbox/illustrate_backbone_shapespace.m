@@ -46,6 +46,10 @@ for idx = 1:numel(paramvalues{1})
         B(:,idx2) = B(:,idx2) + p(idx2);
     end
     
+
+    % Set tick spacing
+    xticks(paramvalues{1}(:,1));
+    yticks(paramvalues{2}(1,:));
     % draw the backbone at the specified location
     plot(B(:,1),B(:,2),'Parent',axh,'Color','k')
 
