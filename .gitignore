@@ -17,3 +17,7 @@ sysplotter_data
 #############
 UserFiles/*
 !UserFiles/GenericUser
+
+# Animation Output #
+####################
+ProgramFilesAnimation/saved\ animation
