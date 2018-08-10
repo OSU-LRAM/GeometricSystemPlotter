@@ -68,7 +68,7 @@ function [frame_info, endframe] = animation(frame_gen_function,frame_info,timing
 		export = 0;
 	end
 	
-	% Set the export to default if necessary
+	% Set the skip to default if necessary
 	if ~exist('skip','var')
 		skip = 0;
 	end
@@ -77,13 +77,27 @@ function [frame_info, endframe] = animation(frame_gen_function,frame_info,timing
 	% Set the startframe to default if necessary
 	if ~exist('startframe','var')
 		startframe = 1;
-	end
+    end
+    
+    % view will be used like export, but for which animations you want to
+    % have play live (unexported, in a matlab figure)
+    view = export; % For now, all exported animations are also played after.
+    % animations that are either viewed or exported need frames calculated
+    calc = arrayfun(@or,export,view);
+    % warning: export and view must be the same size
 	
 	% If the destination is a single string, then wrap it in a cell array
 	if isstr(destination)
 		destination = {destination};
 	end
 	
+    % Set output video filename
+    if isfield(frame_info{1}, 'sysname') && isfield(frame_info{1}, 'pathname')
+        outputfname = [frame_info{1}.sysname '_' frame_info{1}.pathname];
+    else
+        outputfname = 'gait_animation';
+    end
+    
 	% Globalize the path if necessary (some printing commands may require
 	% global destinations). Checks to see if destination starts with an
 	% absolute-path specifier, and prepends the working directory if this
@@ -106,18 +120,18 @@ function [frame_info, endframe] = animation(frame_gen_function,frame_info,timing
 				mkdir(destination{i})
 			end
 
-			% Move any current contents of the directory into a temp directory, so
-			% that they are not overwritten until the full new set of frames is
-			% generated
-			[~,~] = mkdir(fullfile(destination{i},'oldframes'));
-			try % Try deals with the error in movefile if there are no matches
-				movefile(fullfile(destination{i},'fr*'),fullfile(destination{i},'oldframes'));
-			end
-
-			% Make a temp directory to hold new files until script is complete, to
-			% make the distinction between a finished run and an interrupted run
-			% more clear
-			[~,~] = mkdir(fullfile(destination{i},'newframes'));
+% 			% Move any current contents of the directory into a temp directory, so
+% 			% that they are not overwritten until the full new set of frames is
+% 			% generated
+% 			[~,~] = mkdir(fullfile(destination{i},'oldframes'));
+% 			try % Try deals with the error in movefile if there are no matches
+% 				movefile(fullfile(destination{i},'fr*'),fullfile(destination{i},'oldframes'));
+% 			end
+% 
+% 			% Make a temp directory to hold new files until script is complete, to
+% 			% make the distinction between a finished run and an interrupted run
+% 			% more clear
+% 			[~,~] = mkdir(fullfile(destination{i},'newframes'));
 		
 		end
 		
@@ -142,6 +156,22 @@ function [frame_info, endframe] = animation(frame_gen_function,frame_info,timing
 	% Prime the framenumber
 	framecounter = startframe;
 	
+    % Prepare datastructure to store frames
+    frame_info = frame_gen_function(frame_info,framepoints(1));
+%     colormap = [1 0 0 %TODO: try not using a colormap?
+%                 1 1 1
+%                 0.75 0.75 0.75
+%                 0.5 0.5 0.5
+%                 0.25 0.25 0.25
+%                 0 0 0]; % Do we have a colormap set up?
+%     firstframe = rgb2ind(frame_info{1}.printmethod('-RGBImage'),colormap);
+    firstframe = frame_info{1}.printmethod('-RGBImage');
+    for j = 1:numel(calc)
+        if calc(j)
+            F{j} = struct('cdata',num2cell(zeros([length(framepoints) size(firstframe)],class(firstframe)),[2,3,4]),'colormap',[]);
+        end
+    end
+        
 	% Print out the frames
 	if ~skip							% If skipping this movie, don't draw frames
 		for i = 1:length(framepoints)
@@ -155,17 +185,27 @@ function [frame_info, endframe] = animation(frame_gen_function,frame_info,timing
 
 			% Turn framecounter into a string. String is set up to prepend
 			% zeros to turn this into a 8-digit number.
-			frame_str = num2str(framecounter);
-			frame_str = ['fr' repmat('0',1,8-length(frame_str)) frame_str]; %#ok<AGROW>
+% 			frame_str = num2str(framecounter);
+% 			frame_str = ['fr' repmat('0',1,8-length(frame_str)) frame_str]; %#ok<AGROW>
 
-			% Print out the frame into the newframes directory if the
-			% export flag is set
-			for j = 1:numel(export)
+% 			% Print out the frame into the newframes directory if the
+% 			% export flag is set
+            % Save animation datastructures for all 
+			for j = 1:numel(calc)
 				
-				if export(j)
-				
-					destination_str = fullfile(destination{j},'newframes',frame_str);
-					frame_info{1}.printmethod(destination_str);
+				if calc(j)
+            
+                    % Save current frame
+                    % Compatability with old code warning: Remove the image type
+                    % input from the printmethod function and it should work.
+%                     F{j}(i).cdata = rgb2ind(frame_info{j}.printmethod('-RGBImage'),colormap,'nodither');
+                    F{j}(i).cdata = frame_info{j}.printmethod('-RGBImage');
+                    % TODO: change F into a cell array of these sorts
+                    % of things so that the gait tracing animations can be
+                    % saved in it too
+                    
+% 					destination_str = fullfile(destination{j},'newframes',frame_str);
+% 					frame_info{1}.printmethod(destination_str);
 					
 				end
 			end
@@ -193,31 +233,59 @@ function [frame_info, endframe] = animation(frame_gen_function,frame_info,timing
 		% Ensure that the framecounter is the same as if the movie hadn't
 		% been skipped
 		framecounter = startframe+length(framepoints);
-        
-%         % Open the object
-%         open(writerObj);
-%         % Get the frame
-%         M = getframe(17);
-%         % Make the AVi file
-%         writeVideo(writerObj,M)
-% 		
 	end
-	
 	
 	% If the export flag was set, remove the old frames, and move the new
 	% frames to the main directory
-	for i = 1:numel(export)
-		if export(i)
-			try
-				rmdir(fullfile(destination{i},'oldframes'));
-			end
-
-			movefile(fullfile(destination{i},'newframes','fr*'),destination{i});
-
-		end
-	end
+% 	for i = 1:numel(export)
+% 		if export(i)
+% 			try
+% 				rmdir(fullfile(destination{i},'oldframes'));
+% 			end
+% 
+% 			movefile(fullfile(destination{i},'newframes','fr*'),destination{i});
+% 
+% 		end
+% 	end
 	
 	% Return the last frame printed
 	endframe = framecounter-1;
+
+    % Export:
+    for j = 1:numel(calc)
+        if export(j)
+        splitDest = strsplit(destination{j},'\');
+        v = VideoWriter(char(strcat(destination(j), '\', outputfname, '_', splitDest{end}, '.avi')));
+        v.FrameRate = timing.fps;
+        open(v)
+        writeVideo(v,F{j})
+        close(v)
+        end
+    end
+
+    % Close the figures used during animation making:
+    fignums = [17; 171; 172; 173]; % Hardcoded from animate_backbone...
+    for fig = fignums
+       close(fig) 
+    end
+    
+    % Play:
+    for j = 1:numel(calc)
+        if view(j)
+            % Create a figure and resize to fit the animation
+            animfig=figure(17+j);
+            clf(animfig)
+            animsize=size(F{j}(end).cdata);
+            animfig.Position(3:4)=[animsize(2) animsize(1)];
+            movegui(animfig) % ensure after resizing that figure is still onscreen	
+    % Play the movie:
+%     Maybe resize in order to show live animation smaller?
+%     Can't get the code to work right now...
+%     Fsm{j}.cdata = arrayfun(@(x) imresize(x.cdata,0.5),F{j},'UniformOutput',false);
+%     Fsm{j}.colormap = F{j}.colormap;
+%             movie(animfig,Fsm{j},1,timing.fps)
+            movie(animfig,F{j},1,timing.fps)
+        end
+    end
 	
 end
