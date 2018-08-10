@@ -1,7 +1,11 @@
-function animate_3_links_swimmer(export,info_needed)
-
+function animate_backbone(export,info_needed)
+    
+    % Look up the backbone specification for this snake:
+    sysfile = [info_needed.UserFile_path '\sysf_' info_needed.current_system2 '.mat'];
+    load(sysfile,'s')
+	info_needed.BackboneSpec = s.BackboneShape;
+    
 	%%%%%%%%
-
 	% Create animation elements, and store them in the frame_info structure
 	frame_info{1} = create_elements(info_needed); %setup function, defined below in file
 	frame_info = [frame_info;create_elements_shapespace(info_needed)]; % set up shapespace plots
@@ -12,7 +16,7 @@ function animate_3_links_swimmer(export,info_needed)
 		= @execute_gait; % frame function, defined below in file
 
 	% Declare timing
-	timing.duration = 10; % in seconds
+	timing.duration = 8; % in seconds
 	timing.fps = info_needed.Framerate;     % create frames for 15 fps animation
 	timing.pacing = @(y) linspace(0,1,y); % Use a soft start and end, using the included softstart function
 
@@ -20,34 +24,37 @@ function animate_3_links_swimmer(export,info_needed)
 	destination_root = info_needed.current_system2;
 	destination_list = {'snake','x','y','theta'};
 	destination = cellfun(@(x) fullfile(destination_root,x),destination_list,'UniformOutput',false); 
-
+    
     % Pass the system and gait names to the frame_info struct
     frame_info{1}.sysname = info_needed.current_system2;
     frame_info{1}.pathname = info_needed.current_shch2;
- 
+
 	% Animate the movie
 	[frame_info, endframe]...
-		= animation(frame_gen_function,frame_info,timing,destination,1,[0,0],0);
+		= animation(frame_gen_function,frame_info,timing,destination,1,[0 0],0);
 
 end
 
 function h = create_elements(info_needed)
 
+    
+
 	h.f = figure(17);                            % Designate a figure for this animation
 	clf(h.f)                                     % Clear this figure
-	set(h.f,'position',[600 1500 800 350],'paperposition',[0 0 10 4.5],'papersize',[10 4.5],'Color','w');
+	set(h.f,'position',[600 1500 800 600],'paperposition',[0 0 8 6],'papersize',[8 6],'Color','w','renderer','painters');
 
 	h.ax = axes('Parent',h.f);                   % Create axes for the plot
-	axis(h.ax,'equal','off');
-	set(h.ax,'XLim',[-5,5]*.8/2.5,'YLim',[-2.25,2.25]*.8/2.5);
-	set(h.ax,'Position',[0 0 1 1])
+ 	axis(h.ax,'equal','off');
+  	set(h.ax,'XLim',[-1,1]*.8,'YLim',[-1,1]*.6);
+ 	set(h.ax,'Position',[0 0 1 1]) % This is in units "normalized to the container"
 
     data_source = info_needed.UserFile_path;
-    system_name = info_needed.current_system2;
+	system_name = info_needed.current_system2;
 	gait_name = info_needed.current_shch2;
 
 	%Create the robot
-	h.robot = create_swimmer(h.ax,data_source,system_name);
+	h.robot = create_backbone(h.ax,data_source,system_name,info_needed.BackboneSpec);
+    h.robot.BackboneSpec = info_needed.BackboneSpec;
 	
 	% Extract the position and shape data
 	load(fullfile(data_source,['sysf_' system_name '__shchf_' gait_name]));
@@ -57,7 +64,7 @@ function h = create_elements(info_needed)
 	% Specify the number of times to repeat the cycle, and the number of
 	% negative cycle-displacements to start from
 	n_gaits = info_needed.Number_gaits;
-	start_pos = -2;%(n_gaits/2)-1;
+	start_pos = 0;%(n_gaits/2)-1;
 	
 	% get full configuration history
 	[h.shapedata, h.posdata] = gait_concatenator(shaperaw,posraw,n_gaits,start_pos);
@@ -68,10 +75,10 @@ function h = create_elements(info_needed)
 	h.tl = line('Parent',h.ax,'XData',[],'YData',[],'ZData',[],'LineWidth',5,'Color',[234 14 30]/255); %Tracer line for translation
 
 	
-
 end
 
 function h = create_elements_shapespace(info_needed)
+
 
 	% Create lists to iterate along for shape space axis creation
 	fignums = [171; 172; 173];
@@ -83,6 +90,7 @@ function h = create_elements_shapespace(info_needed)
 		f = figure(fignums(i));
 		clf(f);
 		ax(i) = axes('Parent',fignums(i));
+        set(f,'renderer','painters')
 		
 		h{i,1}.f = f; %#ok<AGROW>
 		h{i}.ax = ax(i); %#ok<AGROW>
@@ -98,33 +106,39 @@ function h = create_elements_shapespace(info_needed)
 		'CCFtype',{'DA'},'style',{'contour'});
 
 	% Identify the data file to draw the plot information from
-	data_source = info_needed.UserFile_path;%'\Users\hosse\Documents\MATLAB\Dr Hatton Snake Robot\GeometricSystemPlotter\UserFiles\v4\Hossein\sysplotter_data\v4.1';
-	system_name = info_needed.current_system2;%'honey_swimmer';
+	data_source = info_needed.UserFile_path;
+	system_name = info_needed.current_system2;
 	load(fullfile(data_source,['sysf_' system_name '_calc']));
 	
 	% Identify the function with the drawing code
-    
-	vfieldfunction = fullfile(info_needed.current_directory,'\sys_draw_fcns\CCF_draw');%'C:\Users\hosse\Documents\MATLAB\Dr Hatton Snake Robot\GeometricSystemPlotter\ProgramFiles\v4.1\sys_draw_fcns\hfun_draw';
+	vfieldfunction = fullfile(info_needed.current_directory,'\sys_draw_fcns\CCF_draw');
+
 
     % Call the drawing function
 
     resolution.vector = [11 11];
 
     resolution.scalar = [21 21];
-
+    
+    % TODO: this shouldn't be hardcoded...
     resolution.vector_range = [-2.5000 2.5000 -2.5000 2.5000];
 
     resolution.scalar_range = [-2.5000 2.5000 -2.5000 2.5000];
 
     hh = absolute_feval(vfieldfunction,s,[],plot_info,[],'null',resolution);
+    
+	% Call the drawing function
+% 	hh = absolute_feval(vfieldfunction,s,[],plot_info,[],'null',[]);
 	
 	% Remove the callbacks on clicks
 	set(hh.axes,'ButtonDownFcn',{})
-    
-    k = 1:numel(ax);
-    arrayfun(@(i) shading(ax(i),'interp'),k)
 	
-	% Now create a tracer-and-dot on each axis
+    for i = 1:numel(hh.axes)
+        set(get(hh.axes(i),'xlabel'),'string','$a_{1}$')
+        set(get(hh.axes(i),'ylabel'),'string','$a_{2}$')
+    end
+    
+    % Now create a tracer-and-dot on each axis
 	for i = 1:numel(h)
 		h{i}.tl = line('Parent',h{i}.ax,'XData',[],'YData',[],'ZData',[],'LineWidth',7,'Color',[234 14 30]/255); %Tracer line
 		h{i}.tld = line('Parent',h{i}.ax,'XData',[],'YData',[],'ZData',[],'LineWidth',5,'Color',[234 14 30]/255,'Marker','o','MarkerFaceColor',[234 14 30]/255,'MarkerSize',10,'LineStyle','none');
@@ -156,10 +170,10 @@ function frame_info = execute_gait(frame_info,tau)
 	config.theta = interp1(timing_base,frame_info{irobot}.posdata(:,3),tau);
 	
 	% Place the robot at the position
-	frame_info{irobot}.robot = place_robot(frame_info{irobot}.robot,config,'optimized');
+ 	frame_info{irobot}.robot = place_backbone(frame_info{irobot}.robot,config,'optimized',frame_info{irobot}.robot.BackboneSpec);
 	
 	% draw the robot using the swimmer graphics
-	frame_info{irobot}.robot = draw_swimmer(frame_info{irobot}.robot,1);
+	frame_info{irobot}.robot = draw_swimmer(frame_info{irobot}.robot,0);
 	
 	% Draw the tracer dot
 	set(frame_info{irobot}.tld,'XData',[frame_info{irobot}.posdata(1,1) config.x],'YData',[frame_info{irobot}.posdata(1,2) config.y],'ZData',[5,5]);
@@ -169,8 +183,8 @@ function frame_info = execute_gait(frame_info,tau)
 
 	% Declare a print method (in this case, print 150dpi png files of
 	% frame_info{irobot}.f, using the Painters renderer)
-	frame_info{irobot}.printmethod = @(dest) print(frame_info{irobot}.f,'-r 150','-painters',dest);
 % 	frame_info{irobot}.printmethod = @(dest) print(frame_info{irobot}.f,'-dpng','-r 150','-painters',dest);
+	frame_info{irobot}.printmethod = @(dest) print(frame_info{irobot}.f,'-r 150','-painters',dest);
 
 	%%%%%%%%%%%%%%%%
 	% Shapespace drawing stuff
@@ -210,9 +224,9 @@ function [shapedata, posdata] = gait_concatenator(shaperaw,posraw,n_gaits,start_
 	% similarly defined, but starting from the second value, and
 	% incrementing the offset power by one cycle
 	posraw_xy_augmented = cat(1, posraw(:,1:2)', ones(1,size(posraw,1)));
-    
-    posdata_initial=0; %fix for jumping
 	
+    posdata_initial=0; %fix for jumping
+    
 	% will build matrix incrementally
 	posdata = [];
 	for i = 1:n_gaits
@@ -232,16 +246,17 @@ function [shapedata, posdata] = gait_concatenator(shaperaw,posraw,n_gaits,start_
 			*posraw_xy_augmented(:,first_index:end);
 		
 		% theta component		
+		posdata_theta = posraw(first_index:end,3)'+posdata_initial;
 % 		posdata_theta = posraw(first_index:end,3)'-posraw(end,3)*(start_pos+(i-1));
-        % Fix for jumping:
-        posdata_theta = posraw(first_index:end,3)'+posdata_initial;
-        posdata_initial = posdata_theta(end);
+        posdata_initial = posdata_theta(end); %fix for jumping
 		
 		% merge xy and theta data (stripping off augmentation at same time)
 		posdata_new = cat(1,posdata_xy_augmented(1:2,:),posdata_theta);
 		
 		% Concatenate the displacements
 		posdata = cat(2,posdata,posdata_new);
+        
+%         start_pose = 
 		
 	end
 	

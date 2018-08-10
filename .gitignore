@@ -12,3 +12,12 @@ Thumbs.db
 ######################
 sysplotter_config.mat
 sysplotter_data
+
+# UserFiles #
+#############
+UserFiles/*
+!UserFiles/GenericUser
+
+# Animation Output #
+####################
+ProgramFilesAnimation/saved\ animation
