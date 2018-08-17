@@ -41,16 +41,16 @@ end
 fh = figure(plotnum);
 close(fh);
 fh = figure(plotnum);
-set(gcf,'name',orientation);
+set(fh,'name',orientation);
 
 axh = axes('Parent',fh);
-axis equal
-hold on 
+axis(axh,'equal')
+hold(axh,'on')
 % Set tick spacing
-xticks(paramvalues{1}(:,1));
-yticks(paramvalues{2}(1,:));
+axh.XTick = paramvalues{1}(:,1);
+axh.YTick = paramvalues{2}(1,:);
 % Figure stylistic settings
-box on % Repeat tickmarks and axis lines on the top and left sides
+axh.Box = 'on'; % Repeat tickmarks and axis lines on the top and left sides
 
 for idx = 1:numel(paramvalues{1})
     
