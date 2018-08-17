@@ -9,7 +9,7 @@ else
     % Get the user folder path
     load('sysplotter_config.mat','inputpath');
     % The hypothetical file path, supposing orientation is a system name
-    calcfilePath = strcat(inputpath,'\sysplotter_data\sysf_',orientation,'_calc.mat');
+        calcfilePath = fullfile(inputpath, 'sysplotter_data', ['sysf_', orientation, '_calc.mat']);
     if exist(calcfilePath, 'file')
         % orientation = 'from-sys'; Orientation will be set to this within the
         % fatbackbone function.

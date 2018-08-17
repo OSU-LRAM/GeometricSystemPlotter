@@ -9,7 +9,7 @@ function [B,h] = fatbackbone_from_general_curvature(curvdef,cparams,L,width,orie
         % Get the user folder path
         load('sysplotter_config.mat','inputpath');
         % The hypothetical file path, supposing orientation is a system name
-        calcfilePath = strcat(inputpath,'\sysplotter_data\sysf_',orientation,'_calc.mat');
+        calcfilePath = fullfile(inputpath, 'sysplotter_data', ['sysf_', orientation, '_calc.mat']);
         if exist(calcfilePath, 'file')
             orientation = 'from-sys';
         else
