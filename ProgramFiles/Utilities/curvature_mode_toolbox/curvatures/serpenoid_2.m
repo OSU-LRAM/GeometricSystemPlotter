@@ -5,4 +5,4 @@ if ~exist('omega','var')
     omega = 1;
 end
 
-kappa = sin(2*pi*omega*s);
+kappa = omega*sin(2*pi*omega*s);

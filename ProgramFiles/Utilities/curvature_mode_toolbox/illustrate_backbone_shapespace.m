@@ -14,6 +14,10 @@ else
     error('Unsupported curvature definition')
 end
 
+%Make sure that paramvalues are in a column cell to avoid any row/column
+%problems below
+paramvalues = paramvalues(:);
+
 % Get the gradient of parameter values in the first two dimensions
 [~,grid_spacing_x] = gradient(paramvalues{1});
 [grid_spacing_y,~] = gradient(paramvalues{2});
