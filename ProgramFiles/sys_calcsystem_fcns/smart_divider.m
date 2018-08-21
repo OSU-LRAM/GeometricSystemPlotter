@@ -1,6 +1,6 @@
 %function to divide numerator/denominator, and deal with singularities 
 
-function [quotient flag_array_out] = smart_divider(grid,nums,dens)
+function [quotient, flag_array_out] = smart_divider(grid,nums,dens)
 
 	%%%%%%%%%%%%%
 	%Main dividing code
