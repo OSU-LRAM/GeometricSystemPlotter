@@ -3,20 +3,6 @@ function illustrate_backbone_shapespace(curvdef,paramvalues,orientation,plotnum)
 % Specify orientation as midpoint-tangent unless specified otherwise
 if ~exist('orientation','var')
     orientation = 'midpoint-tangent';
-elseif or(isequal(orientation,'com-mean'), isequal(orientation,'midpoint-tangent'))
-    % do nothing; orientation is a valid option
-else
-    % Get the user folder path
-    load('sysplotter_config.mat','inputpath');
-    % The hypothetical file path, supposing orientation is a system name
-        calcfilePath = fullfile(inputpath, 'sysplotter_data', ['sysf_', orientation, '_calc.mat']);
-    if exist(calcfilePath, 'file')
-        % orientation = 'from-sys'; Orientation will be set to this within the
-        % fatbackbone function.
-    else
-        warning(strcat('system data file sysf_',orientation,'_calc.mat can not be found. Defaulting to midpoint-tangent orientation...'))
-        orientation = 'midpoint-tangent';
-    end
 end
 
 % Identify what kind of backbone is being drawn
