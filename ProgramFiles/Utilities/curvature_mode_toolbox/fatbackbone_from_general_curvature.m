@@ -35,6 +35,12 @@ function [B,h] = fatbackbone_from_general_curvature(curvdef,cparams,L,width,orie
             
         otherwise
             
+            % Make the string input robust against the user possibly
+            % including sysf_ in the function
+            if startsWith(orientation,'sysf_')
+                orientation = orientation(6:end);
+            end
+            
             load('sysplotter_config.mat','inputpath')
             calcfilePath = fullfile(inputpath, 'sysplotter_data',...
                 ['sysf_', orientation, '_calc.mat']);
