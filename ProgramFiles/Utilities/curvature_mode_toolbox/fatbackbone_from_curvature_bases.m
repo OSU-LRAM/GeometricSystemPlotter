@@ -8,9 +8,7 @@ function [B,h] = fatbackbone_from_curvature_bases(kappa_basis_input,r,L,width,or
     [h] = backbone_from_curvature_bases(kappa_basis_input,r,L);
     
     h_points = h(linspace(L*-.5,L*.5,100))';
-	
-	
-	B = fatbackbone(h,L*[-.5 .5],width);
+    B = fatbackbone(h,L*[-.5 .5],width);
     
     % Rotate and translate locus if specified
     
@@ -35,7 +33,37 @@ function [B,h] = fatbackbone_from_curvature_bases(kappa_basis_input,r,L,width,or
             
             B_aug = (R\B_aug')';
             
+        otherwise
             
+            load('sysplotter_config.mat','inputpath')
+            calcfilePath = fullfile(inputpath, 'sysplotter_data',...
+                ['sysf_', orientation, '_calc.mat']);
+            
+            if exist(calcfilePath, 'file') % Confirm that the system file exists
+                % Import the datafile of the specified system
+                load(calcfilePath,'s')
+
+                r_cell = num2cell(r);
+                % find the value of Bx for the given shape variables:
+                x = interpn(s.grid.eval{:}, s.B_optimized.eval.Beta{1},r_cell{:});
+                % find the value of By for the given shape variables:
+                y = interpn(s.grid.eval{:}, s.B_optimized.eval.Beta{2}, r_cell{:});
+                % find the value of Btheta for the given shape variables:
+                theta = interpn(s.grid.eval{:}, s.B_optimized.eval.Beta{3}, r_cell{:});
+
+                %%% Same as in com-mean:%%%
+                R = [cos(theta) -sin(theta) x;
+                    sin(theta) cos(theta) y;
+                    0 0 1];
+                % Multiply inverse of this matrix by point location matrix
+                B_aug = (R\B_aug')';
+                
+            else % If the file doesn't exist, show a warning
+                warning(strcat('system data file sysf_',orientation,...
+                    '_calc.mat can not be found. ',...
+                    'Defaulting to midpoint-tangent orientation.'))
+                % then do nothing, to match midpoint-tangent case above.
+            end
     end
 
     % Restore B to its un-augmented form

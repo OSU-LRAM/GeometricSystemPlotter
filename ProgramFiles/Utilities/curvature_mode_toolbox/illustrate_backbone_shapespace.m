@@ -1,4 +1,4 @@
-function illustrate_backbone_shapespace(curvdef,paramvalues,orientation)
+function illustrate_backbone_shapespace(curvdef,paramvalues,orientation,plotnum)
 
 % Specify orientation as midpoint-tangent unless specified otherwise
 if ~exist('orientation','var')
@@ -14,22 +14,35 @@ else
     error('Unsupported curvature definition')
 end
 
+
+% Specify plot number as 171 unless specified otherwise
+if ~exist('plotnum','var')
+    plotnum = 171; % 171 was the hardcoded default before I modified this
+end
+
 %Make sure that paramvalues are in a column cell to avoid any row/column
 %problems below
 paramvalues = paramvalues(:);
+
 
 % Get the gradient of parameter values in the first two dimensions
 [~,grid_spacing_x] = gradient(paramvalues{1});
 [grid_spacing_y,~] = gradient(paramvalues{2});
 
-fh = figure(171);
+% Create the figure
+fh = figure(plotnum);
 close(fh);
-fh = figure(171);
-
+fh = figure(plotnum);
+set(fh,'name',orientation);
 
 axh = axes('Parent',fh);
-axis equal
-hold on
+axis(axh,'equal')
+hold(axh,'on')
+% Set tick spacing
+axh.XTick = paramvalues{1}(:,1);
+axh.YTick = paramvalues{2}(1,:);
+% Figure stylistic settings
+axh.Box = 'on'; % Repeat tickmarks and axis lines on the top and left sides
 
 for idx = 1:numel(paramvalues{1})
     
@@ -50,11 +63,7 @@ for idx = 1:numel(paramvalues{1})
         B(:,idx2) = B(:,idx2) + p(idx2);
     end
     
-
-    % Set tick spacing
-    xticks(paramvalues{1}(:,1));
-    yticks(paramvalues{2}(1,:));
     % draw the backbone at the specified location
     plot(B(:,1),B(:,2),'Parent',axh,'Color','k')
-
+    
 end

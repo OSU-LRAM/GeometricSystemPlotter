@@ -1,6 +1,8 @@
 function [A, h, J] = Inertial_local_connection_from_curvature_bases(kappa_basis_input,r,L,density)
 % Calculate the local connection for a set of curvature bases
 %
+%NEEDS TO BE FIXED: input documentation does not match input parameters!
+%
 % Inputs:
 % kappa_basis_input: cell vector of handles to basis functions
 % r: coefficients for basis functions
