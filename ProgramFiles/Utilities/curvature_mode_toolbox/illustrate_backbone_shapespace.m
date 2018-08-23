@@ -14,10 +14,16 @@ else
     error('Unsupported curvature definition')
 end
 
+
 % Specify plot number as 171 unless specified otherwise
 if ~exist('plotnum','var')
     plotnum = 171; % 171 was the hardcoded default before I modified this
 end
+
+%Make sure that paramvalues are in a column cell to avoid any row/column
+%problems below
+paramvalues = paramvalues(:);
+
 
 % Get the gradient of parameter values in the first two dimensions
 [~,grid_spacing_x] = gradient(paramvalues{1});
