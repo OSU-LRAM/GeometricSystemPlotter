@@ -12,3 +12,8 @@ Thumbs.db
 ######################
 sysplotter_config.mat
 sysplotter_data
+
+# Userfiles #
+#############
+UserFiles/*
+!UserFiles/GenericUser
