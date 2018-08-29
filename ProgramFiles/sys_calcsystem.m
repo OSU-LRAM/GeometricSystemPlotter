@@ -30,7 +30,7 @@ function output = sys_calcsystem(input_mode,systemfilename)
 			%Create grids for evaluating the connection functions
 			s = create_grids(s);
 			
-            % Ensure that there is a metric
+            % Ensure that there is a connection and a metric
             s = ensure_connection_and_metric(s);
 
             
