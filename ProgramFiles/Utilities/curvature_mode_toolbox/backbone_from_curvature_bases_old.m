@@ -11,7 +11,8 @@ function [h, J] = backbone_from_curvature_bases(kappa_basis_input,r,L)
 
 %%%%%%%%%%%%%%%
 %%%%%%%%%%%%%%%
-%Input checking
+%Input checking -- this probably isn't really necessary, but I want to
+%practice it
 
 %make sure kappa_basis is a column of function handles
 if size(kappa_basis_input,2) ~= 1 || numel(size(kappa_basis_input)) ~= 2
@@ -35,7 +36,13 @@ end
 
 % Set the integration limits. Internally, everything uses [-0.5 0.5], and
 % then scales by the length factor at the end.
-all_limits = [-0.5 0.5];
+int_limit = [-0.5 0.5];
+
+
+%%%%%%%%%%%%%%%%
+% Sort the discontinuities into the integration limit vector
+all_limits = sort([int_limit 0 discont]);
+
 
 %%%%%%%%
 % If kappa_basis does not already include an integral term, add it, and
@@ -151,8 +158,21 @@ function dJ = J_helper(s,J,kappa_basis,h) %#ok<INUSL>
 end
 
 
+function X = torow( X )
 
+	X = X(:).';
+    
+end
 
+function Y = toz( X )
+
+	%first, make X a row
+	X = torow(X);
+	
+	% then, make it a 3rd-dimension column
+	Y(1,1,:) = X;
+    
+end
 
 function angle = theta_fun_helper(k,r,s) 
 

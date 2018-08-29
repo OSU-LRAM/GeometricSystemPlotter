@@ -1,7 +1,7 @@
 function s = evaluate_tensors_in_system_file(s,component_list,zoom_list,destination)
 
     %loop over list of zoom levels, creating the vector fields
-    for i = 1:size(zoom_list,1);
+    for i = 1:size(zoom_list,1)
         
         % Shape values in grid
         a = s.grid.(zoom_list{i,2});

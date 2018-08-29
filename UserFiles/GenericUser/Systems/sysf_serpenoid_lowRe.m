@@ -1,6 +1,7 @@
 function output = sysf_serpenoid_lowRe(input_mode,pathnames)
+% System file for a low Reynolds
 
-	% Default arguments
+    % Default arguments
 	if ~exist('input_mode','var')
 		
 		input_mode = 'initialize';
@@ -21,51 +22,73 @@ function output = sysf_serpenoid_lowRe(input_mode,pathnames)
                 {'Utilities/curvature_mode_toolbox/backbone_from_curvature_bases.m',...
 				'Utilities/curvature_mode_toolbox/curvatures/serpenoid_1.m',...
 				'Utilities/curvature_mode_toolbox/curvatures/serpenoid_2.m',...
-				'Utilities/LowRE_toolbox/LowRE_dissipation_metric_from_curvature_bases.m',...
-				'Utilities/LowRE_toolbox/LowRE_local_connection_from_curvature_bases.m'});
+				'Utilities/LowRE_toolbox/LowRE_dissipation_metric.m',...
+				'Utilities/LowRE_toolbox/LowRE_local_connection.m'});
 
 		case 'initialize'
 
+            %%%%%%%%%
+            % System definition
 
-			%Functional representation of local connection
-			s.A_num = @Conn_num;
+            %%%
+            % Define the geometry of the system
+
+            % this system's shape is defined by a set of basis functions
+            % whose weighted sum is curvature as a function of distance
+            % along the backbone
+            s.geometry.type = 'curvature basis';                
+
+            % The specific basis functions are those for a serpenoid curve,
+            % in which the curvature varies sinusoidally along the length
+            % of the body. This function is normalized such that the body length
+            % is taken as one unit long. For this system, we use a
+            % wavelength equal to the body length.
+            n_waves = 1;
+            s.geometry.function = {@(s)serpenoid_1(s,n_waves);@(s)serpenoid_2(s,n_waves)};
+
+            % Total length of the swimmer, in real units
+            s.geometry.length = 1;
+
+            %%%
+
+            %%%
+            % Define the physics of the system
+
+            % This system is treated as moving in a viscous fluid. Key elements we
+            % need for this model are a drag coefficient and a drag ratio
+            s.physics.drag_coefficient = 1;                   % multiplier from longitudinal velocity to drag force. Changing this scales the dissipation matrix
+            s.physics.drag_ratio = 2;                         % ratio of lateral:longitudinal drag
+
+            % Locomotion model derived from viscous drag forces reacting to
+            % local velocities of elements on the body
+            s.A = @(a1,a2) LowRE_local_connection(s.geometry,s.physics,[a1;a2]);
+            
+            % Locomotion model derived from viscous drag forces reacting to
+            % local velocities of elements on the body
+            s.metric = @(a1,a2) LowRE_dissipation_metric(s.geometry,s.physics,[a1;a2]);
+            %%%
 
 
-			%%%
-			%Processing details
+            %%%
+            % Processing details
 
-			%Range over which to evaluate connection
-			s.grid_range = [-1,1,-1,1]*12;
+            %Range over which to evaluate connection
+            s.grid_range = [-1,1,-1,1]*12;
 
-			%densities for various operations
-			s.density.vector = [11 11]; %density to display vector field
-			s.density.scalar = [21 21]; %density to display scalar functions
-			s.density.eval = [21 21];   %density for function evaluations
-			s.finite_element_density = 11;
-			% power metric
-			s.metric = @(x,y) LowRE_dissipation_metric_from_curvature_bases...
-				({@serpenoid_1;@serpenoid_2},[x;y],1,1,2);  % @(x,y) eye(2);%
+            %densities for various operations
+            s.density.vector = [11 11]; %density to display vector field
+            s.density.scalar = [21 21]; %density to display scalar functions
+            s.density.eval = [21 21];   %density for function evaluations
 
-			%%%
-			%Display parameters
-
-			%shape space tic locations
-			s.tic_locs.x = [-1 0 1]*6;
-			s.tic_locs.y = [-1 0 1]*6;
-
-
-			%%%%
+            %shape space tic locations
+            s.tic_locs.x = [-1 0 1]*6;
+            s.tic_locs.y = [-1 0 1]*6;
+            %%%%
+    
+    
 			%Save the system properties
 			output = s;
 
 
 	end
-
-end
-
-function [Ar]=Conn_num(a1,a2)
-
-
-		Ar =  LowRE_local_connection_from_curvature_bases({@serpenoid_1;@serpenoid_2},[a1;a2],1,1,2);
-
 end
