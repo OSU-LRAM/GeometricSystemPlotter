@@ -9,7 +9,7 @@ switch mode
 
         AA_curv_fun_call
 
-    case 'angle'
+    case 'orientation'
         
         AA_int_curv_ds_call
         

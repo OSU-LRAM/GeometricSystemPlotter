@@ -1,11 +1,41 @@
 function [h, J] = backbone_from_general_curvature(curvdef,cparams,L)
+% Integrate backbone geometry from a generalized curvature definition
+% function and a set of parameters on this curvature function. The backbone
+% is of total length L, placed such that its midpoint is at the origin and
+% its midpoint tangent is aligned with the x axis.
+% 
+%
+% Inputs: 
+%
+% curvdef: function handle to a curv_ function whose m-file is within the
+%   current matlab path (for sysplotter, this will most likely be in the
+%   user's Systems/ directory, near the sysf file for the system. See
+%   make_curvdef for how to create this mfile.
+%
+% cparams: Vector of parameters to be passed to the curvdef file
+%
+% L: The actual length of the backbone, in "real world" units. This value
+%   scales the geometry of the integrated backbone shape
+%
+% Outputs:
+%
+% h is a function on the domain s = [-.5 .5] (normalized unit-length backbone) that returns the position and
+%   orientation (in world-units) of the frame on the backbone that is at point s along the
+%   backbone (in backbone units)
+% J is the Jacobian of h, so that its product with a shape velocity gives
+%   the rate of change of h -- the "world velocity" of the backbone point
+%   taking the midpoint-tangent frame as "fixed"
+% J_full is the Jacobian mapping from system-body-velocity and shape
+%   velocity to the body velocity (relative to a non-moving frame) of the
+%   point on the body
+
 
 % Set the integration limits. Internally, everything uses [-0.5 0.5], and
 % then scales by the length factor at the end.
 all_limits = [-0.5 0 0.5];
 
 % Get backbone theta as a function of s
-theta_fun = curvdef(cparams,'angle');
+theta_fun = curvdef(cparams,'orientation');
 
 % Get the x and y locations of points on the backbone
 locus_sol = ode_multistart(@ode45, @(s,h) locus_helper(s,theta_fun),all_limits,0,[0;0]);
@@ -17,7 +47,7 @@ h = @(s) [L*locus_sol(torow(s)/L); theta_fun(torow(s)/L)]; % with actual length
 %%%%%%%%%%%%%%
 % Get the jacobian to body point velocities
 
-if nargout == 2
+if nargout > 1
 
     dcurvdef = curvdef(cparams,'dcurvature_int');
 
@@ -32,6 +62,16 @@ if nargout == 2
     J = @(s) cat(1,reshape(L*jacobian_sol(toz(s/L)),2,[],length(s)),permute(J_theta_fun(s/L),[3,2,1]));
 
 end
+
+%%%%%%%
+% Get the full Jacobian from system body velocity and shape velocity to
+% body velocity of the point on the body (relative to fixed world frame)
+if nargout > 2
+    
+    J_full = @(s) [Adjinv(h(s)) TgLginv(h(s))*J(s)];
+    
+end
+
 
 end
 
