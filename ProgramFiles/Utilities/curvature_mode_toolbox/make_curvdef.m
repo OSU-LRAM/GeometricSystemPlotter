@@ -1,11 +1,102 @@
-function make_curvdef(curv_fun_string,paramlist,name,attempt_analytic,sysplotterpath,syspath)
-% curv_fun_string can be either a string expression or a symbolic
-% expression
+function curv_fun = make_curvdef(curv_fun_string,paramlist,name,attempt_analytic,syspath,sysplotterpath)
+% This function allows a user to specify the curvature of a backbone via a
+% function contained in a string or symbolic expression. It pre-processes this curvature
+% definition so that it can be integrated into the full backbone geometry
+% via the function backbone_from_general_curvature. The results from this
+% preprocessing are stored in an mfile curv_* located in the directory
+% specified by the syspath input.
+%
+%
+% Inputs:
+%
+% curv_fun_string: A string or symbolic expression describing the curvature
+%   of the body as a function of position s along the body and any set of
+%   shape variables. The position s is defined on a normalized unit-length
+%   body centered at zero (in the range [-.5 .5]), and curvature is
+%   interpreted to mean dtheta/ds of the tangent-line orientation when moving
+%   in the positive-s direction.
+%
+% paramlist: A cell array of strings, each of which corresponds to one of
+%   the shape variables used in defining curv_fun_string. The order of
+%   these strings in the cell array determines the order in which they
+%   appear in the curvature function created from curv_fun_string
+%
+% name: A string that will be used to name the curvature function created
+%   from curv_fun_str.
+%
+% attempt_analytic (optional) : When creating a curv_ function,
+%   make_curvdef will attempt to treat curv_fun_string as an analytic
+%   function to the greatest extent possible, resulting in faster
+%   performance when this function is evaluated (because it will require
+%   fewer numerical integrations). Not all functions can be handled in this
+%   way, and make_curvdef will fall back to a numerical function
+%   specification if its attempt fails. For complicated curv_fun_str
+%   inputs, this function can take significant time to determine that it
+%   needs to fall back. To bypass the checks and directly use the numerical
+%   methods, a 4-element boolean vector can be provided in this input.
+%   Each element of this vector tells make_curvdef whether to attempt an
+%   analytic form for the four elements of the output function. (see
+%   description of these four elements in the "output" documentation below)
+%
+% syspath (optional unless make_curvdef is called
+%   from within a sysf_ file) : Directory where output function should be placed.
+%   If not specified, the directory is taken as the current user's Systems
+%   directory, loaded from sysplotter_config. If make_curvdef  is called
+%   from within a sysf_ file, this argument should be 'pathnames.syspath'
+%
+% sysplotterpath (optional unless make_curvdef is called
+%   from within a sysf_ file) : Location of the sysplotter directory in
+%   which the template for the curv_ file is located. If not specified, the
+%   directory path is loaded from sysplotter_config. If make_curvdef  is called
+%   from within a sysf_ file, this argument should be 'pathnames.sysplotterpath'
+%
+%
+% Outputs:
+%
+% curv_fun: The output of this function is a handle to the curvature
+%   function it creates, whose mfile was saved into the syspath directory
+%   (loaded from sysplotter_confg or specified in the input).
+%
+%
+%   This function takes in two arguments:
+%
+%       params: a vector of shape parameter values
+%
+%       mode: a string specifying what aspect of the curvature and related functions should be
+%           returned. This can be:
+%
+%           'curvature': The curvature of points on the backbone, as specified in
+%               curv_fun_str
+%           'orientation': The orientation of tangent lines on the
+%               backbone, relative to the tangent line at the midpoint of
+%               the backbone. (This is the integral of curvature with
+%               respect to the position s along the unit-normalized
+%               backbone
+%           'dcurvature': The derivative of the curvature with respect to
+%               the shape parameters.
+%           'dcurvature_int': The integral with respect to normalized
+%               backbone position s of the derivative of curvature with respect to
+%               the shape parameters
+%
+%   The output of curv_fun *is itself a function*. It takes arguments of s
+%       in the range of [-.5 .5] (unit backbone centered at zero) and
+%       returns the value of the quantity previous specified in "mode" as
+%       an output.
+%       
+
 
 % Load the paths where files should be found
-if ~exist('sysplotterpath','var') || ~exist('syspath','var')
+
+if  ~exist('syspath','var')
     
-    load sysplotter_config
+    load('sysplotter_config','syspath')
+    
+end
+
+
+if ~exist('sysplotterpath','var')
+    
+    load('sysplotter_config','sysplotterpath')
     
 end
 
@@ -206,7 +297,9 @@ fidi = fopen(fullfile(sysplotterpath,'Utilities','curvature_mode_toolbox',...
     'make_curvdef_template.txt'));
 
 % Create the output file
-fido = fopen(fullfile(syspath,['curv_' name '.m']),'w');
+strrep(name,'curv_',''); % avoid writing curv_ twice if user already put it in
+curv_name = ['curv_' name];
+fido = fopen(fullfile(syspath,[curv_name '.m']),'w');
 
 % Place the input function string as a comment in the top line of the file
 fprintf(fido,'%% %s\n',char(curv_fun_string));
@@ -304,5 +397,8 @@ end
 rmdir(curvdef_tempdir,'s')
 
 fclose(fido);
+
+% pass handle to newly created function as output
+curv_fun = str2func(curv_name);
 
 end

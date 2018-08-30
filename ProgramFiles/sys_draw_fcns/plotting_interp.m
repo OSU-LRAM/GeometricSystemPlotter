@@ -11,6 +11,7 @@ function [V,grid] = plotting_interp(V,grid,resolution,resolution_choice)
 	end
 
 	% Loop over number of dimensions
+    gridprim = cell(numel(grid),1);
 	for i = 1:numel(grid)
 
 		% Create the base vector for the grid along the jth dimension

@@ -1,13 +1,49 @@
-function [h, J] = backbone_from_curvature_bases(kappa_basis_input,r,L)
-% Build up the backbone locus and velocity one-form at a given shape
-% defined by the curvature kappa = sum(r(i)*kappa_basis(i). The backbone is
-% of total length L, extending in each direction from the point (0,0) with
-% orientation 0 (i.e. along the x axis). Curvature basis functions kappa
-% should be defined with respect to a total body length of 1, should be
-% vectorized, and can provide an explicit integral of their function as a
-% second row of the output. If this integral is provided, best performance
-% will correspond to having it pass through (0,0)
-
+function [h, J, J_full] = backbone_from_curvature_bases(kappa_basis_input,r,L)
+% Integrate backbone geometry from a set of curvature basis functions and
+% weighting factors on those basis functions. The backbone is
+% of total length L, placed such that its midpoint is at the origin and its
+% midpoint tangent is aligned with the x axis.
+% 
+%
+% Inputs: 
+%
+% kappa_basis_input: A single-column cell array of function handles, each
+%   of which maps from the domain s = [-.5 .5] (normalized unit-length
+%   backbone) to the curvature (dtheta/ds) of the backbone at this point.
+%
+%   Curvature basis functions should be vectorized (so that if given a row
+%   vector of s values, they return a row vector of curvatures.
+%
+%   Faster performance is achieved if the curvature basis functions return
+%   a second *row* in their output, which contains the integral of the
+%   curvature from the midpoint to that point on the body (the orientation
+%   of the tangent line at that point on the body, relative to the tangent
+%   line at the midpoint). If this integral is provided, best performance
+%   will correspond to having it equal to zero when s is zero.
+%
+% r: A column of scalar values, which are used to scale the outputs of
+%   their respective kappa functions, such that the total curvature of the
+%   backbone is the r-weighted sum of the kappa_basis_input functions,
+%
+%      kappa(s) = sum( kappa_basis{i}(s) * r(i) )
+%
+% L: The actual length of the backbone, in "real world" units. This value
+%   scales the geometry of the integrated backbone shape
+%
+% Outputs:
+%
+% h is a function on the domain s = [-.5 .5] (normalized unit-length
+%   backbone) that returns the position and orientation (in world-units) of
+%   the frame on the backbone that is at point s along the backbone (in
+%   backbone units)
+%
+% J is the Jacobian of h, so that its product with a shape velocity gives
+%   the rate of change of h -- the "world velocity" of the backbone point
+%   taking the midpoint-tangent frame as "fixed"
+%
+% J_full is the Jacobian mapping from system-body-velocity and shape
+%   velocity to the body velocity (relative to a non-moving frame) of the
+%   point on the body
 
 %%%%%%%%%%%%%%%
 %%%%%%%%%%%%%%%
@@ -100,7 +136,7 @@ h = @(s) [L*locus_sol(torow(s)/L); theta_fun(torow(s)/L)]; % with actual length
 %%%%%%%%%%%%%%
 % Get the jacobian to body point velocities
 
-if nargout == 2
+if nargout > 1
 
     % Calculate the theta component separately once again, to accomodated delta
     % functions
@@ -115,6 +151,15 @@ if nargout == 2
     % Concatenate xy and theta jacobians.
     J = @(s) cat(1,reshape(L*jacobian_sol(toz(s/L)),2,[],length(s)),J_theta_fun(s/L));
 
+end
+
+%%%%%%%
+% Get the full Jacobian from system body velocity and shape velocity to
+% body velocity of the point on the body, (relative to fixed world frame)
+if nargout > 2
+    
+    J_full = @(s) [Adjinv(h(s)) TgLginv(h(s))*J(s)];
+    
 end
     
 end

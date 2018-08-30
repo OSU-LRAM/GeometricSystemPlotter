@@ -1,4 +1,4 @@
-% (1487172013899585*sign((a1*cos(2*s*pi) + a2*sin(2*s*pi))/(a1^2 + a2^2)^(1/2))*abs(a1*cos(2*s*pi) + a2*sin(2*s*pi))^10*(a1^2 + a2^2)^(1/2))/(562949953421312*abs(a1^2 + a2^2)^5)
+% (2974344027799169*sign((a1*cos(2*s*pi) + a2*sin(2*s*pi))/(a1^2 + a2^2)^(1/2))*abs(a1*cos(2*s*pi) + a2*sin(2*s*pi))^10*(a1^2 + a2^2)^(1/2))/(1125899906842624*abs(a1^2 + a2^2)^5)
 function output = curv_triangle_wave_one_period(params,mode)
 
 % Turn params into a cell matrix
@@ -11,7 +11,7 @@ switch mode
 		output = @(s) curv_fun(s,params{:});
 
 
-    case 'angle'
+    case 'orientation'
         
 		%% Padded length of unit backbone
 		all_limits = [-.51 0 .51];
@@ -44,10 +44,11 @@ switch mode
 		
 		%% Make dummy integration function
 		d_curv_dp_fun_dummy = curv_triangle_wave_one_period(cell2mat(params),'dcurvature');
-		dcurvature = @(s,~) d_curv_dp_fun_dummy(s);
+		dcurvature = @(s,~) d_curv_dp_fun_dummy(s)';
 		
 		%% Integral of the integrand function along s
-		output = ode_multistart(@ode45,dcurvature,all_limits,0,zeros(size(params(:).')));
+		dummy_output = ode_multistart(@ode45,dcurvature,all_limits,0,zeros(size(params(:).')));
+		output = @(t) transpose(dummy_output(t));
 
                                    
 end
@@ -65,7 +66,7 @@ end
 
 function output = reshape_truncate_jacobian(J)
 
-    output = J(2:end)';
+    output = J(:,2:end);
     
 end
 
@@ -83,6 +84,6 @@ function out1 = curv_fun(s,a1,a2)
 	t12 = t11.^2;
 	t13 = t12.^2;
 	t14 = t13.^2;
-	out1 = sqrt(t5).*t12.*t14.*sign(1.0./sqrt(t5).*t10).*1.0./abs(t5).^5.*2.641748178255172;
+	out1 = sqrt(t5).*t12.*t14.*sign(1.0./sqrt(t5).*t10).*1.0./abs(t5).^5.*2.641748178255171;
 end
 
