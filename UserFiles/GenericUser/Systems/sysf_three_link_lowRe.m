@@ -30,7 +30,7 @@ function output = sysf_three_link_lowRe(input_mode,pathnames)
 
             %Functional representations of local connection and metric
 
-			s.A_num = @(alpha1,alpha2) Fullconnection3link(alpha1,alpha2,drag_ratio);
+			s.A = @(alpha1,alpha2) Fullconnection3link(alpha1,alpha2,drag_ratio);
 			s.metric =@(x,y) LowRE_dissipation_metric_from_curvature_bases...
 				({@discrete_joint_1;@discrete_joint_2},[x;y],1,1,drag_ratio);
 

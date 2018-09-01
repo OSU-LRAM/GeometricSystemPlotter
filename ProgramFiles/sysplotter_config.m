@@ -96,11 +96,11 @@ addpath('Utilities/gait_gui_draw')
     end
     % Check version and set default property file
     if ispc
-        propertyFile = 'propertyDataWindows.mat';
+        propertyFile = 'sysplotter_config_fcns/propertyDataWindows.mat';
     elseif ismac
-        propertyFile = 'propertyDataMacOS.mat';
+        propertyFile = 'sysplotter_config_fcns/propertyDataMacOS.mat';
     elseif isunix
-        propertyFile = 'propertyDataLinux.mat';
+        propertyFile = 'sysplotter_config_fcns/propertyDataLinux.mat';
     end
     set(handles.displayConfigFile,'String',propertyFile)
 
