@@ -20,7 +20,7 @@ physics.drag_ratio = drag_ratio;
 
 [A, h, J,Omega] = LowRE_local_connection(geometry,physics,r);
 
-warning('The function LowRE_local_connection_from_curvature_bases for generating the local connection has been deprecated. For better maintainability and compatability with future sysplotter features, please update your sysf_ file to include a geometry structure, and call the generic LowRE_local_connection function with this structure.')
+%warning('The function LowRE_local_connection_from_curvature_bases for generating the local connection has been deprecated. For better maintainability and compatability with future sysplotter features, please update your sysf_ file to include a geometry structure, and call the generic LowRE_local_connection function with this structure.')
 
 %%%%%%%
 % Code that used to be run is below

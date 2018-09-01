@@ -131,7 +131,7 @@ locus_sol = ode_multistart(@ode45, @(s,h) locus_helper(s,theta_fun),all_limits,0
 % Return the locus data as 3xn matrix with x,y,theta at each of n points
 %h = @(s) [L*(deval(locus_sol,torow(s)/L)-deval(locus_sol,0*torow(s))); theta_fun(torow(s)/L)];
 h_norm = @(s) [locus_sol(torow(s)); theta_fun(torow(s))]; % in normalized internal coordinates
-h = @(s) [L*locus_sol(torow(s)/L); theta_fun(torow(s)/L)]; % with actual length
+h = @(s) [L*locus_sol(torow(s)); theta_fun(torow(s))]; % with actual length
 
 %%%%%%%%%%%%%%
 % Get the jacobian to body point velocities

@@ -1,4 +1,11 @@
 function RA = TeRg(g)
+% Right lifted action of g acting on vectors at the origin/in the Lie
+% algebra
+
+% Convert from matrix representation to column if needed.
+if numel(g) == 9
+    g = mat_to_vec_SE2(g);
+end
 
 xdelta = g(1);
 ydelta = g(2);
