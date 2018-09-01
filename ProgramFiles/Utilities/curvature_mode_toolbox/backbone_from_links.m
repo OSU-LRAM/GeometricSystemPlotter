@@ -275,6 +275,10 @@ switch baseframe
 
             % Extract the transform from the end link to the middle link
             frame_zero = chain_m(:,:,link_zero);
+            
+            %%%%%%
+            % Jacobian for conversion is Jacobian of link zero
+            J_zero = J_temp{link_zero};
 
         % If there is an even number of links, the midpoint is at the middle joint,
         % rotated by half of that joint's angle
@@ -287,57 +291,68 @@ switch baseframe
             % the transform associated with its joint angle
             frame_zero = jointchain_m(:,:,joint_zero) * ...
                                 vec_to_mat_SE2(joints_v(joint_zero,:)/2);
+                            
+            %%%%%%%%
+            % Jacobian for conversion is Jacobian of link before it, with a
+            % half-step to get to the end of the link, and a half rotation
+            % to average orientation between the two links
+            halfstep = Adjinv(links_v(joint_zero,:));
+            halfrotation = Adjinv(joints_v(joint_zero,:)/2);
+            J_zero = halfrotation * halfstep * J_temp{joint_zero};
+            
+            J_zero(:,joint_zero) = [0; 0; .5]; % Account for centered frame being half-sensitive to middle joint
+           
 
         end
         
         
-        %%%%%%%%%%%%%%%%
-        % Calculate columns of Jacobian to new base frame 
-        for idx2 = 1:M_joints
-
-            % New frame is  only sensitive to the motion of joints proximal to it in the chain
-            if N_odd
-               sensitivity = link_zero > idx2;  
-            else
-
-                % If the frame is proximal to the joint, it is not sensitive to it
-                if idx2 > joint_zero
-                    sensitivity = 0;
-                % If the frame is at the center joint, it has half-sensitivity to the joint
-                elseif idx2 == joint_zero 
-                    sensitivity = 0.5;
-                % If the frame is distal to the joint, it is sensitive to it
-                else
-                    sensitivity = 1;
-                end
-
-            end
-
-
-            if sensitivity
-
-                % Calculate the displacement of the new frame relative to the joint
-                relative_transform = jointchain_m(:,:,idx2)\frame_zero;
-
-                % Calculate the adjoint-inverse transformation corresponding to
-                % the joint-to-link transformation
-                Adjointinverse_transform = Adjinv(relative_transform);
-
-
-                % Multiply these transformations by the joint axis to get the
-                % Jacobian column (multiply by sensitivity to catch case of
-                % half-sensitivity
-                J_zero(:,idx2) = sensitivity * Adjointinverse_transform * [0;0;1];
-
-            else
-
-                % If this link is not sensitive to this joint, give it a
-                % column of zeros in its Jacobian
-                J_zero(:,idx2) = zeros(3,1);
-
-            end
-
-        end
+%         %%%%%%%%%%%%%%%%
+%         % Calculate columns of Jacobian to new base frame 
+%         for idx2 = 1:M_joints
+% 
+%             % New frame is  only sensitive to the motion of joints proximal to it in the chain
+%             if N_odd
+%                sensitivity = link_zero > idx2;  
+%             else
+% 
+%                 % If the frame is proximal to the joint, it is not sensitive to it
+%                 if idx2 > joint_zero
+%                     sensitivity = 0;
+%                 % If the frame is at the center joint, it has half-sensitivity to the joint
+%                 elseif idx2 == joint_zero 
+%                     sensitivity = 0.5;
+%                 % If the frame is distal to the joint, it is sensitive to it
+%                 else
+%                     sensitivity = 1;
+%                 end
+% 
+%             end
+% 
+% 
+%             if sensitivity
+% 
+%                 % Calculate the displacement of the new frame relative to the joint
+%                 relative_transform = jointchain_m(:,:,idx2)\frame_zero;
+% 
+%                 % Calculate the adjoint-inverse transformation corresponding to
+%                 % the joint-to-link transformation
+%                 Adjointinverse_transform = Adjinv(relative_transform);
+% 
+% 
+%                 % Multiply these transformations by the joint axis to get the
+%                 % Jacobian column (multiply by sensitivity to catch case of
+%                 % half-sensitivity
+%                 J_zero(:,idx2) = sensitivity * Adjointinverse_transform * [0;0;1];
+% 
+%             else
+% 
+%                 % If this link is not sensitive to this joint, give it a
+%                 % column of zeros in its Jacobian
+%                 J_zero(:,idx2) = zeros(3,1);
+% 
+%             end
+% 
+%         end
         
         
         
@@ -392,7 +407,7 @@ switch baseframe
         % Multiply each link's Jacobian by its link length
         J_weighted = J_temp;
         for idx = 1:numel(J_weighted)
-            J_weighted{idx} = J_temp{idx} * linklengths(idx);
+            J_weighted{idx} = TeLg(chain(idx,:)) * J_temp{idx} * linklengths(idx);
         end
 
         % Sum the weighted Jacobians
@@ -400,6 +415,9 @@ switch baseframe
 
         % Divide by the total length to g
         J_zero = J_zero/L;  
+        
+        % Bring into local coordinates
+        J_zero = TgLginv(frame_zero)*J_zero;
         
         
     otherwise
