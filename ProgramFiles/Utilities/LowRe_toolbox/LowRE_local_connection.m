@@ -44,7 +44,10 @@ function dOmega = LowRE_Pfaffian_infinitesimal(s,h,J,c,drag_ratio) %#ok<INUSL>
 		
 	% Local drag, based on unit longitudinal drag, lateral according to the ratio, no local
 	% torsional drag, multiplied by drag coefficient
-	gcirc_local_to_F_local = [-1 0 0;0 -drag_ratio 0;0 0 0]*c;
+	gcirc_local_to_F_local = ...
+        [-1     0       0;
+        0   -drag_ratio 0;
+        0       0       0]*c;
 	
     % Transfer force to midpoint-tangent frame by transpose of the
     % adjoint-inverse action
