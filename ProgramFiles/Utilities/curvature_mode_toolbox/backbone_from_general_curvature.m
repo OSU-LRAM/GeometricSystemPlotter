@@ -1,4 +1,4 @@
-function [h, J] = backbone_from_general_curvature(curvdef,cparams,L)
+function [h, J, J_full] = backbone_from_general_curvature(curvdef,cparams,L)
 % Integrate backbone geometry from a generalized curvature definition
 % function and a set of parameters on this curvature function. The backbone
 % is of total length L, placed such that its midpoint is at the origin and
@@ -42,7 +42,7 @@ locus_sol = ode_multistart(@ode45, @(s,h) locus_helper(s,theta_fun),all_limits,0
 
 % Return the locus data as 3xn matrix with x,y,theta at each of n points
 h_norm = @(s) [locus_sol(torow(s)); theta_fun(torow(s))]; % in normalized internal coordinates
-h = @(s) [L*locus_sol(torow(s)/L); theta_fun(torow(s)/L)]; % with actual length
+h = @(s) [L*locus_sol(torow(s)); theta_fun(torow(s))]; % with actual length
 
 %%%%%%%%%%%%%%
 % Get the jacobian to body point velocities
