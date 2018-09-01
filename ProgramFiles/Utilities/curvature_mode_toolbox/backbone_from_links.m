@@ -1,4 +1,4 @@
-function [h, J, J_full,linklengths] = backbone_from_links(linklengths,jointangles,L,baseframe)
+function [h, J, J_full] = backbone_from_links(linklengths,jointangles,L,baseframe)
 % Build a backbone for a chain of links, specified as a vector of link
 % lengths and the joint angles between them.
 %
@@ -29,12 +29,19 @@ function [h, J, J_full,linklengths] = backbone_from_links(linklengths,jointangle
 %
 % Outputs:
 %
-%   h : Locations of the chain links relative to the selected base frame.
-%           These locations are stored in an Nx3 array, with each row a
-%           link and columns corresponding to x,y,theta values for that
-%           link. These can be converted to stacks of SE(2) matrices via
-%           vec_to_mat_SE2, and back to vectors by mat_to_vec_SE(2)
+%   h : Locations of the chain links relative to the selected base frame,
+%           and lengths of the links
+%
+%       h.pos: The link locations are stored in an Nx3 array, with
+%           each row a link and the columns corresponding to x,y,theta
+%           values for that link. These can be converted to stacks of SE(2)
+%           matrices via vec_to_mat_SE2, and back to vectors by
+%           mat_to_vec_SE(2)
 %   
+%   	h.lengths : Vector of linklengths. This is the original link length
+%           specification passed into the function, scaled by L, and stored
+%           as a column of values.
+%
 %   J : Jacobians from joint angle velocities to velocity of each link
 %           relative to  the base frame (the standard derivative of h).
 %           These Jacobians are stored in a cell array, with one matrix per
@@ -44,9 +51,6 @@ function [h, J, J_full,linklengths] = backbone_from_links(linklengths,jointangle
 %           angle velocities to body velocity of each link relative to a
 %           non-moving frame.
 %
-%   linklengths : Vector of linklengths. This is the original link length
-%           specification passed into the function, scaled by L, and stored
-%           as a column of values.
 
 %%%%%%%%%%%%
 % Input parsing
@@ -227,7 +231,21 @@ end
 % For final output, convert link locations to be referenced off of a
 % desired base frame
 
-% baseframe input selects the frame for the output
+    %%%%%%%
+    % To transform the link Jacobians into the new coordinates, we need the
+    % Jacobian from joint velocities to body velocity of new frame, with
+    % first link fixed. This calculation depends on how the kinematic map
+    % from the original base frame to the new base frame is calculated. 
+    %
+    % In particular, if we're putting the frame on the chain, we can use
+    % the same iteration-down-the-chain algorithm we used above. If we're
+    % putting the frame at a floating average of the link positions, we can
+    % combine the Jacobians for the individual links into a Jacobian for
+    % the averaged frame
+
+
+% Depending on which baseframe option is specified, use different methods
+% to calculate transform and Jacobian to use in the conversion
 switch baseframe
     
     % Places the reference frame at the lowest-index link on the chain
@@ -236,16 +254,16 @@ switch baseframe
         % Identify the first link
         link_zero = 1;
         
-        % Extract the transform from the end link to the middle link
-        frame_zero = chain_m(:,:,link_zero);       
+        % Extract the transform from the end link to itself 
+        frame_zero = eye(3);       
         
-        % Specifies that the chosen body frame is on the kinematic chain
-        new_frame_jacobian = 'on chain';
+        % Jacobian for base link is zero
+        J_zero = zeros(size(J_temp{1}));
 
     % Places the reference frame at the middle of the chain, splitting the
     % difference between the two middle links if there is an even number of
     % links
-    case 'centered'
+    case {'centered','center'}
 
 
         % If there is an odd number of links, the middle link is the center of the
@@ -272,9 +290,57 @@ switch baseframe
 
         end
         
-        % Specifies that the chosen body frame is on the kinematic chain
-        new_frame_jacobian = 'on chain';
+        
+        %%%%%%%%%%%%%%%%
+        % Calculate columns of Jacobian to new base frame 
+        for idx2 = 1:M_joints
 
+            % New frame is  only sensitive to the motion of joints proximal to it in the chain
+            if N_odd
+               sensitivity = link_zero > idx2;  
+            else
+
+                % If the frame is proximal to the joint, it is not sensitive to it
+                if idx2 > joint_zero
+                    sensitivity = 0;
+                % If the frame is at the center joint, it has half-sensitivity to the joint
+                elseif idx2 == joint_zero 
+                    sensitivity = 0.5;
+                % If the frame is distal to the joint, it is sensitive to it
+                else
+                    sensitivity = 1;
+                end
+
+            end
+
+
+            if sensitivity
+
+                % Calculate the displacement of the new frame relative to the joint
+                relative_transform = jointchain_m(:,:,idx2)\frame_zero;
+
+                % Calculate the adjoint-inverse transformation corresponding to
+                % the joint-to-link transformation
+                Adjointinverse_transform = Adjinv(relative_transform);
+
+
+                % Multiply these transformations by the joint axis to get the
+                % Jacobian column (multiply by sensitivity to catch case of
+                % half-sensitivity
+                J_zero(:,idx2) = sensitivity * Adjointinverse_transform * [0;0;1];
+
+            else
+
+                % If this link is not sensitive to this joint, give it a
+                % column of zeros in its Jacobian
+                J_zero(:,idx2) = zeros(3,1);
+
+            end
+
+        end
+        
+        
+        
     % Places the reference frame on the highest-numbered link in the chain
     case 'head'
         
@@ -284,8 +350,9 @@ switch baseframe
         % Extract the transform from the end link to the end link
         frame_zero = chain_m(:,:,link_zero);
         
-        % Specifies that the chosen body frame is on the kinematic chain
-        new_frame_jacobian = 'on chain';
+        %%%%%%%%
+        % Jacobian to new frame is Jacobian of last link
+        J_zero = J_temp{end};
 
     % Places the reference frame at the *end of* the highest-numbered link
     % in the chain
@@ -298,8 +365,11 @@ switch baseframe
         % multiply it by the half-link transformation on that link
         frame_zero = chain_m(:,:,link_zero)*links_m(:,:,link_zero);
         
-        % Specifies that the chosen body frame is on the kinematic chain
-        new_frame_jacobian = 'on chain';
+        %%%%%%%%
+        % Jacobian to new frame is Jacobian of last link, but with an
+        % adjoint-inverse transform by the half-link to get to the end
+        halfstep = Adjinv(links_v(end,:));
+        J_zero = halfstep * J_temp{end};
 
     % Places the reference frame at center of mass and average orientation
     % of the links, using link-lengths as weighting terms
@@ -309,13 +379,28 @@ switch baseframe
         chain = mat_to_vec_SE2(chain_m);
         
         % Take a weighted average of the link positions
-        CoM = mean(diag(linklengths)*chain);
+        CoM = sum(diag(linklengths)*chain)/L;
         
         % Place the new frame at this location
         frame_zero = vec_to_mat_SE2(CoM);
 
-        % Specifies that the chosen body frame is on the kinematic chain
-        new_frame_jacobian = 'averaged';
+        %%%%%%%%%%%
+        % The Jacobian of the weighted average of frames is the
+        % weighted average of their Jacobian (by the commutativity of
+        % sumation and derivation operations).
+
+        % Multiply each link's Jacobian by its link length
+        J_weighted = J_temp;
+        for idx = 1:numel(J_weighted)
+            J_weighted{idx} = J_temp{idx} * linklengths(idx);
+        end
+
+        % Sum the weighted Jacobians
+        J_zero = sum(cat(3,J_weighted{:}),3);
+
+        % Divide by the total length to g
+        J_zero = J_zero/L;  
+        
         
     otherwise
         
@@ -333,8 +418,9 @@ switch baseframe
                 % multiply it by the half-link transformation on that link
                 frame_zero = chain_m(:,:,link_zero);
 
-                % Specifies that the chosen body frame is on the kinematic chain
-                new_frame_jacobian = 'on chain';
+                %%%%%%%%
+                % Jacobian to new frame is Jacobian of nth link
+                J_zero = J_temp{baseframe};
 
             else
 
@@ -365,8 +451,10 @@ for idx = 1:size(h_m,3)
     h_m(:,:,idx) = frame_zero \ chain_m(:,:,idx);
 end
 
-% For output, convert h into row form.
-h = mat_to_vec_SE2(h_m);
+% For output, convert h into row form. Save this into a structure, with
+% link lengths included
+h.pos = mat_to_vec_SE2(h_m);
+h.lengths = linklengths;
 
 %
 
@@ -390,79 +478,79 @@ if calc_J
 
     % Decide which method to use for calculating the Jacobian from the old
     % frame to the new frame
-    switch new_frame_jacobian
-      
-        % Build the Jacobian for the new frame by working along the chain
-        % from link 1 to the specified location
-        case 'on chain'
-            
-            % Calculate column of Jacobian with respect to each joint proximal
-            % to the new base frame
-            for idx2 = 1:M_joints
-
-                % New frame is  only sensitive to the motion of joints proximal to it in the chain
-                if N_odd
-                   sensitivity = link_zero > idx2;  
-                else
-
-                    % If the frame is proximal to the joint, it is not sensitive to it
-                    if idx2 > joint_zero
-                        sensitivity = 0;
-                    % If the frame is at the center joint, it has half-sensitivity to the joint
-                    elseif idx2 == joint_zero 
-                        sensitivity = 0.5;
-                    % If the frame is distal to the joint, it is sensitive to it
-                    else
-                        sensitivity = 1;
-                    end
-
-                end
-
-
-                if sensitivity
-
-                    % Calculate the displacement of the new frame relative to the joint
-                    relative_transform = jointchain_m(:,:,idx2)\frame_zero;
-
-                    % Calculate the adjoint-inverse transformation corresponding to
-                    % the joint-to-link transformation
-                    Adjointinverse_transform = Adjinv(relative_transform);
-
-
-                    % Multiply these transformations by the joint axis to get the
-                    % Jacobian column (multiply by sensitivity to catch case of
-                    % half-sensitivity
-                    J_zero(:,idx2) = sensitivity * Adjointinverse_transform * [0;0;1];
-
-                else
-
-                    % If this link is not sensitive to this joint, give it a
-                    % column of zeros in its Jacobian
-                    J_zero(:,idx2) = zeros(3,1);
-
-                end
-
-            end
-            
-        case 'averaged'
-            
-            % The Jacobian of the weighted average of frames is the
-            % weighted average of their Jacobian (by the commutativity of
-            % sumation and derivation operations).
-            
-            % Multiply each link's Jacobian by its link length
-            J_weighted = J_temp;
-            for idx = 1:numel(J_weighted)
-                J_weighted{idx} = J_temp{idx} * linklengths(idx);
-            end
-            
-            % Sum the weighted Jacobians
-            J_zero = sum(cat(3,J_weighted{:}),3);
-            
-            % Divide by the total length to g
-            J_zero = J_zero/L;
-            
-    end
+%         switch new_frame_jacobian
+% 
+%             % Build the Jacobian for the new frame by working along the chain
+%             % from link 1 to the specified location
+%             case 'on chain'
+% 
+%                 % Calculate column of Jacobian with respect to each joint proximal
+%                 % to the new base frame
+%                 for idx2 = 1:M_joints
+% 
+%                     % New frame is  only sensitive to the motion of joints proximal to it in the chain
+%                     if N_odd
+%                        sensitivity = link_zero > idx2;  
+%                     else
+% 
+%                         % If the frame is proximal to the joint, it is not sensitive to it
+%                         if idx2 > joint_zero
+%                             sensitivity = 0;
+%                         % If the frame is at the center joint, it has half-sensitivity to the joint
+%                         elseif idx2 == joint_zero 
+%                             sensitivity = 0.5;
+%                         % If the frame is distal to the joint, it is sensitive to it
+%                         else
+%                             sensitivity = 1;
+%                         end
+% 
+%                     end
+% 
+% 
+%                     if sensitivity
+% 
+%                         % Calculate the displacement of the new frame relative to the joint
+%                         relative_transform = jointchain_m(:,:,idx2)\frame_zero;
+% 
+%                         % Calculate the adjoint-inverse transformation corresponding to
+%                         % the joint-to-link transformation
+%                         Adjointinverse_transform = Adjinv(relative_transform);
+% 
+% 
+%                         % Multiply these transformations by the joint axis to get the
+%                         % Jacobian column (multiply by sensitivity to catch case of
+%                         % half-sensitivity
+%                         J_zero(:,idx2) = sensitivity * Adjointinverse_transform * [0;0;1];
+% 
+%                     else
+% 
+%                         % If this link is not sensitive to this joint, give it a
+%                         % column of zeros in its Jacobian
+%                         J_zero(:,idx2) = zeros(3,1);
+% 
+%                     end
+% 
+%                 end
+% 
+%             case 'averaged'
+% 
+%                 % The Jacobian of the weighted average of frames is the
+%                 % weighted average of their Jacobian (by the commutativity of
+%                 % sumation and derivation operations).
+% 
+%                 % Multiply each link's Jacobian by its link length
+%                 J_weighted = J_temp;
+%                 for idx = 1:numel(J_weighted)
+%                     J_weighted{idx} = J_temp{idx} * linklengths(idx);
+%                 end
+% 
+%                 % Sum the weighted Jacobians
+%                 J_zero = sum(cat(3,J_weighted{:}),3);
+% 
+%                 % Divide by the total length to g
+%                 J_zero = J_zero/L;
+% 
+%         end
 
     %%%%%%%%
     % Now that we have the Jacobian for the new base frame, we can compute
@@ -479,7 +567,7 @@ if calc_J
     for idx = 1:numel(J_new)
         J_new{idx} = ...
             (J_new{idx} - ...                % Jacobian from joint velocities to body velocity of link, with first link fixed
-                Adjinv(h(idx,:)) * ...       % Adjoint-inverse transformation by position of this link in new frame
+                Adjinv(h.pos(idx,:)) * ...       % Adjoint-inverse transformation by position of this link in new frame
                     J_zero);                 % Jacobian from joint velocities to body velocity of new frame, with first link fixed
     end
 
@@ -492,7 +580,7 @@ if calc_J
     % action of the transformation from the new base frame to the link
     J = J_new;
     for idx = 1:numel(J_new)
-        J{idx} = TeLg(h(idx,:)) * J_new{idx}; % Left lifted action rotates into new base frame coordinates
+        J{idx} = TeLg(h.pos(idx,:)) * J_new{idx}; % Left lifted action rotates into new base frame coordinates
     end
 
 
@@ -507,7 +595,7 @@ if calc_J
 
         for idx = 1:numel(J_new)
 
-            Adjointinverse_body_transform = Adjinv(h(idx,:)); % Adjoint-inverse transformation by position of this link relative to frame zero
+            Adjointinverse_body_transform = Adjinv(h.pos(idx,:)); % Adjoint-inverse transformation by position of this link relative to frame zero
 
             J_full{idx} = [Adjointinverse_body_transform J_full{idx}]; % Place the Adjoint-inverse matrix as the first three columns of J_full
         end
