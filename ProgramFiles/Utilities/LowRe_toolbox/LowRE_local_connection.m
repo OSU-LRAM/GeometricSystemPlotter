@@ -8,10 +8,11 @@ function [A, h, J,Omega] = LowRE_local_connection(geometry,physics,shapeparams)
 %      geometry.function: map from shape variables to local backbone
 %         deformation (e.g., curvature or joint angles)
 %      geometry.length: total length of swimmer
+% physics: structure defining system physics
+%      drag_ratio: ratio of lateral to longitudinal drag
+%      drag_coefficient: drag per unit length
 % cparams: value of shape variables
 
-% c: drag per unit length
-% drag_ratio: ratio of lateral to longitudinal drag
 
 
 

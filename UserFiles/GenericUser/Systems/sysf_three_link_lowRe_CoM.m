@@ -1,4 +1,4 @@
-function output = sysf_three_link_lowRe(input_mode,pathnames)
+function output = sysf_three_link_lowRe_CoM(input_mode,pathnames)
 
 	% Default arguments
 	if ~exist('input_mode','var')
@@ -13,7 +13,7 @@ function output = sysf_three_link_lowRe(input_mode,pathnames)
 
 		case 'name'
 
-			output = 'Viscous Swimmer: 3-link'; % Display name
+			output = 'Viscous Swimmer: 3-link CoM'; % Display name
 
 		case 'dependency'
 
@@ -28,7 +28,7 @@ function output = sysf_three_link_lowRe(input_mode,pathnames)
             % Define system geometry
             s.geometry.type = 'n-link chain';
             s.geometry.linklengths = [1 1 1];
-            s.geometry.baseframe = 'center';
+            s.geometry.baseframe = 'com-mean';
             s.geometry.length = 1;
             
             

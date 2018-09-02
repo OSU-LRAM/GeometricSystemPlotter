@@ -128,6 +128,11 @@ theta_fun = @(s) sum(cell2mat(cellfun( @(k,r) theta_fun_helper(k,r,s), kappa_bas
 %locus_sol = ode45(@(s,h) locus_helper(s,theta_fun),int_limit,[0;0]);
 locus_sol = ode_multistart(@ode45, @(s,h) locus_helper(s,theta_fun),all_limits,0,[0;0]);
 
+
+
+
+
+
 % Return the locus data as 3xn matrix with x,y,theta at each of n points
 %h = @(s) [L*(deval(locus_sol,torow(s)/L)-deval(locus_sol,0*torow(s))); theta_fun(torow(s)/L)];
 h_norm = @(s) [locus_sol(torow(s)); theta_fun(torow(s))]; % in normalized internal coordinates

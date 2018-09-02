@@ -6,9 +6,9 @@ function [B,h] = fatbackbone_from_general_curvature(curvdef,cparams,L,width,orie
     end
     
     [h] = backbone_from_general_curvature(curvdef,cparams,L);
-	    h_points = h(linspace(L*-.5,L*.5,100))';
+    h_points = h(linspace(-.5,.5,100))';
 	
-	B = fatbackbone(h,L*[-.5 .5],width);
+	B = fatbackbone(h,[-.5 .5],width);
 
     % Rotate and translate locus if specified
     

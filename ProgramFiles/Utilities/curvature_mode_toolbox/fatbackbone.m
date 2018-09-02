@@ -7,7 +7,7 @@ function footprint = fatbackbone(backbone_fun,endpoints,width)
 	core = backbone_fun(corepoints);
 	
 	% make primitives for the end
-	a = .3*range(endpoints)/3/2;  % to match end of three-link system
+	a = .2*range(endpoints);  % to match end of three-link system
 	b = width/2;
 
 	poscaptheta = linspace(pi/2,-pi/2,30)';

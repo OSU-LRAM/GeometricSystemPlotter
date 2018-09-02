@@ -3,8 +3,18 @@ function plot_info = sys_draw(plot_structure,sys,shch,progress,update,resolution
 	%make sure plot data file is up to date
 	if update
 		sys_update(sys,shch,progress,handles)
-	end
+        set_plot_resolution_from_file(handles)
+        
+        %%%%%%%%%%%%%%
+        % Update the desired vector and scalar plotting resolutions
+        resolution.vector = str2num(get(handles.vectorresolution,'String'));
+        resolution.scalar = str2num(get(handles.scalarresolution,'String'));
+        resolution.vector_range = get(handles.vectorresolution,'UserData');
+        resolution.scalar_range = get(handles.scalarresolution,'UserData');
+    end
 
+    
+    
 	% Get the setup configuration file
 	configfile = './sysplotter_config';
 	load(configfile,'datapath')

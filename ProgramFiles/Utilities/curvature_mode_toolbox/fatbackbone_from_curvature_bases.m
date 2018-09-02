@@ -7,8 +7,8 @@ function [B,h] = fatbackbone_from_curvature_bases(kappa_basis_input,r,L,width,or
 
     [h] = backbone_from_curvature_bases(kappa_basis_input,r,L);
     
-    h_points = h(linspace(L*-.5,L*.5,100))';
-    B = fatbackbone(h,L*[-.5 .5],width);
+    h_points = h(linspace(-.5,.5,100))';
+    B = fatbackbone(h,[-.5 .5],width);
     
     % Rotate and translate locus if specified
     

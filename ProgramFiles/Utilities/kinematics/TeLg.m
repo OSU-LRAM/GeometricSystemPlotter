@@ -2,6 +2,15 @@ function LA = TeLg(g)
 % Left lifted action of g acting on vectors at the origin/in the Lie
 % algebra
 
+% Prevent Matlab from playing tricks with imaginary numbers on symbolic
+% inputs and from complaining about assumptions on constants
+if isa(g,'sym')
+    assume(g,'real');
+    warning('off','symbolic:sym:sym:AssumptionsOnConstantsIgnored')
+end
+
+
+
 % Convert from matrix representation to column if needed.
 if numel(g) == 9
     g = mat_to_vec_SE2(g);
