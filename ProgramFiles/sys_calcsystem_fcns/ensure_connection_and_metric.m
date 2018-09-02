@@ -45,7 +45,7 @@ function s = ensure_connection_and_metric(s)
         elseif metric_size(1) ~= n_shape
             error('Metric matrix is not of correct size for system')
         % Soft check for symmetry
-        elseif ~issymmetric(metric_test)
+        elseif ~norm(metric_test-metric_test.',inf)<(norm(metric_test,inf)/10^6)
             warning('Metric matrix does not appear to be symmetric')
         end
         
