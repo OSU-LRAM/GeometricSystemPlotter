@@ -154,8 +154,15 @@ switch baseframe
         % Convert link positions to row form
         chain = mat_to_vec_SE2(chain_m);
         
+        % Substitute a cumulative sum of the joint angles for the
+        % orientations of the links: We're not looking for the mean of the
+        % SO(2)-modulated orientations, we're looking for the mean angular
+        % displacement from the base link.
+        chain(:,3) = [0;cumsum(jointangles)];
+        
         % Take a weighted average of the link positions
         CoM = sum(diag(linklengths)*chain)/L;
+        
         
         % Place the new frame at this location
         frame_zero = vec_to_mat_SE2(CoM);
