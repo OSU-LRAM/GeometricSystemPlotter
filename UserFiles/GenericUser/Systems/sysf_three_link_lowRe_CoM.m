@@ -59,10 +59,9 @@ function output = sysf_three_link_lowRe_CoM(input_mode,pathnames)
 
 			%densities for various operations
 			s.density.vector = [11 11 ]; %density to display vector field
-			s.density.scalar = [21 21 ]; %density to display scalar functions
-			s.density.eval = [51 51 ];   %density for function evaluations
+			s.density.scalar = [51 51 ]; %density to display scalar functions
+			s.density.eval = [31 31 ];   %density for function evaluations
             s.density.metric_eval = [11 11]; %density for metric evaluation
-			s.finite_element_density = 21;
 
             %%%
 			%Display parameters

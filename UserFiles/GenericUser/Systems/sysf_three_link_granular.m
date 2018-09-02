@@ -65,7 +65,6 @@ function output = sysf_three_link_granular(input_mode,pathnames)
 			s.density.vector = [11 11]; %density to display vector field
 			s.density.scalar = [21 21]; %density to display scalar functions
 			s.density.eval = [11 11];   %density for function evaluations
-			s.finite_element_density = 11;
             s.density.metric_eval = [11 11]; %density for metric evaluation
 
 			% power metric
