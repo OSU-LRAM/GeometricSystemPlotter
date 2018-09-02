@@ -5,7 +5,7 @@ function Mp = LowRE_dissipation_metric_discrete(geometry,physics,jointangles)
 % Inputs:
 %
 %   geometry: Structure containing information about geometry of chain.
-%       Fields are:
+%       Fields required for this function are:
 %
 %       linklengths: A vector of link lengths defining a kinematic chain
 %
@@ -20,6 +20,17 @@ function Mp = LowRE_dissipation_metric_discrete(geometry,physics,jointangles)
 %           will be scaled such that their sum is equal to L. If this field
 %          is not provided or is entered as an empty matrix, then the links
 %          will not be scaled.
+%
+%   physics: Structure containing information about the system's physics.
+%       Fields are:
+% 
+%       drag_ratio: Ratio of lateral to longitudinal drag
+%
+%       drag_coefficient: Drag per unit length for longitudinal direction
+%
+%   jointangles: Angles of the joints between the links, defining the
+%       chain's current shape.
+%
 %
 % Output:
 %
@@ -49,9 +60,9 @@ function Mp = LowRE_dissipation_metric_discrete(geometry,physics,jointangles)
     %%%%%%%%
     % Now calculate the metric contribution to each link
     
-    % Pre-allocate storage for the metric contributions. Each contribution is m x m (square
-    % matrix with as many rows/columns as there are shape variables), and
-    % there is one contribution per link.
+    % Pre-allocate storage for the metric contributions. Each contribution
+    % is m x m (square matrix with as many rows/columns as there are shape
+    % variables), and there is one contribution per link.
     link_metrics = repmat({zeros(numel(jointangles))},size(J_full));
 
     % Get the Metric contribution from each link. This is the drag matrix
@@ -59,6 +70,7 @@ function Mp = LowRE_dissipation_metric_discrete(geometry,physics,jointangles)
     % angles by the total Jacobian (including locomotion effects) from
     % joint angular velocity to the motion of the link.
     for idx = 1:numel(link_metrics)
+        
         link_metrics{idx} = LowRE_link_metric(J_full{idx},...            % Jacobian from body velocity of base link and shape velocity to body velocity of this link
                                               A,...                      % Local connection (i.e. Jacobian from shape velocity to body velocity of base link)
                                               h.lengths(idx),...         % Length of this link
@@ -89,6 +101,9 @@ function link_metric = LowRE_link_metric(J_full,A,L,drag_ratio,c)
     %       coefficient based on integrating lateral drag along the length
     %       of the link
     %   c is the absolute drag coefficient
+    
+    % (Note that drag terms need to be positive here to make this a
+    % positive-definite matrix that we can use as a metric)
      drag_matrix =     [L       0                0;
                         0    drag_ratio*L       0;
                         0        0           drag_ratio/12*L^3]*c;
