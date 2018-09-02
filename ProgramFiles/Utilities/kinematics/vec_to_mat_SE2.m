@@ -16,6 +16,14 @@ sintheta = sin(vector(:,3));
 %SE2 vector to matrix
 matrix = zeros(3,3,size(x,1));
 
+% If we're working with symbolic variables, then we need to explicitly make
+% the array symbolic, because matlab tries to cast items being inserted
+% into an array into the array class, rather than converting the array to
+% accomodate the class of the items being inserted 
+if isa(vector,'sym')
+    matrix = sym(matrix);
+end
+
 matrix(1,1,:) = costheta;
 matrix(1,2,:) = -sintheta;
 matrix(1,3,:) = x;

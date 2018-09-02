@@ -23,6 +23,14 @@ function [h_m,J,J_full] = N_link_conversion(chain_m,J_temp,frame_zero,J_zero)
 
     % Preallocate a matrix for holding the transformed link matrices
     h_m = zeros(size(chain_m));
+    
+    % If we're working with symbolic variables, then we need to explicitly make
+    % the array symbolic, because matlab tries to cast items being inserted
+    % into an array into the array class, rather than converting the array to
+    % accomodate the class of the items being inserted 
+    if isa(chain_m,'sym')
+        h_m = sym(h_m);
+    end
 
     % For each link in the chain, transform its matrix by the inverse of the
     % central transformation

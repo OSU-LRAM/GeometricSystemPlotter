@@ -1,4 +1,4 @@
-function [h, J, J_full] = N_link_chain(geometry,jointangles)
+function [h, J, J_full,frame_zero,J_zero] = N_link_chain(geometry,jointangles)
 % Build a backbone for a chain of links, specified as a vector of link
 % lengths and the joint angles between them.
 %
@@ -59,6 +59,12 @@ function [h, J, J_full] = N_link_chain(geometry,jointangles)
 %           angle velocities to body velocity of each link relative to a
 %           non-moving frame.
 %
+%   frame_zero : The transformation from the first link to the selected
+%           baseframe
+%
+%   J_zero : The Jacobian from shape velocity to body velocity of the
+%       selected baseframe, with the first link held fixed.
+%       
 
 %%%%%%%%%%%%
 % Input parsing
@@ -71,7 +77,7 @@ else
 end
 
 % If no baseframe is specified, use a centered chain
-if ~isfield(geometry,'baseframe') || isempty(geometry.length)
+if ~isfield(geometry,'baseframe') || isempty(geometry.baseframe)
     baseframe = 'centered';
 else
     baseframe = geometry.baseframe;
@@ -134,6 +140,14 @@ joints_m = vec_to_mat_SE2(joints_v);
 % representing the corresponding link's configuration
 chain_m = repmat(eye(3),1,1,N_links);
 
+% If we're working with symbolic variables, then we need to explicitly make
+% the array symbolic, because matlab tries to cast items being inserted
+% into an array into the array class, rather than converting the array to
+% accomodate the class of the items being inserted 
+if isa(jointangles,'sym')
+    chain_m = sym(chain_m);
+end
+
 % The first link is taken as the identity for now, so we iterate over each
 % of the following links
 for idx = 2:N_links
@@ -159,6 +173,14 @@ end
 % (specifically for the frame at the end of the link proximal to the
 % joint, treating that as the stator for the joint).
 jointchain_m = repmat(eye(3),1,1,numel(jointangles));
+
+% If we're working with symbolic variables, then we need to explicitly make
+% the array symbolic, because matlab tries to cast items being inserted
+% into an array into the array class, rather than converting the array to
+% accomodate the class of the items being inserted 
+if isa(jointangles,'sym')
+    jointchain_m = sym(jointchain_m);
+end
 
 % Place the first joint at the end of the first link
 jointchain_m(:,:,1) = links_m(:,:,1);
@@ -188,7 +210,19 @@ end
 % interesting
 
 % Calculate a Jacobian for each link
-J_temp = repmat({zeros(3,M_joints)},1,N_links);
+
+% Array of the size of one Jacobian
+J_pattern = zeros(3,M_joints);
+
+% If we're working with symbolic variables, then we need to explicitly make
+% the array symbolic, because matlab tries to cast items being inserted
+% into an array into the array class, rather than converting the array to
+% accomodate the class of the items being inserted 
+if isa(jointangles,'sym')
+    J_pattern = sym(J_pattern);
+end
+
+J_temp = repmat({J_pattern},1,N_links);
 for idx = 1:N_links
 
     % For each Jacobian, calculate one column for each joint
@@ -209,6 +243,11 @@ for idx = 1:N_links
             % Find the Adjoint-inverse transformation corresponding to
             % this relative position
             Adjointinverse_transform = Adjinv(relative_transform);
+
+            % Prevent symbolic chain expression from getting to cumbersome
+            if isa(Adjointinverse_transform,'sym')
+                Adjointinverse_transform = simplify(Adjointinverse_transform);
+            end
 
 
             % Multiply these the Adjoint-inverse transformation by the

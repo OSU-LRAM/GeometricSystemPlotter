@@ -172,7 +172,11 @@ switch baseframe
         end
 
         % Sum the weighted Jacobians
-        J_zero = sum(cat(3,J_weighted{:}),3);
+        J_zero = J_weighted{1};
+        for idx = 2:numel(J_weighted)
+            J_zero = J_zero + J_weighted{idx};
+        end
+%        J_zero = sum(cat(3,J_weighted{:}),3);
 
         % Divide by the total length to g
         J_zero = J_zero/L;  
@@ -251,6 +255,16 @@ switch baseframe
             % if there is an associated file with the results of the system
             % calculations
             if sysf_file_present
+                
+                % Pulling the minimum-perturbation coordinates does not
+                % work with symbolic input, because it requires an
+                % interpolation of an array at the input points. (Given
+                % that minimum-perturbation coordinates are solved for
+                % numerically, not much is lost by not being able to
+                % symbolically rebase to that frame
+                if isa(chain_m,'sym')
+                    error('Rebasing the chain to minimum-perturbation coordinates is not supported for symbolic input');
+                end
                 
                 % Build a string to the filename where calculations from
                 % this system are stored
