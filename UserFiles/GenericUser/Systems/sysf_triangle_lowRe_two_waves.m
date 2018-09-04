@@ -26,7 +26,7 @@ function output = sysf_triangle_lowRe(input_mode,pathnames)
 
 		case 'name'
 
-			output = 'Viscous swimmer: Triangle'; % Display name
+			output = 'Viscous swimmer: Triangle two waves'; % Display name
 
 		case 'dependency'
 
@@ -52,7 +52,7 @@ function output = sysf_triangle_lowRe(input_mode,pathnames)
             
             % Substitute in a unit value for the frequency, and 10 for the
             % sharpness power
-            triangle_wave_curvature = subs(triangle_wave_curvature,{'omega','n'},{1 20});
+            triangle_wave_curvature = subs(triangle_wave_curvature,{'omega','n'},{2 20});
             
             % Use the triangle_wave expression to generate a curvdef
             % file that numerically integrates the curvature and finds

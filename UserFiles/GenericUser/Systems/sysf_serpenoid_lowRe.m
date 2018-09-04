@@ -48,7 +48,23 @@ function output = sysf_serpenoid_lowRe(input_mode,pathnames)
 
             % Total length of the swimmer, in real units
             s.geometry.length = 1;
+            
+            % base the system off of its center frame
+            s.geometry.baseframe = 'center';
 
+            %%%
+            
+            %%%
+            % Define properties for displaying the system
+            
+            % Make a grid of values at which to display the system in
+            % illustrate_shapespace. The code below uses properties of cell
+            % arrays to automatically match the dimensionality of the grid
+            % with the number of shape basis functions in use
+            s.display.grid = cell(size(s.geometry.function));
+            [s.display.grid{:}] = ndgrid([-1 -0.5 0 0.5 1]*6);
+
+            
             %%%
 
             %%%

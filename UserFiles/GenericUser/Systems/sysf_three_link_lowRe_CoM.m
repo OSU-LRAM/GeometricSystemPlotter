@@ -32,6 +32,16 @@ function output = sysf_three_link_lowRe_CoM(input_mode,pathnames)
             s.geometry.length = 1;
             
             
+            %%%
+            % Define properties for displaying the system
+            
+            % Make a grid of values at which to display the system in
+            % illustrate_shapespace. The code below uses properties of cell
+            % arrays to automatically match the dimensionality of the grid
+            % with the number of shape parameters
+            s.display.grid = cell(numel(s.geometry.linklengths)-1,1);
+            [s.display.grid{:}] = ndgrid([-1  0  1]);
+
             %%%%%%
             % Define system physics
             s.physics.drag_ratio = 2;
