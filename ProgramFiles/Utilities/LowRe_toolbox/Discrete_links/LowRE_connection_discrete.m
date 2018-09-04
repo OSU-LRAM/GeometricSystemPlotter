@@ -1,4 +1,4 @@
-function [A, h, J, J_full, omega] = LowRE_local_connection_discrete(geometry,physics,jointangles)
+function [A, h, J, J_full, omega] = LowRE_connection_discrete(geometry,physics,jointangles)
 % Calculate the local connection for a set of curvature bases
 %
 % Inputs:

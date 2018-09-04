@@ -1,4 +1,4 @@
-% (2974344027799169*sign((a1*cos(2*s*pi) + a2*sin(2*s*pi))/(a1^2 + a2^2)^(1/2))*abs(a1*cos(2*s*pi) + a2*sin(2*s*pi))^10*(a1^2 + a2^2)^(1/2))/(1125899906842624*abs(a1^2 + a2^2)^5)
+% (516189106917469267*sign((a1*cos(4*s*pi) + a2*sin(4*s*pi))/(a1^2 + a2^2)^(1/2))*abs(a1*cos(4*s*pi) + a2*sin(4*s*pi))^20*(a1^2 + a2^2)^(1/2))/(144115188075855872*abs(a1^2 + a2^2)^10)
 function output = curv_triangle_wave_one_period(params,mode)
 
 % Turn params into a cell matrix
@@ -71,7 +71,7 @@ function output = reshape_truncate_jacobian(J)
 end
 
 function out1 = curv_fun(s,a1,a2)
-	t2 = s.*pi.*2.0;
+	t2 = s.*pi.*4.0;
 	t3 = a1.^2;
 	t4 = a2.^2;
 	t5 = t3+t4;
@@ -84,6 +84,7 @@ function out1 = curv_fun(s,a1,a2)
 	t12 = t11.^2;
 	t13 = t12.^2;
 	t14 = t13.^2;
-	out1 = sqrt(t5).*t12.*t14.*sign(1.0./sqrt(t5).*t10).*1.0./abs(t5).^5.*2.641748178255171;
+	t15 = t14.^2;
+	out1 = sqrt(t5).*t13.*t15.*sign(1.0./sqrt(t5).*t10).*1.0./abs(t5).^10.*3.581781447252944;
 end
 

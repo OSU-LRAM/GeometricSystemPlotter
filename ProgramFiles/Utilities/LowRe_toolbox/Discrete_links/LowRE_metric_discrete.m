@@ -1,4 +1,4 @@
-function Mp = LowRE_dissipation_metric_discrete(geometry,physics,jointangles)
+function Mp = LowRE_metric_discrete(geometry,physics,jointangles)
 % Calculate the power dissipation metric for an n-link chain under a
 % viscous resitive-force model
 %
@@ -55,7 +55,7 @@ function Mp = LowRE_dissipation_metric_discrete(geometry,physics,jointangles)
     %%%%%%%
     % 	To calculate this metric, first get the Local Connection, link
     % 	configurations, and full Jacobians for the links
-    [A,h,~,J_full] = LowRE_local_connection_discrete(geometry,physics,jointangles);
+    [A,h,~,J_full] = LowRE_local_connection(geometry,physics,jointangles);
 
     %%%%%%%%
     % Now calculate the metric contribution to each link
