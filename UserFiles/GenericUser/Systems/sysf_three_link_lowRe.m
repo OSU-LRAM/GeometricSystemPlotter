@@ -52,12 +52,12 @@ function output = sysf_three_link_lowRe(input_mode,pathnames)
  
             %Functional Local connection and dissipation metric
 
-            s.A = @(alpha1,alpha2) LowRE_local_connection_discrete( ...
+            s.A = @(alpha1,alpha2) LowRE_local_connection( ...
                         s.geometry,...                           % Geometry of body
                         s.physics,...                            % Physics properties
                         [alpha1,alpha2]);                        % Joint angles
             
-            s.metric = @(alpha1,alpha2) LowRE_dissipation_metric_discrete(...
+            s.metric = @(alpha1,alpha2) LowRE_dissipation_metric(...
                         s.geometry,...                           % Geometry of body
                         s.physics,...                            % Physics properties
                         [alpha1,alpha2]);                        % Joint angles
