@@ -1,4 +1,4 @@
-function Mp = LowRE_dissipation_metric_continuous(geometry,physics,shapeparams)
+function Mp = LowRE_metric_continuous(geometry,physics,shapeparams)
 % Calculate the dissipation power metric for a set of curvature bases
 
 	% Specified integration limits

@@ -1,4 +1,4 @@
-function [A, h, J,Omega] = LowRE_local_connection_continuous(geometry,physics,shapeparams)
+function [A, h, J,Omega] = LowRE_connection_continuous(geometry,physics,shapeparams)
 % Calculate the local connection for a set of curvature bases
 %
 % Inputs:

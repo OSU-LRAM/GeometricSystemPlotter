@@ -1,4 +1,4 @@
-function [A,Mp,M_full] = LowRE_local_connection_and_dissipation_metric_continuous(geometry,physics,shapeparams)
+function [A,Mp,M_full] = LowRE_connection_and_metric_continuous(geometry,physics,shapeparams)
 % Calculate the dissipation power metric for a set of curvature bases
 
     %Generate backbone geometry and its Jacobian from its local definition
