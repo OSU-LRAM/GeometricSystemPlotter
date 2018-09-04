@@ -111,7 +111,7 @@ switch baseframe
         if calc_J
             
             % Sample the Jacobian at a dense set of points
-            J_points = h(linspace(-.5,.5,100));
+            J_points = J(linspace(-.5,.5,100));
             
             % Average the Jacobians
             J_zero = mean(J_points,3);
