@@ -66,6 +66,7 @@ if min(size(r)) ~= 1 || numel(size(r)) ~= 2
 		error('r should be a vector')
 	end
 end
+r = r(:);   % Make sure this is a column
 %%%%%%%%%%%%%%%
 %%%%%%%%%%%%%%%
 
