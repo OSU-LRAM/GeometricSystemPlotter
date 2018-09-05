@@ -1,0 +1,6 @@
+function robot = draw_robot(robot)
+
+robot.links = draw_set(robot.links);
+%robot.wheels = draw_set(robot.wheels);
+
+end
