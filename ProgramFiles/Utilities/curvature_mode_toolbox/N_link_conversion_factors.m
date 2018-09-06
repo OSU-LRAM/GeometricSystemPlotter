@@ -53,7 +53,7 @@ N_odd = mod(N_links,2);
 % to calculate transform and Jacobian to use in the conversion
 switch baseframe
     
-    % Places the reference frame at the lowest-index link on the chain
+    % Places the reference frame at the midpoint of the lowest-index link on the chain
     case 'tail'
         
         % Identify the first link
@@ -64,6 +64,24 @@ switch baseframe
         
         % Jacobian for base link is zero
         J_zero = zeros(size(J_temp{1}));
+
+    % Places the reference frame at the *end* of the lowest-index link on the chain
+    case 'tail-tip'
+        
+        % Identify the end link
+        link_zero = 1;
+
+        % The transform from the midpoint of the first link to its end is
+        % the inverse of the half-link transform
+        frame_zero = inv(links_m(:,:,link_zero));
+        
+        %%%%%%%%
+        % Jacobian to new frame is Jacobian of first link, but with an
+        % adjoint-inverse transform by the half-link to get to the end
+       
+        halfstep = Adjinv(frame_zero);
+        J_zero = halfstep * J_temp{1};
+
 
     % Places the reference frame at the middle of the chain, splitting the
     % difference between the two middle links if there is an even number of
@@ -114,7 +132,7 @@ switch baseframe
         
         
         
-    % Places the reference frame on the highest-numbered link in the chain
+    % Places the reference frame at the midpoint of the highest-numbered link in the chain
     case 'head'
         
         % Identify the end link
