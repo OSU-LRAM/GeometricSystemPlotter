@@ -1,27 +1,10 @@
 function y=optimalgaitgenerator(s,dimension,npoints,a1,a2,lb,ub)
 
-% load('sysf_honey_swimmer_calc.mat');
-% npoints=100;
-% dimension=2;
-% y=optimalgaitgenerator(s,2,100)
-
-
 n=npoints;
-
-% for i=1:1:n
-%     P1(i,1)=1*cos((i-1)*2*pi/n);
-%     P1(i,2)=1*sin((i-1)*2*pi/n);
-%     for j=3:1:dimension
-%         P1(i,j)=0;
-%     end
-% end
 P1(:,1)=a1(1,1:n)';
 P1(:,2)=a2(1,1:n)';
 
 %% finding fourier coeffecients.
-
-num=3;
-% coeff=zeros(3*num,dimension);
 
 t=1:1:npoints+1;
 fa=cell(dimension);
@@ -37,33 +20,13 @@ end
 % plot(fa{2},t',[P1(:,2);P1(1,2)])
 
 
-%%
-
-
-% for i=1:1:n/2
-%     P1(i,1)=-0.5+0.5*cos((i-1)*4*pi/n);
-%     P1(i,2)=+0.5*sin((i-1)*4*pi/n);
-%     for j=3:1:dimension
-%         P1(i,j)=0.0;
-%     end
-% end
-% 
-% for i=n/2+1:1:n
-%     P1(i,1)=0.5-0.5*cos(-(i-1)*4*pi/n);
-%     P1(i,2)=-0.5*sin(-(i-1)*4*pi/n);
-%     for j=3:1:dimension
-%         P1(i,j)=0.0;
-%     end
-%end
+%% setting up fmincon call
 
 P0=P1(:);
 A=[];
 b=[];
 Aeq=[];
 beq=[];
-% lb=-2.2*ones(200,1);
-% ub=2.2*ones(200,1);
- nonlcon1=[];
 
 nu={'a0';'a1';'b1';'a2';'b2';'a3';'b3';'a4';'b4';'w'};%
  lb1=[];
@@ -76,16 +39,19 @@ for i=1:dimension
 end
 
 % options = optimoptions('fmincon','SpecifyObjectiveGradient',true,'Display','iter','Algorithm','active-set','GradObj','on','TolX',10^-4,'TolFun',10^-6,'MaxIter',4000,'MaxFunEvals',20000);
- options = optimoptions('fmincon','SpecifyObjectiveGradient',true,'Display','iter','Algorithm','sqp','SpecifyObjectiveGradient',true,'CheckGradients',false,'FiniteDifferenceType','central','MaxIter',4000,'MaxFunEvals',20000);
- [yf fval exitflag output]=fmincon(@(y) solvedifffmincon(y,s,n,dimension,lb,ub),y0,A,b,Aeq,beq,lb1,ub1,@(y) nonlcon(y,s,n,dimension,lb,ub),options);%   (y,s,n,dimension)
-%  [y fval exitflag output]=fmincon(@(y) solvedifffmincon1(y,s,n),P0,A,b,Aeq,beq,lb,ub,nonlcon,options);
+ options = optimoptions('fmincon','SpecifyObjectiveGradient',true,'Display','iter','Algorithm','active-set','SpecifyObjectiveGradient',true,'CheckGradients',false,'FiniteDifferenceType','central','MaxIter',4000,'MaxFunEvals',20000);
+ [yf fval exitflag output]=fmincon(@(y) solvedifffmincon(y,s,n,dimension,lb,ub),y0,A,b,Aeq,beq,lb1,ub1,@(y) nonlcon(y,s,n,dimension,lb,ub),options);
 
+
+%% getting point position values from the result of fmincon 
 for i=1:1:n
     for j=1:dimension
         y1(i,j)=yf(1,j)+yf(2,j)*cos(i*yf(end,j))+yf(3,j)*sin(i*yf(end,j))+yf(4,j)*cos(2*i*yf(end,j))+yf(5,j)*sin(2*i*yf(end,j))+yf(6,j)*cos(3*i*yf(end,j))+yf(7,j)*sin(3*i*yf(end,j))+yf(8,j)*cos(4*i*yf(end,j))+yf(9,j)*sin(4*i*yf(end,j));%+yf(10,j)*cos(5*i*yf(end,j))+yf(11,j)*sin(5*i*yf(end,j));%+yf(12,j)*cos(6*i*yf(end,j))+yf(13,j)*sin(6*i*yf(end,j));
     end    
 end
 y=y1(:);
+
+%% uncomment for plotting the gaits
 % for i=1:n
 %     xf(i)=y(i);
 %     yf(i)=y(n+i);
@@ -103,6 +69,7 @@ y=y1(:);
 end
 
 function [f,g]=solvedifffmincon(y,s,n,dimension,lb,ub)
+%% Obtaining points from fourier coefficients
 afactor=0.001;
 coeff=y;
 for i=1:1:n
@@ -111,17 +78,12 @@ for i=1:1:n
     end    
 end
 clear y
-% y=zeros(n,dimension);
-% for j=1:1:dimension
-%     y(:,j)=y1((j-1)*n+1:n*j);
-% end
 y=y1;
-% pointvalues=[y1(1:n)*abar,y1(n+1:2*n)*bbar,y1(2*n+1:3*n)*cbar];
 pointvalues=y;
 
 %% Calculating cost and displacement per gait
-g=10;
 
+g=10;
 p.phi_def = @(t) interp1( linspace(0,g,n+1), [pointvalues; pointvalues(1,:)], t);
 
 for i=1:1:n-1
@@ -146,36 +108,6 @@ else
     lineint=lineint;
     invert=0;
 end
-% max(y)
-% min(y)
-
-%% for checking purposes
-
-% g=10;
-% p.phi = @(t) interp1( linspace(0,g,n+1), [pointvalues1; pointvalues1(1,:)], t);
-% for i=1:1:n-1
-%     velocityvalues(i,:)=n*(pointvalues1(i+1,:)-pointvalues1(i,:))/g;
-% end
-% velocityvalues(n,:)=n*(pointvalues1(1,:)-pointvalues1(n,:))/g;
-% p.dphi = @(t) interp1( linspace(0,g,n), [velocityvalues], t);
-% 
-% 
-% [net_disp_orig, net_disp_opt1, cost] = evaluate_displacement_and_cost1(s,p,[0, g],'interpolated','fixed_step',100);
-% lineint=net_disp_opt(1);
-% totalstroke=cost;
-% 
-% if lineint<0
-%     lineint=-lineint;
-%     ytemp=y;
-%     for i=1:n
-%         y(i,:)=ytemp(n+1-i,:);
-%     end
-%     invert=1;
-% else
-%     lineint=lineint;
-%     invert=0;
-% end
-
 
 %% Preliminaries for calculation
 yvalues=cell(n,dimension);
@@ -207,15 +139,13 @@ end
 
 
     for j=1:dimension*(dimension-1)/2
-        height(:,j)=interpn(interpstateheight{:},s.DA_optimized{1,j},y(:,1),y(:,2),'cubic');
+        height(:,j)=interpn(interpstateheight{:},s.DA_optimized{1,j},y(:,1),y(:,2),'spline');
     end
-
-%     metricsize=dimension*dimension;
 
 
     for j=1:1:dimension
         for k=1:1:dimension
-            metric1(:,j,k)=interpn(interpmetricgrid{:},s.metricfield.metric_eval.content.metric{j,k},y(:,1),y(:,2),'cubic');
+            metric1(:,j,k)=interpn(interpmetricgrid{:},s.metricfield.metric_eval.content.metric{j,k},y(:,1),y(:,2),'spline');
         end
     end
 % metric{i}=eye(2);
@@ -239,7 +169,7 @@ end
         end
         for j=1:1:dimension
             for k=1:1:dimension
-                metricgrad1(:,l,j,k)=(interpn(interpmetricgrid{:},s.metricfield.metric_eval.content.metric{j,k},y2(:,1),y2(:,2),'cubic')-interpn(interpmetricgrid{:},s.metricfield.metric_eval.content.metric{j,k},y1(:,1),y1(:,2),'cubic'))/(2*afactor);
+                metricgrad1(:,l,j,k)=(interpn(interpmetricgrid{:},s.metricfield.metric_eval.content.metric{j,k},y2(:,1),y2(:,2),'spline')-interpn(interpmetricgrid{:},s.metricfield.metric_eval.content.metric{j,k},y1(:,1),y1(:,2),'spline'))/(2*afactor);
             end
         end
         for i=1:n
@@ -251,13 +181,6 @@ end
         end
     end
 
-
-
-% for i=2:1:n-1
-%     lengthjacdisp(i)=sqrt((y(i-1,1)-y(i+1,1))^2+(y(i-1,2)-y(i+1,2))^2+(y(i-1,3)-y(i+1,3))^2);
-% end
-% lengthjacdisp(1)=sqrt((y(n,1)-y(2,1))^2+(y(n,2)-y(2,2))^2+(y(n,3)-y(2,3))^2);
-% lengthjacdisp(n)=sqrt((y(n-1,1)-y(1,1))^2+(y(n-1,2)-y(1,2))^2+(y(n-1,3)-y(1,3))^2);
 
 pointvalues=y;
 
@@ -280,30 +203,18 @@ for i=2:n-1
     for j=1:dimension
         contrigrad(i,j)=0.5*delp{i}*metricgrad{i,j}*delp{i}'/(2*l(i))+0.5*delp{i-1}*metricgrad{i,j}*delp{i-1}'/(2*l(i-1));
     end
-    jacobianstroke(i,:)=(-(((metric{i}+metric{i+1})/2)*delp{i}')'-(delp{i}*((metric{i}+metric{i+1})/2)))/(2*l(i))+((((metric{i-1}+metric{i})/2)*delp{i-1}')'+(delp{i-1}*((metric{i}+metric{i-1})/2)))/(2*l(i-1))+contrigrad(i,:);%+0.5*[delp{i}*metricgradx{i}*delp{i}',delp{i}*metricgrady{i}*delp{i}',delp{i}*metricgradz{i}*delp{i}']/(2*l(i))+0.5*[delp{i-1}*metricgradx{i}*delp{i-1}',delp{i-1}*metricgrady{i}*delp{i-1}',delp{i-1}*metricgradz{i}*delp{i-1}']/(2*l(i-1));
+    jacobianstroke(i,:)=(-(((metric{i}+metric{i+1})/2)*delp{i}')'-(delp{i}*((metric{i}+metric{i+1})/2)))/(2*l(i))+((((metric{i-1}+metric{i})/2)*delp{i-1}')'+(delp{i-1}*((metric{i}+metric{i-1})/2)))/(2*l(i-1))+contrigrad(i,:);
 end
 
 for j=1:dimension
     contrigrad(1,j)=0.5*delp{1}*metricgrad{1,j}*delp{1}'/(2*l(1))+0.5*delp{n}*metricgrad{1,j}*delp{n}'/(2*l(n));
 end
-jacobianstroke(1,:)=(-(((metric{1}+metric{2})/2)*delp{1}')'-(delp{1}*((metric{1}+metric{2})/2)))/(2*l(1))+((((metric{n}+metric{1})/2)*delp{n}')'+(delp{n}*((metric{n}+metric{1})/2)))/(2*l(n))+contrigrad(1,:);%+0.5*[delp{1}*metricgradx{1}*delp{1}',delp{1}*metricgrady{1}*delp{1}',delp{1}*metricgradz{1}*delp{1}']/(2*l(1))+0.5*[delp{n}*metricgradx{1}*delp{n}',delp{n}*metricgrady{1}*delp{n}',delp{n}*metricgradz{1}*delp{n}']/(2*l(n));   
+jacobianstroke(1,:)=(-(((metric{1}+metric{2})/2)*delp{1}')'-(delp{1}*((metric{1}+metric{2})/2)))/(2*l(1))+((((metric{n}+metric{1})/2)*delp{n}')'+(delp{n}*((metric{n}+metric{1})/2)))/(2*l(n))+contrigrad(1,:);
 
 for j=1:dimension
     contrigrad(n,j)=0.5*delp{n}*metricgrad{n,j}*delp{n}'/(2*l(n))+0.5*delp{n-1}*metricgrad{n,j}*delp{n-1}'/(2*l(n-1));
 end
-jacobianstroke(n,:)=(-(((metric{n}+metric{1})/2)*delp{n}')'-(delp{n}*((metric{n}+metric{1})/2)))/(2*l(n))+((((metric{n}+metric{n-1})/2)*delp{n-1}')'+(delp{n-1}*((metric{n}+metric{n-1})/2)))/(2*l(n-1))+contrigrad(n,:);%+0.5*[delp{n}*metricgradx{n}*delp{n}',delp{n}*metricgrady{n}*delp{n}',delp{n}*metricgradz{n}*delp{n}']/(2*l(n))+0.5*[delp{n-1}*metricgradx{n}*delp{n-1}',delp{n-1}*metricgrady{n}*delp{n-1}',delp{n-1}*metricgradz{n}*delp{n-1}']/(2*l(n-1));   
-
-
-% for i=1:n-1
-%     delp{i}=[y(i+1,1)-y(i,1),y(i+1,2)-y(i,2),y(i+1,3)-y(i,3)];
-% end
-% delp{n}=[y(1,1)-y(n,1),y(1,2)-y(n,2),y(1,3)-y(n,3)];
-% 
-% for i=2:n-1
-%     jacobianstroke(i,:)=(-(((metric{i}+metric{i+1})/2)*delp{i}')'-(delp{i}*((metric{i}+metric{i+1})/2)))/(2*l(i))+((((metric{i-1}+metric{i})/2)*delp{i-1}')'+(delp{i-1}*((metric{i}+metric{i-1})/2)))/(2*l(i-1))+0.5*[delp{i}*metricgradx{i}*delp{i}',delp{i}*metricgrady{i}*delp{i}',delp{i}*metricgradz{i}*delp{i}']/(2*l(i))+0.5*[delp{i-1}*metricgradx{i}*delp{i-1}',delp{i-1}*metricgrady{i}*delp{i-1}',delp{i-1}*metricgradz{i}*delp{i-1}']/(2*l(i-1));
-% end
-% jacobianstroke(1,:)=(-(((metric{1}+metric{2})/2)*delp{1}')'-(delp{1}*((metric{1}+metric{2})/2)))/(2*l(1))+((((metric{n}+metric{1})/2)*delp{n}')'+(delp{n}*((metric{n}+metric{1})/2)))/(2*l(n))+0.5*[delp{1}*metricgradx{1}*delp{1}',delp{1}*metricgrady{1}*delp{1}',delp{1}*metricgradz{1}*delp{1}']/(2*l(1))+0.5*[delp{n}*metricgradx{1}*delp{n}',delp{n}*metricgrady{1}*delp{n}',delp{n}*metricgradz{1}*delp{n}']/(2*l(n));   
-% jacobianstroke(n,:)=(-(((metric{n}+metric{1})/2)*delp{n}')'-(delp{n}*((metric{n}+metric{1})/2)))/(2*l(n))+((((metric{n}+metric{n-1})/2)*delp{n-1}')'+(delp{n-1}*((metric{n}+metric{n-1})/2)))/(2*l(n-1))+0.5*[delp{n}*metricgradx{n}*delp{n}',delp{n}*metricgrady{n}*delp{n}',delp{n}*metricgradz{n}*delp{n}']/(2*l(n))+0.5*[delp{n-1}*metricgradx{n}*delp{n-1}',delp{n-1}*metricgrady{n}*delp{n-1}',delp{n-1}*metricgradz{n}*delp{n-1}']/(2*l(n-1));   
+jacobianstroke(n,:)=(-(((metric{n}+metric{1})/2)*delp{n}')'-(delp{n}*((metric{n}+metric{1})/2)))/(2*l(n))+((((metric{n}+metric{n-1})/2)*delp{n-1}')'+(delp{n-1}*((metric{n}+metric{n-1})/2)))/(2*l(n-1))+contrigrad(n,:);   
 
 
 %% Jacobiandisp-jacobian for displacement produced by gait
@@ -318,13 +229,6 @@ jacobiandisp(n,:)=jacobiandispcalculator3(y(n-1,:),y(n,:),y(1,:),height(n,:),dim
 jacobianeqi = zeros(n,dimension);
 
 for i=2:n-1;
-%     y(i-1,:)
-%     y(i,:)
-%     y(i+1,:)
-%     i
-%     metric{i}
-%     metric{i-1}
-%     metric{i+1}
     len=sqrt((y(i+1,:)-y(i-1,:))*((metric{i-1}+metric{i+1})/2)*(y(i+1,:)-y(i-1,:))');
     midpoint=y(i-1,:)+((y(i+1,:)-y(i-1,:))*sqrtm((metric{i-1}+metric{i+1})/2))/2;
     betacos=(y(i+1,:)-y(i-1,:))*sqrtm((metric{i-1}+metric{i+1})/2)*((y(i,:)-y(i-1,:))*sqrtm((metric{i-1}+metric{i})/2))'/(l(i-1)*len);
@@ -343,31 +247,6 @@ end
     betacos=(y(1,:)-y(n-1,:))*sqrtm((metric{n-1}+metric{1})/2)*((y(n,:)-y(n-1,:))*sqrtm((metric{n-1}+metric{n})/2))'/(l(n-1)*len);
     xhat=y(n-1,:)+(y(1,:)-y(n-1,:))*sqrtm((metric{n-1}+metric{1})/2)*l(n-1)*betacos/len;
     jacobianeqi(n,:)=midpoint-xhat;
-
-
-
-% for i=2:n-1;
-%     len=sqrt((y(i+1,:)-y(i-1,:))*(y(i+1,:)-y(i-1,:))');
-%     l1=sqrt((y(i,:)-y(i-1,:))*(y(i,:)-y(i-1,:))');
-%     midpoint=y(i-1,:)+(y(i+1,:)-y(i-1,:))/2;
-%     betacos=(y(i+1,:)-y(i-1,:))*(y(i,:)-y(i-1,:))'/(l1*len);
-%     xhat=y(i-1,:)+(y(i+1,:)-y(i-1,:))*l1*betacos/len;
-%     jacobianeqi(i,:)=midpoint-xhat;
-% end
-% 
-%     len=sqrt((y(2,:)-y(n,:))*(y(2,:)-y(n,:))');
-%     l1=sqrt((y(1,:)-y(n,:))*(y(1,:)-y(n,:))');
-%     midpoint=y(n,:)+(y(2,:)-y(n,:))/2;
-%     betacos=(y(2,:)-y(n,:))*(y(1,:)-y(n,:))'/(l1*len);
-%     xhat=y(n,:)+(y(2,:)-y(n,:))*l1*betacos/len;
-%     jacobianeqi(1,:)=midpoint-xhat;
-% 
-%     len=sqrt((y(1,:)-y(n-1,:))*(y(1,:)-y(n-1,:))');
-%     l1=sqrt((y(2,:)-y(1,:))*(y(2,:)-y(1,:))');
-%     midpoint=y(n-1,:)+(y(1,:)-y(n-1,:))/2;
-%     betacos=(y(1,:)-y(n-1,:))*(y(n,:)-y(n-1,:))'/(l1*len);
-%     xhat=y(n-1,:)+(y(1,:)-y(n-1,:))*l1*betacos/len;
-%     jacobianeqi(n,:)=midpoint-xhat;
 
 %% changey/dcoeff
 
@@ -426,26 +305,8 @@ end
 
 
 
-%% Final gradient calculation
-% if invert == 0
-%     %totaljacobian=jacobiandisp/totalstroke-(((lineint)*jacobianstroke)/(1*totalstroke^2))/1+1*jacobianeqi;
-% %      totaljacobian=jacobiandisp-(((lineint)*jacobianstroke)/(1*totalstroke))/1+1*jacobianeqi;
-%     totaljacobian=jacobiandisp+1*jacobianeqi;
-%     dsdw=jacobiandisp;
-%     dy=dsdw(:);
-% else
-%     %totaljacobiantemp=jacobiandisp/totalstroke-(((lineint)*jacobianstroke)/(1*totalstroke^2))/1+1*jacobianeqi;
-%     totaljacobiantemp=jacobiandisp-(((lineint)*jacobianstroke)/(1*totalstroke))/1+1*jacobianeqi;
-%     for i=1:n
-% %           totaljacobian(i,:)=totaljacobiantemp(n+1-i,:);
-%         totaljacobian(i,:)=1*jacobiandisp(n+1-i,:)+1*jacobianeqi(n+1-i,:);
-%     end
-% end
+%% Debugging for flaws in gradient calculations
 
-% totaljacobian=jacobiandispfourier+jacobianeqifourier;%+((lineint)*jacobianstrokefourier)/(1*totalstroke)+4*jacobianeqifourier;
-%totaljacobianfourier=jacobiandispfourier/totalstroke-((lineint)*jacobianstrokefourier)/(1*totalstroke)^2+2*jacobianeqifourier;
-
-%%% if invert==1
 for i=1:n
     for j=1:1:dimension
         totaljacobianc(i,j)=chy{j}(:,i)'*totaljacobianfourier(:,j);
@@ -462,7 +323,6 @@ for i=1:1:n
     totaljacobianc(i,:)=totaljacobianctemp(n+1-i,:);
 end
 
-% jacobiandispfourier=jacobiandispfourier;%+jacobianeqifourier;
 %% minimizing negative of efficiency
  f=-lineint/(totalstroke);
 % f=-lineint;
@@ -470,27 +330,6 @@ if nargout>1
 %     g=-totaljacobian(:);
     g=[-totaljacobianfourier;zeros(1,dimension)];
 end
-
-%% so currently jacobiandisp is for the reversed way. y is reversed, pointvalues are reversed. Calculating jacobiandisp using finite differences.
-% jacobianforward=zeros(100,2);
-% for i=1:1:100
-%     for j=1:1:2
-%         pointvalues1=pointvalues;
-%         pointvalues1(i,j)=pointvalues(i,j)+0.1;
-%         g=10;
-%         p.phi_def = @(t) interp1( linspace(0,g,n+1), [pointvalues1; pointvalues1(1,:)], t);
-%         for k=1:1:n-1
-%             velocityvalues(k,:)=n*(pointvalues1(k+1,:)-pointvalues1(k,:))/g;
-%         end
-%         velocityvalues(n,:)=n*(pointvalues1(1,:)-pointvalues1(n,:))/g;
-%         p.dphi_def = @(t) interp1( linspace(0,g,n), [velocityvalues], t);
-% 
-% 
-%         [net_disp_orig, net_disp_opt1, cost] = evaluate_displacement_and_cost1(s,p,[0, g],'interpolated','fixed_step',600);
-%         jacobianforward(i,j)=(net_disp_opt1(1)-lineint)/0.1;
-%     end
-% i    
-% end
 
 %% Debugging and plotting
 
@@ -689,7 +528,7 @@ A2=-y2-ub;%2.2*ones(b,1);
 A3=y1(1,:)'-y1(n+1,:)'-[0.05;0.05];
 A4=-y1(1,:)'+y1(n+1,:)'-[0.05;0.05];
 
-A=[A1;A2];
+A=[A1;A2;A3;A4];
 
 % Aeq=y1(1,:)'-y1(n+1,:)';
 Aeq=0;
@@ -1000,7 +839,7 @@ function [net_disp_orig, net_disp_opt, cost] = evaluate_displacement_and_cost1(s
             % coordinates
             startshape = p.phi_def(0);
             startshapelist = num2cell(startshape);
-            beta_theta = interpn(s.grid.eval{:},s.B_optimized.eval.Beta{3},startshapelist{:},'cubic');
+            beta_theta = interpn(s.grid.eval{:},s.B_optimized.eval.Beta{3},startshapelist{:},'spline');
             net_disp_opt = [cos(beta_theta) sin(beta_theta) 0;...
                 -sin(beta_theta) cos(beta_theta) 0;...
                 0 0 1]*net_disp_orig;
@@ -1014,7 +853,7 @@ function [net_disp_orig, net_disp_opt, cost] = evaluate_displacement_and_cost1(s
 	% coordinates
 	startshape = p.phi_def(0);
 	startshapelist = num2cell(startshape);
-	beta_theta = interpn(s.grid.eval{:},s.B_optimized.eval.Beta{3},startshapelist{:},'cubic');
+	beta_theta = interpn(s.grid.eval{:},s.B_optimized.eval.Beta{3},startshapelist{:},'spline');
 	net_disp_opt = [cos(beta_theta) sin(beta_theta) 0;...
 		-sin(beta_theta) cos(beta_theta) 0;...
 		0 0 1]*net_disp_orig;
@@ -1042,9 +881,9 @@ function [xi, dcost] = get_velocities(t,s,gait,ConnectionEval)
 
 		case 'interpolated'
 			
-			A = -cellfun(@(C) interpn(s.grid.eval{:},C,shapelist{:}),s.vecfield.eval.content.Avec);
+			A = -cellfun(@(C) interpn(s.grid.eval{:},C,shapelist{:},'spline'),s.vecfield.eval.content.Avec);
 			
-			M =  cellfun(@(C) interpn(s.grid.metric_eval{:},C,shapelist{:}),s.metricfield.metric_eval.content.metric);
+			M =  cellfun(@(C) interpn(s.grid.metric_eval{:},C,shapelist{:},'spline'),s.metricfield.metric_eval.content.metric);
 			
 		otherwise
 			error('Unknown method for evaluating local connection');
