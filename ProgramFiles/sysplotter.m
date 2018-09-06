@@ -22,14 +22,14 @@ function varargout = sysplotter(varargin)
 
 % Edit the above text to modify the response to help sysplotter
 
-% Last Modified by GUIDE v2.5 26-Apr-2017 14:47:43
+% Last Modified by GUIDE v2.5 04-Sep-2018 17:24:47
 
     addpath('./Utilities')
 
 	%path to gui functions
 	addpath(genpath(GetFullPath('sysplotter_gui_fcns')), genpath(GetFullPath('sys_calcpath_fcns')),...
 		genpath(GetFullPath('sys_calcsystem_fcns')), genpath(GetFullPath('sys_draw_fcns')), ...
-		genpath(GetFullPath('sys_update_fcns')),genpath(GetFullPath('sysplotter_config_fcns')),genpath(GetFullPath('Utilities')))
+		genpath(GetFullPath('sys_update_fcns')),genpath(GetFullPath('sysplotter_config_fcns')),genpath(GetFullPath('Utilities')),genpath(GetFullPath('Animation')))
 
 	%%%
 	% Ensure that system files are properly accessible
@@ -164,3 +164,5 @@ function varargout = sysplotter_OutputFcn(hObject, eventdata, handles)
 	varargout{1} = handles.output;
 
 end
+
+
