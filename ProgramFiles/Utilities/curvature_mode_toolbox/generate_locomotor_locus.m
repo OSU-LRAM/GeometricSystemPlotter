@@ -3,7 +3,7 @@ function B = generate_locomotor_locus(geometry,shapeparams,visual)
 % If a visualization function has been specified in the visual property of
 % the system, use this to draw the body of the system. Otherwise, choose a
 % default drawing program based on the system geometry
-if exist('visual','var') && isstruct('visual') && isfield(visual,'drawing_function')
+if exist('visual','var') && isstruct(visual) && isfield(visual,'drawing_function')
     drawing_generator = visual.drawing_function;
 else
     % Identify what kind of system is being calculated, and use this to specify how
