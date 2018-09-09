@@ -114,10 +114,13 @@ function h = create_elements(info_needed)
 	% get full configuration history
 	[h.shapedata, h.posdata] = gait_concatenator(shaperaw,posraw,n_gaits,start_pos);
 	
+        load('sysplotter_config','Colorset')
+
+    
 	%%%%%%%%
 	% Create the tracer objects
-	h.tld = line('Parent',h.ax,'XData',[],'YData',[],'ZData',[],'LineWidth',5,'Color',[234 14 30]/255,'Marker','o','MarkerFaceColor',[234 14 30]/255,'MarkerSize',5,'LineStyle','none');
-	h.tl = line('Parent',h.ax,'XData',[],'YData',[],'ZData',[],'LineWidth',5,'Color',[234 14 30]/255); %Tracer line for translation
+	h.tld = line('Parent',h.ax,'XData',[],'YData',[],'ZData',[],'LineWidth',5,'Color',Colorset.spot,'Marker','o','MarkerFaceColor',Colorset.spot,'MarkerSize',5,'LineStyle','none');
+	h.tl = line('Parent',h.ax,'XData',[],'YData',[],'ZData',[],'LineWidth',5,'Color',Colorset.spot); %Tracer line for translation
 
 	
 end
@@ -239,7 +242,7 @@ function h = create_elements_shapespace(info_needed)
     % Now create a tracer-and-dot on each axis
 	for i = 1:numel(h)
 		h{i}.tl = line('Parent',h{i}.ax,'XData',[],'YData',[],'ZData',[],'LineWidth',7,'Color',Colorset.spot); %Tracer line
-		h{i}.tld = line('Parent',h{i}.ax,'XData',[],'YData',[],'ZData',[],'LineWidth',5,'Color',Colorset.spot,'Marker','o','MarkerFaceColor',[234 14 30]/255,'MarkerSize',10,'LineStyle','none');
+		h{i}.tld = line('Parent',h{i}.ax,'XData',[],'YData',[],'ZData',[],'LineWidth',5,'Color',Colorset.spot,'Marker','o','MarkerFaceColor',Colorset.spot,'MarkerSize',10,'LineStyle','none');
 	end
 
 end
