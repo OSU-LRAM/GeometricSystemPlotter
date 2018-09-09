@@ -2,7 +2,9 @@ function robot = draw_locomotor(robot,suppress_line,line_at_origin)
 % Draw the locomotor at the location that was specified by place_locomotor
 
 % Draw each element of the locomotor body
-robot.body = draw_set(robot.body);
+for idx = 1:numel(robot.body)
+    robot.body(idx) = draw_set(robot.body(idx));
+end
 
 % Unless the center line has been suppressed, draw a line that is solid on
 % the front half and dashed on the back half

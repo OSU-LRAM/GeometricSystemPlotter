@@ -8,7 +8,7 @@ function robot = create_locomotor(...
 % Extract geometry and visualization information from system
 s = info_needed.s;
 geometry = s.geometry;
-n_shape = nargin(s.metric);
+n_shape = nargin(s.A_num);
 
 if isfield(s,'visual')
     visual = s.visual;

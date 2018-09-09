@@ -38,16 +38,37 @@ if ~isempty(object.graphics.fill)
     
 	if ~isempty(object.graphics.handle) && all(ishandle(object.graphics.handle))
 		
-		set(object.graphics.handle(1,1),'XData',object.geom.vertices(:,1),...
-			'YData',object.geom.vertices(:,2),...
-            object.graphics.fill{:},'Parent',object.parent);
+        if iscell(object.geom.vertices)
+            for idx = 1:numel(object.geom.vertices)
+                set(object.graphics.handle(1,idx),'XData',object.geom.vertices{idx}(:,1),...
+                    'YData',object.geom.vertices{idx}(:,2),...
+                    object.graphics.fill{:},'Parent',object.parent);
+                
+            end
+        else
+
+            set(object.graphics.handle(1,1),'XData',object.geom.vertices(:,1),...
+                'YData',object.geom.vertices(:,2),...
+                object.graphics.fill{:},'Parent',object.parent);
+            
+        end
 		
 	else
 	
 		%draw the polygon and get its handle
-		object.graphics.handle(1,1) = ...
-			patch('XData',object.geom.vertices(:,1),'YData',object.geom.vertices(:,2),...
-				object.graphics.fill{:},'Parent',object.parent,object.graphics.edge{:});
+        
+        if iscell(object.geom.vertices)
+            for idx = 1:numel(object.geom.vertices)
+                object.graphics.handle(1,idx) = ...
+                    patch('XData',object.geom.vertices{idx}(:,1),'YData',object.geom.vertices{idx}(:,2),...
+                        object.graphics.fill{:},'Parent',object.parent,object.graphics.edge{:});
+            end
+        else
+        
+            object.graphics.handle(1,1) = ...
+                patch('XData',object.geom.vertices(:,1),'YData',object.geom.vertices(:,2),...
+                    object.graphics.fill{:},'Parent',object.parent,object.graphics.edge{:});
+        end
 			
 	end
     

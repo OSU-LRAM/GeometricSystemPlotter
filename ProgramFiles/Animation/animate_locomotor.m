@@ -1,7 +1,7 @@
 function animate_locomotor(export,info_needed)
     
     % Look up the geometry specification for this system:
-    sysfile = fullfile(info_needed.datapath, ['sysf_', info_needed.current_system2, '.mat']);
+    sysfile = fullfile(info_needed.datapath, ['sysf_', info_needed.current_system2, '_calc.mat']);
     load(sysfile,'s')
 	info_needed.s = s;
     
