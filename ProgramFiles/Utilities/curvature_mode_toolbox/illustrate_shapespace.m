@@ -1,7 +1,7 @@
 function illustrate_shapespace(system,plotnum)
 
 geometry = system.geometry;
-display = system.display;
+visual = system.visual;
 
 
 % Identify what kind of system is being drawn, and use this to specify how
@@ -24,7 +24,7 @@ end
 % Take the display grid from the provided display structure. Make sure that
 % the components of the grid are in a column cell array to avoid any
 % row/column problems below
-paramgrid = display.grid(:);
+paramgrid = visual.grid(:);
 
 % Get the spacing of parameter values in the first two dimensions
 [~,grid_spacing_x] = gradient(paramgrid{1});
@@ -64,7 +64,7 @@ for idx = 1:numel(paramgrid{1})
     
     
     %Generate the backbone locus
-    B = drawing_generator(geometry,p,display);
+    B = drawing_generator(geometry,p,visual);
     
     for idx2 = 1:2
         B(idx2,:) = B(idx2,:) + p(idx2);

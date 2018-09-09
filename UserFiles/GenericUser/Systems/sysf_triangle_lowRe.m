@@ -75,21 +75,21 @@ function output = sysf_triangle_lowRe(input_mode,pathnames)
             % function created above
             s.geometry.type = 'general curvature';                
             s.geometry.function = curvdef_fun;
-            s.geometry.baseframe = 'com-mean';
+            s.geometry.baseframe = 'center';
             
             % Total length of the swimmer, in real units
             s.geometry.length = 1;
             
             
             %%%
-            % Define properties for displaying the system
+            % Define properties for visualizing the system
             
-            % Make a grid of values at which to display the system in
+            % Make a grid of values at which to visualize the system in
             % illustrate_shapespace. The code below uses properties of cell
             % arrays to automatically match the dimensionality of the grid
-            % with the number of shape parameters
-            s.display.grid = cell(size(curvdef_parameters));
-            [s.display.grid{:}] = ndgrid([-1 -0.5 0 0.5 1]*6+.001); %.001 is to avoid a singularity at zero
+            % with the number of shape basis functions in use
+            s.visual.grid = cell(size(curvdef_parameters));
+            [s.visual.grid{:}] = ndgrid([-1 -0.5 0 0.5 1]*6+.001); %.001 is to avoid a singularity at zero
 
             
             %%%

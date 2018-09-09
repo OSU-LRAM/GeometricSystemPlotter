@@ -22,7 +22,7 @@ source_number_text = source_name(end);
 	plot_subtypes,merged_plot_subtypes, plot_style] =...
 	get_box_values(source_number_text,handles); %#ok<ASGLU>
 
-%get the height function type to plot
+%get the CCF type to plot
 CCFtype = get(findobj(handles.(['CCFradio' source_number_text]),'Value',1),'Tag');
 CCFtype(3) = [];
 
