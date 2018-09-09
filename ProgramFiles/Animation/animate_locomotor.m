@@ -234,6 +234,8 @@ function h = create_elements_shapespace(info_needed)
         end
     end
     
+    load('sysplotter_config','Colorset')
+    
     % Now create a tracer-and-dot on each axis
 	for i = 1:numel(h)
 		h{i}.tl = line('Parent',h{i}.ax,'XData',[],'YData',[],'ZData',[],'LineWidth',7,'Color',Colorset.spot); %Tracer line
