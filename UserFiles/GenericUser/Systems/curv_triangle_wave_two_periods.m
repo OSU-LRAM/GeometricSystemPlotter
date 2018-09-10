@@ -1,4 +1,4 @@
-% (516189106917469267*sign((a1*cos(4*s*pi) + a2*sin(4*s*pi))/(a1^2 + a2^2)^(1/2))*abs(a1*cos(4*s*pi) + a2*sin(4*s*pi))^20*(a1^2 + a2^2)^(1/2))/(144115188075855872*abs(a1^2 + a2^2)^10)
+% (258094553458734611*sign((a1*cos(4*s*pi) + a2*sin(4*s*pi))/(a1^2 + a2^2)^(1/2))*abs(a1*cos(4*s*pi) + a2*sin(4*s*pi))^20*(a1^2 + a2^2)^(1/2))/(72057594037927936*abs(a1^2 + a2^2)^10)
 function output = curv_triangle_wave_two_periods(params,mode)
 
 % Turn params into a cell matrix
