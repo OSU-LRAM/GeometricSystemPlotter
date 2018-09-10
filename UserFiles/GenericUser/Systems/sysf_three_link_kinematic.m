@@ -22,7 +22,27 @@ function output = sysf_three_link_kinematic(input_mode,pathnames)
 
 		case 'initialize'
 
-			%%%%%
+            %%%%%%
+            % Define system geometry
+            s.geometry.type = 'n-link chain';
+            s.geometry.linklengths = [1 1 1];
+            s.geometry.baseframe = 'center';
+            s.geometry.length = 1;
+            
+            %%%
+            % Define properties for visualizing the system
+            
+            % Make a grid of values at which to visualize the system in
+            % illustrate_shapespace. The code below uses properties of cell
+            % arrays to automatically match the dimensionality of the grid
+            % with the number of shape basis functions in use
+            s.visual.grid = cell(numel(s.geometry.linklengths)-1,1);
+            [s.visual.grid{:}] = ndgrid([-1  0  1]);
+            
+            s.visual.drawing_function = @wheeled_chain;
+
+            
+            %%%%%
 
 			%Functional representation of local connection, split into a
 			%numerator and denominator because the connection has

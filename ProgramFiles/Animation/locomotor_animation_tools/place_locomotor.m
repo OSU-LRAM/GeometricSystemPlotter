@@ -31,7 +31,16 @@ B = B(:);
 
 % Load the points into the robot structure
 for i = 1:size(robot.body,1)
-	robot.body(i).local_geom.vertices =  B{i}';
+    
+    % Force B{i} to be a column cell array
+    if ~iscell(B{i})
+        B{i} = {B{i}};
+    end
+    B{i} = B{i}(:);
+
+    for j = 1:numel(B{i})
+        robot.body(i).local_geom.vertices{j,1} =  B{i}{j}';
+    end
 end
 
 %Build the transform for the position

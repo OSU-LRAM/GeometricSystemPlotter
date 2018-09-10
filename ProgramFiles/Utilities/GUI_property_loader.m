@@ -11,7 +11,7 @@ for i = 1:numel(props)
     for j = 1:numel(tagNames) % skip the figure at the top
         
         % if the property exists and it's not the tag name, rewrite it
-        if isprop(handles.(tagNames{j}),(props{i})) && ~strcmp(tagNames{j},'Tag')
+        if isfield(handles,tagNames{j}) && isprop(handles.(tagNames{j}),(props{i})) && ~strcmp(tagNames{j},'Tag')
             
             currentProp = handles.(tagNames{j}).(props{i}); % current object property
             userProp = propertyList.(props{i}){j};          % user defined property

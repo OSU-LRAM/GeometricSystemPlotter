@@ -10,13 +10,21 @@ function enable_disable_block_Callback(source, eventdata, handles)
     switch source_name(1:2)
 		case 'xy'
 			inner_text = {'traj','net','BVI','cBVI'};
+            switch source_name(3:5)
+                case 'opt'
+                    tailword = 'optcheckbox';
+                otherwise
+                    tailword = 'checkbox';
+            end
+           
 		otherwise
 			inner_text = {'X','Y','T','Xopt','Yopt','Topt'};
+            tailword = 'checkbox';
 	end
 	
 	
     %find beginning of string 'checkbox' in the source name
-    insert_point = regexp(source_name,'checkbox');
+    insert_point = regexp(source_name,tailword);
     
     %loop over the text to be inserted, inserting it, then flipping the
     %enable bit on the resulting checkbox name

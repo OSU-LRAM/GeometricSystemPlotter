@@ -92,7 +92,14 @@ switch object.type
         polygon = object.local_geom.vertices;% * object.local_geom.scaling;
 
         %translate polygon
-        object.geom.vertices = (SE2 * polygon')';
+        if iscell(object.local_geom.vertices)
+            for idx = 1:numel(object.local_geom.vertices)
+                object.geom.vertices{idx} = (SE2 * polygon{idx}')';
+            end
+        else
+            
+            object.geom.vertices = (SE2 * polygon')';
+        end
         
 %     case 'line'
 %         
