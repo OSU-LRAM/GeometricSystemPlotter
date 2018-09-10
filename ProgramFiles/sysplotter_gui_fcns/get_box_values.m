@@ -46,7 +46,7 @@ function [checkbox_names,...
 	plot_coordinates = { {'','opt'},...     % Vfield
                          {'','opt'},...     % CCF
                          {''},...           % mfield
-                         {''},...           % ShapeSpace
+                         {'','opt'},...           % ShapeSpace
                          {'','opt'},...     % disp
                          {''},...     % beta
                          {''},...     % dbeta

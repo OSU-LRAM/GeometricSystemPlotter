@@ -199,7 +199,7 @@ function plot_info = xy_draw_helper(s,p,plot_info,sys,shch,optselect);
 
 	else
 		
-		%Mark this figure as a height function
+		%Mark this figure as an xy locus plot
 		udata = get(plot_info.figure,'UserData');
 		
 		if isempty(optselect)

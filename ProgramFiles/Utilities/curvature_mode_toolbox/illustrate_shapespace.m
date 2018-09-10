@@ -1,4 +1,4 @@
-function illustrate_shapespace(system,plotnum)
+function illustrate_shapespace(system,target)
 
 geometry = system.geometry;
 visual = system.visual;
@@ -7,8 +7,8 @@ load('sysplotter_config','Colorset')
 
         
 % Specify plot number as 177 unless specified otherwise
-if ~exist('plotnum','var')
-    plotnum = 177;
+if ~exist('target','var')
+    target = 177;
 end
 
 % Take the display grid from the provided display structure. Make sure that
@@ -20,22 +20,34 @@ paramgrid = visual.grid(:);
 [~,grid_spacing_x] = gradient(paramgrid{1});
 [grid_spacing_y,~] = gradient(paramgrid{2});
 
-% Create the figure
-fh = figure(plotnum);
-clf(fh);
-fh = figure(plotnum);
-set(fh,'name',['Baseframe: ' geometry.baseframe]);
+% Create a figure if necessary
+try 
+    target_type = get(target,'type');
+catch
+    target_type = 'DNE'
+end
 
-axh = axes('Parent',fh);
+if strcmp(target_type,'axes')
+    axh = target;
+else
+    fh = figure(target);
+    clf(fh);
+    fh = figure(target);
+    set(fh,'name',['Baseframe: ' geometry.baseframe]);
+
+    axh = axes('Parent',fh);
+end
+
+% Set up axes
 axis(axh,'equal')
 hold(axh,'on')
 % Set tick spacing
-axh.XTick = paramgrid{1}(:,1);
-axh.YTick = paramgrid{2}(1,:);
+set(axh,'XTick', paramgrid{1}(:,1));
+set(axh,'YTick', paramgrid{2}(1,:));
 set(axh,'XLim', [min(paramgrid{1}(:))-grid_spacing_x(1)/2,max(paramgrid{1}(:))+grid_spacing_x(end)/2]);
 set(axh,'YLim', [min(paramgrid{2}(:))-grid_spacing_y(1)/2,max(paramgrid{2}(:))+grid_spacing_y(end)/2]);
 % Figure stylistic settings
-axh.Box = 'on'; % Repeat tickmarks and axis lines on the top and left sides
+set(axh, 'Box','on'); % Repeat tickmarks and axis lines on the top and left sides
 grid(axh,'on'); % show a grid at the specified shape points
 
 % The system length scale should be as long as the minimum spacing between nearby
