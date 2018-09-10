@@ -49,11 +49,16 @@ end
 % each of which would be drawn separately
 B = generate_locomotor_locus(geometry,shape_test_point,visual);
 
-% Force B to be a column cell array
+% Force B to be a column cell array with a cell inside it
 if ~iscell(B)
     B = {B};
 end
 B = B(:);
+
+if ~iscell(B{1})
+    B{1} = {B{1}};
+end
+B{1} = B{1}(:);
 
 %%%
 % Make a cell array in which each cell is one element of the drawing that
