@@ -20,7 +20,7 @@ function plot_info = xy_draw_helper(s,p,plot_info,sys,shch,optselect);
 	net_y = zeros(numel(p.G_locus_full),1);
 	
 	% Extract list of components to include
-	components = plot_info.components{1};
+	components = plot_info.components;
 	
 	% prime the line element handles
 	[traj_h,BVI_h,cBVI_h,net_h] = deal([]);
@@ -46,7 +46,7 @@ function plot_info = xy_draw_helper(s,p,plot_info,sys,shch,optselect);
 		end
 		
 		% draw the trajectory
-		if any(strcmp('traj',components))
+		if any(strncmp('traj',components,4))
 			traj_h(i) = line('Parent',ax,'XData',p.G_locus_full{i}.(['G' optselect])(:,1)...
 				,'YData',p.G_locus_full{i}.(['G' optselect])(:,2),'LineWidth',3,'Color',traj_color);
 		
@@ -67,7 +67,7 @@ function plot_info = xy_draw_helper(s,p,plot_info,sys,shch,optselect);
 		
 
 		% draw the bvi point
-		if any(strcmp('BVI',components))
+		if any(strncmp('BVI',components,3))
 			BVI_h(i) = line('Parent',ax,'XData',p.G_locus_full{i}.(['bvi' optselect])(end,1)...
 				,'YData',p.G_locus_full{i}.(['bvi' optselect])(end,2)...
 				,'Marker','o','MarkerSize',16,'LineWidth',3,'Color',BVI_color,'Linestyle','none');
@@ -87,7 +87,7 @@ function plot_info = xy_draw_helper(s,p,plot_info,sys,shch,optselect);
 		end
 		
 		% draw the cbvi point
-		if any(strcmp('cBVI',components)) 
+		if any(strncmp('cBVI',components,4)) 
 			if isfield(p,['cBVI' optselect]) && ~isempty(p.(['cBVI' optselect]){i})
 				cBVIx = p.(['cBVI' optselect]){i}(1);
 				cBVIy = p.(['cBVI' optselect]){i}(2);
@@ -125,7 +125,7 @@ function plot_info = xy_draw_helper(s,p,plot_info,sys,shch,optselect);
 	
 	
 	% draw the net displacement locus for all the gaits
-	if any(strcmp('net',components))
+	if any(strncmp('net',components,3))
 		net_color = 'k';
 		net_h = line('Parent',ax,'XData',net_x...
 			,'YData',net_y,'ZData',ones(size(net_x)),'LineWidth',3 ...

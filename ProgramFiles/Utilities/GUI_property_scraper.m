@@ -21,10 +21,14 @@ propertyList.propSelections = props;
 % for each property selected and each tag name, gather data
 for i = 1:numel(props)
     
+    
     for j = 1:numel(tagNames) % skip the figure at the top
-        if isprop(handles.(tagNames{j}),(props{i}))
+        
+        hj = handles.(tagNames{j});
+
+        if isprop(hj,(props{i}))
             % gather the existing property for that object
-            propertyList.(props{i}){j,1} = handles.(tagNames{j}).(props{i});
+            propertyList.(props{i}){j,1} = hj.(props{i});
         else
             % if that property doesn't exist, fill cell with NaN to avoid errors
             propertyList.(props{i}){j,1} = NaN;

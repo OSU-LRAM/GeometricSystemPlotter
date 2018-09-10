@@ -1,132 +1,257 @@
-function plots_to_make = initialize_plot_windows(box_active,plot_types,merged_plot_subtypes...
-	,plot_style,CCFtype,stretchstate,handles,source_number_text)
+% function plots_to_make = initialize_plot_windows(box_active,plot_types,merged_plot_subtypes...
+% 	,plot_style,CCFtype,stretchstate,handles,source_number_text)
+
+function plots_to_make = initialize_plot_windows(box_names,...
+                                                 box_active,...
+                                                 plot_style,...
+                                                 stretchstate,...
+                                                 plot_types,...
+                                                 plot_subtypes,...
+                                                 plot_coordinates,...
+                                                 handles,...
+                                                 source_number_text,...
+                                                 CCFtype)
 
 	%%%%%
     %Determine how many windows to create
     
     plot_count = 0;                         %how many plots
     subplot_count = [];                     %how many subplots
-    plots_to_make = struct([]);    %structure to hold all plot information
-    %Loop through the categories
-    for i = 1:length(plot_types)
+    plots_to_make = struct('components',{},...    %structure to hold all plot information
+                           'plot',[],...
+                           'subplot',[],...
+                           'category',[],...
+                           'linestyle',[],...
+                           'style',[],...
+                           'CCFtype',[],...
+                           'stretch',[],...
+                           'axes',[]);
+    
+    
+    
+    % Loop through the checkboxes
+    
+    % Iterate through different kinds of plots
+    for idx = 1:numel(box_names)
         
-        %only make plots for a category if that category is enabled and has
-        %plots selected
-        if box_active{i}(1) && any(box_active{i}(2:end))
-			            
-            %set the plots_to_make structure category for this plot set
-            plots_to_make(end+1,1).category = plot_types{i}; %#ok<AGROW>
-            
-			%Appearance changing logic
-			switch get(handles.(['contour' source_number_text]),'Value')
+        
+        % Iterate through coordinate choices
+        for idx2 = 1:numel(box_names{idx})
+    
+                % Check if there are any plots of this type
+                plot_type_active = [box_active{idx}{idx2}{:}];
 
-				case 0
-
-					plots_to_make(end,1).style = 'surface';
-
-				case 1
-
-					plots_to_make(end,1).style = 'contour';
-
-				otherwise
-
-					error('Unexpected value for height function appearance toggle')
-
-			end
-			
-			switch get(handles.(['color' source_number_text]),'Value')
-
-				case 0
-					
-					plots_to_make(end,1).linestyle = 'mono';
-					
-				case 1
-					
-					plots_to_make(end,1).linestyle = 'cycle';
-					
-				otherwise
-				
-					error('Unexpected value for line color appearance toggle');
-			end
-				
-			%Decide which kind of height function to show
-			plots_to_make(end,1).CCFtype = CCFtype;
-
-			% set the stretch on each component. Menu item 1 is no stretch,
-			% 2 is stretch (and if we offer multiple stretches in the
-			% future, this will pass on higher values into the plotting
-			% function)
-			plots_to_make(end,1).stretch = stretchstate-1;
-
-			%set the plots_to_make components
-            plots_to_make(end,1).components = merged_plot_subtypes{i}(box_active{i}(2:end));
-			
-			% Wrap an extra cell layer around the xy plots, to appear as
-			% "one component"
-			if strncmp(plots_to_make(end,1).category,'xy',2)
-				plots_to_make(end,1).components = {plots_to_make(end,1).components};
-			end
-            
-            %prime plot and subplot fields
-            plots_to_make(end,1).plot = [];
-            plots_to_make(end,1).subplot = [];
-            
-            %decide whether to make plots or subplots for the category
-            switch plot_style{i}
                 
-                %if there's a plot for each component, add that many plots,
-                %and note that there's one subplot for each of them
-                case 'plot'
-                    
-                    %set the plot that will be associated with each
-                    %component
-                    for j = plot_count + (1:sum(box_active{i}(2:end)));
-                        
-                        plots_to_make(end,1).plot = [plots_to_make(end,1).plot;j];
-                        plots_to_make(end,1).subplot = [plots_to_make(end,1).subplot; 1];
-                        
-                    end
+
                 
-                    plot_count = plot_count + sum(box_active{i}(2:end));
-                    subplot_count = [subplot_count;ones(sum(box_active{i}(2:end)),1)]; %#ok<AGROW>
-                    
-                %if there's a subplot for each component, add one plot, and
-                %note how many subplots
-                case 'subplot'
-                    
-					for j = 1:2
-					
-						%set the plot that will be associated with all
-						%components
-						for k = 1:sum(box_active{i}((2:4)+(j-1)*3));
+                if any(plot_type_active)
 
-							plots_to_make(end,1).plot = [plots_to_make(end,1).plot; plot_count+1];
-							plots_to_make(end,1).subplot = [plots_to_make(end,1).subplot; k];
 
-						end
+                    %decide whether to make plots or subplots for the category
+                    switch plot_style{idx}
 
-						if (sum(box_active{i}((2:4)+(j-1)*3)) > 0)
-							plot_count = plot_count + 1;
-							subplot_count = [subplot_count;sum(box_active{i}((2:4)+(j-1)*3))]; %#ok<AGROW>
-						end
+                        %if there's a plot for each component, add that many plots,
+                        %and note that there's one subplot for each of them
+                        case 'plot'
+
+
+
+                                %set the plot that will be associated with each
+                                %component
+
+                                % iterate over the plots in the category
+                                for idx3 = 1:numel(box_active{idx}{idx2}) 
+
+                                    plot_subtype_active = box_active{idx}{idx2}{idx3};
+
+                                    if plot_subtype_active
+                                        
+                                        % increment the plot counter
+                                        plot_count = plot_count+1;
+
+                                        %fill in plot and subplot fields
+                                        plots_to_make(end+1,1).plot = plot_count;
+                                        plots_to_make(end,1).subplot = 1;
+                                        %set the plots_to_make components
+
+                                        % Name this component
+                                        plots_to_make(end,1).components =...
+                                            {[plot_subtypes{idx}{idx3} plot_coordinates{idx}{idx2}]};
+
+                                        % Note that there is one subplot in
+                                        % this plot
+                                        subplot_count = [subplot_count;1];
+                                        
+                                        plots_to_make(end,1) = add_category_info(plots_to_make(end,1),...
+                                             plot_types,...
+                                             idx,...
+                                             handles,...
+                                             CCFtype,...
+                                             stretchstate,...
+                                             source_number_text);
+
+    % 
+    %                                      % Iterate through subplots
+    %                                      for idx3 = 1:numel(box_names{idx}{idx2})
+    % 
+    %                                         plot_subtype_active = box_active{idx}{idx2}{idx3};
+    % 
+    %                                         if plot_subtype_active
+    % 
+    %                                             plots_to_make(end,1).components = ...
+    %                                                 [plots_to_make(end,1).components,... 
+    %                                                  [plot_subtypes{idx}{idx3} plot_coordinates{idx}{idx2}]...
+    %                                                  ]
+    % 
+    %                                         end
+    % 
+    %                                     end
+    % 
+    %                                     % increment the plot counter
+    %                                     plot_count = plot_count+1;
+    % 
+    %                                     % Add a 1-subplot entry to the subplot counter
+    %                                     subplot_count = [subplot_count; 1];
+    % 
+    %                                     % Label the plot and subplot in the structure
+    %                                     plots_to_make(end,1).plot = plot_count;
+    %                                     plots_to_make(end,1).subplot = [plots_to_make(end,1).subplot; 1];
+
+                                
+                                    end
+                                    
+                                end
+                                
+                        %if there's a subplot for each component, add one plot, and
+                        %note how many subplots
+                        case 'subplot'
+
+                            % increment the plot counter
+                            plot_count = plot_count+1;
+
+                            % iterate over the plots in the category
+                            %for idx3 = numel(plots_to_make(idx).components)
+                            for idx3 = 1:numel(box_active{idx}{idx2}) 
+
+
+                                plot_subtype_active = box_active{idx}{idx2}{idx3};
+
+                                if plot_subtype_active
+                                    
+                                    % Label the plot and subplot in the structure
+                                    plots_to_make(end+1,1).plot = plot_count;
+                                    plots_to_make(end,1).subplot = [plots_to_make(end,1).subplot; idx3];
+
+
+                                    plots_to_make(end,1).components = ...
+                                        [plots_to_make(end,1).components,... 
+                                         {[plot_subtypes{idx}{idx3} plot_coordinates{idx}{idx2}]}...
+                                         ];
+                                     
+                                    plots_to_make(end,1) = add_category_info(plots_to_make(end,1),...
+                                     plot_types,...
+                                     idx,...
+                                     handles,...
+                                     CCFtype,...
+                                     stretchstate,...
+                                     source_number_text);
+
+                                end
+
+
+
+                             end
+
+                            % Tell the subplot counter how many subplots appear
+                            % in this plot
+                            subplot_count = [subplot_count; idx3];
+
+                            
+                            
+                        % for plots which have a single item    
+                        case 'single'
+
+                            % increment the plot counter
+                            plot_count = plot_count+1;
+                            
+                            plots_to_make(end+1,1).plot = plot_count;
+                            plots_to_make(end,1).subplot = [plots_to_make(end,1).subplot; 1];
+                            
+                            % iterate over the plots in the category
+                            %for idx3 = numel(plots_to_make(idx).components)
+                            for idx3 = 1:numel(box_active{idx}{idx2}) 
+                                
+                                
+                                    plots_to_make(end,1) = add_category_info(plots_to_make(end,1),...
+                                     plot_types,...
+                                     idx,...
+                                     handles,...
+                                     CCFtype,...
+                                     stretchstate,...
+                                     source_number_text);
+
+                                plot_subtype_active = box_active{idx}{idx2}{idx3};
+
+                                if plot_subtype_active
+                                    
+                                    % Label the plot and subplot in the structure
+                                    
+                               
+
+
+                                    plots_to_make(end,1).components = ...
+                                        [plots_to_make(end,1).components,... 
+                                         {[plot_subtypes{idx}{idx3} plot_coordinates{idx}{idx2}]}...
+                                         ];
+                                     
+
+
+                                end
+
+
+
+                             end
+
+                            % Tell the subplot counter how many subplots appear
+                            % in this plot
+                            subplot_count = [subplot_count; 1];                            
+                            
+%                             plots_to_make(end+1,1).plot = plot_count;
+%                             plots_to_make(end,1).subplot = 1;
+% 
+%                             plots_to_make(end,1).components = ...
+%                                 [plots_to_make(end,1).components,... 
+%                                  {[plot_subtypes{idx}{1} plot_coordinates{idx}{idx2}]}...
+%                                  ];
+%                             
+%                             subplot_count = [subplot_count;1];
+% 
+%                             plots_to_make(end,1) = add_category_info(plots_to_make(end,1),...
+%                                      plot_types,...
+%                                      idx,...
+%                                      handles,...
+%                                      CCFtype,...
+%                                      stretchstate,...
+%                                      source_number_text);                            
+
                     
-					end
-					
-				case 'single'
-					
-					% for the xy plots, which have a single window
-					plots_to_make(end,1).plot = [plots_to_make(end,1).plot;plot_count+1];
-					plots_to_make(end,1).subplot = [plots_to_make(end,1).subplot; 1];
-					
-					plot_count = plot_count + 1;
-					subplot_count = [subplot_count;1];
-					
-                otherwise
-                    
-                    error('plot style is not ''plot'' nor ''subplot'' nor ''single'' ')
-                    
+                        otherwise
+
+                            error('plot style is not ''plot'' nor ''subplot'' nor ''single'' ')
+
+                end
+                        
+%                         % If there are any active boxes of this type, add them to the
+%             % plots_to_make structure 
+% 
+%             plot_type_active = [box_active{idx}{idx2}{:}];
+% 
+%             if any(plot_type_active)
+
+
+
             end
-            
+
         end
         
     end
@@ -179,8 +304,10 @@ function plots_to_make = initialize_plot_windows(box_active,plot_types,merged_pl
     %Loop over all plot categories that will be used
 	for i = 1:length(plots_to_make)
         
+        plots_to_make(i).axes = zeros(length(plots_to_make(i).subplot),1);
+        
         %loop over all components
-        for j = 1:length(plots_to_make(i).components)
+        for j = 1:length(plots_to_make(i).subplot)
             
             %get the axes to plot to
             plots_to_make(i).axes(j,1) = thumbnail_axes{plots_to_make(i).plot(j)}(plots_to_make(i).subplot(j));
@@ -189,4 +316,62 @@ function plots_to_make = initialize_plot_windows(box_active,plot_types,merged_pl
         
 	end
 	
+end
+
+
+function plots_to_make_i = add_category_info(plots_to_make_i,...
+                                             plot_types,...
+                                             idx,...
+                                             handles,...
+                                             CCFtype,...
+                                             stretchstate,...
+                                             source_number_text)
+
+    %set the plots_to_make structure category for this plot type
+    plots_to_make_i.category = plot_types{idx};
+
+    % Decide if scalar functions of two variables should be plotted
+    % as contours or surfaces 
+    switch get(handles.(['contour' source_number_text]),'Value')
+
+        case 0
+
+            plots_to_make_i.style = 'surface';
+
+        case 1
+
+            plots_to_make_i.style = 'contour';
+
+        otherwise
+
+            error('Unexpected value for CCF appearance toggle')
+
+    end
+
+    % Decide if monocolor or a cycling color set should be used for
+    % multi-line plots
+    switch get(handles.(['color' source_number_text]),'Value')
+
+        case 0
+
+            plots_to_make_i.linestyle = 'mono';
+
+        case 1
+
+            plots_to_make_i.linestyle = 'cycle';
+
+        otherwise
+
+            error('Unexpected value for line color appearance toggle');
+    end
+
+    %Decide which kind of constraint curvature function to show
+    plots_to_make_i.CCFtype = CCFtype;
+
+    % set the stretch on each component. Menu item 1 is no stretch,
+    % 2 is stretch (and if we offer multiple stretches in the
+    % future, this will pass on higher values into the plotting
+    % function)
+    plots_to_make_i.stretch = stretchstate-1;
+                
 end
