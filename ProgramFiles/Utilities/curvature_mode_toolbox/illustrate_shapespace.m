@@ -33,7 +33,7 @@ else
     fh = figure(target);
     clf(fh);
     fh = figure(target);
-    set(fh,'name',['Baseframe: ' geometry.baseframe]);
+    set(fh,'name',['Baseframe: ' displayname]);
 
     axh = axes('Parent',fh);
 end

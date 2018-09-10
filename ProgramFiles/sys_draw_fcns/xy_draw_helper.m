@@ -20,7 +20,7 @@ function plot_info = xy_draw_helper(s,p,plot_info,sys,shch,optselect);
 	net_y = zeros(numel(p.G_locus_full),1);
 	
 	% Extract list of components to include
-	components = plot_info.components;
+	components = plot_info.components{1};
 	
 	% prime the line element handles
 	[traj_h,BVI_h,cBVI_h,net_h] = deal([]);

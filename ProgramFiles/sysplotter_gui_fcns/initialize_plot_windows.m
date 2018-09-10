@@ -210,7 +210,9 @@ function plots_to_make = initialize_plot_windows(box_names,...
 
 
 
-                             end
+                            end
+                             
+                            plots_to_make(end,1).components = {plots_to_make(end,1).components};
 
                             % Tell the subplot counter how many subplots appear
                             % in this plot
