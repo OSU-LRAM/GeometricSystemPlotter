@@ -102,7 +102,7 @@ function [checkbox_names,...
     num_checks = sum([checkbox_active_flat{:}]);
     
     if num_checks == 0
-        error('Warning: No checkboxes selected.')
+        warning('No checkboxes selected.')
         %             return
     end
         

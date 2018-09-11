@@ -149,6 +149,14 @@ set(handles.shapechangemenu,'Value',rn(1));
 active=0;
 % shapechangemenu_Callback(hObject, eventdata, handles,active)
 enable_disable_shch_plots(hObject,eventdata,handles)
- plot_info = plotpushbutton_Callback(findall(0,'tag','plotpushbutton3'), eventdata, handles);    
+
+% Get the last plot pushbutton used
+if isfield(handles.figure1.UserData,'lastpushbutton')
+    lastpushbutton = handles.figure1.UserData.lastpushbutton;
+else
+    lastpushbutton = 'plotpushbutton1';
+end
+
+ plot_info = plotpushbutton_Callback(findall(0,'tag',lastpushbutton), eventdata, handles);    
 
 end
