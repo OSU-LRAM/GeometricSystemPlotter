@@ -13,7 +13,8 @@ for i=1:1:dimension
     fa{i}=fit(t',[P1(:,i);P1(1,i)],'fourier4');
 end
 
-% figure(1)
+%Uncomment to plot the starting gait
+% figure(1) 
 % plot(fa{1},t',[P1(:,1);P1(1,1)])
 % 
 % figure(2)
@@ -51,7 +52,7 @@ for i=1:1:n
 end
 y=y1(:);
 
-%% uncomment for plotting the gaits
+%% uncomment for plotting the optimized gait
 % for i=1:n
 %     xf(i)=y(i);
 %     yf(i)=y(n+i);
@@ -97,6 +98,7 @@ p.dphi_def = @(t) interp1( linspace(0,g,n), [velocityvalues], t);
 lineint=net_disp_opt(1);
 totalstroke=cost;
 
+% If efficiency is negative, reversing the order of points
 if lineint<0
     lineint=-lineint;
     ytemp=y;
@@ -109,7 +111,7 @@ else
     invert=0;
 end
 
-%% Preliminaries for calculation
+%% Preliminaries for gradient calculation
 yvalues=cell(n,dimension);
 interpstateheight=cell(1,dimension);
 interpmetricgrid=cell(1,dimension);
@@ -189,7 +191,7 @@ for i=1:1:n-1
 end
 l(n)=sqrt((y(1,:)-y(n,:))*((metric{n}+metric{1})/2)*(y(1,:)-y(n,:))');
 
-%% Jacobianstroke
+%% Jacobianstroke is the gradient of cost. Contrigrad is the contribution to the gradient due to the metric changing
 
 jacobianstroke = zeros(n,dimension);
 contrigrad=zeros(n,dimension);
@@ -217,7 +219,7 @@ end
 jacobianstroke(n,:)=(-(((metric{n}+metric{1})/2)*delp{n}')'-(delp{n}*((metric{n}+metric{1})/2)))/(2*l(n))+((((metric{n}+metric{n-1})/2)*delp{n-1}')'+(delp{n-1}*((metric{n}+metric{n-1})/2)))/(2*l(n-1))+contrigrad(n,:);   
 
 
-%% Jacobiandisp-jacobian for displacement produced by gait
+%% Jacobiandisp is the gradient of displacement.
 jacobiandisp = zeros(n,dimension);
 for i=2:1:n-1
     jacobiandisp(i,:)=jacobiandispcalculator3(y(i-1,:),y(i,:),y(i+1,:),height(i,:),dimension);
@@ -225,7 +227,7 @@ end
 jacobiandisp(1,:)=jacobiandispcalculator3(y(n,:),y(1,:),y(2,:),height(1,:),dimension);
 jacobiandisp(n,:)=jacobiandispcalculator3(y(n-1,:),y(n,:),y(1,:),height(n,:),dimension);
 
-%% Jacobianeqi-term that keeps points eqi distant from each other
+%% Jacobianeqi is the concentration gradient. It is the term that keeps points eqi distant from each other and prevents crossover of gait.
 jacobianeqi = zeros(n,dimension);
 
 for i=2:n-1;
@@ -248,7 +250,7 @@ end
     xhat=y(n-1,:)+(y(1,:)-y(n-1,:))*sqrtm((metric{n-1}+metric{1})/2)*l(n-1)*betacos/len;
     jacobianeqi(n,:)=midpoint-xhat;
 
-%% changey/dcoeff
+%% changey/dcoeff tells us how much each point moves when a fourier series variable is changed
 
 chy=cell(dimension,1);
 % if invert == 0
@@ -266,8 +268,7 @@ chy=cell(dimension,1);
 % end
 
 
-%% properly orienting jacobians
-% invert
+%% properly ordering gradients depending on wether lineint is negative or positive
 if invert==0
     jacobiandisptemp=jacobiandisp;
     jacobianstroketemp=jacobianstroke;
@@ -287,7 +288,7 @@ else
     end
 end
 
-%% fourier series version of all jacobians
+%% fourier series version of all gradients
 
 totaljacobian=jacobiandisp/totalstroke-lineint*jacobianstroke/totalstroke^2+jacobianeqi;
 
@@ -451,9 +452,6 @@ end
 
 function a=jacobiandispcalculator3(p1,p2,p3,height,dimension)
 
-
-
-% l=sqrt((p1(1)-p3(1))^2+(p1(2)-p3(2))^2+(p1(3)-p3(3))^2);
 l1=0;
 for i=1:1:dimension
     l1=l1+(p1(i)-p3(i))^2;
@@ -481,35 +479,10 @@ end
 
 a=jacobian;
 
-% %% local coordinates
-% xparallel1=[p3(1)-p1(1),p3(2)-p1(2),p3(3)-p1(3)];
-% xparallel=xparallel1/norm(xparallel1);
-% 
-% xneeded1=[p2(1)-p1(1),p2(2)-p1(2),p2(3)-p1(3)];
-% xneeded=xneeded1/norm(xneeded1);
-% 
-% xper21=cross(xparallel,xneeded);
-% xper2=xper21/norm(xper21);
-% 
-% xper11=cross(xper2,xparallel);
-% xper1=xper11/norm(xper11);
-% 
-% %% jacobian calculation
-% per1flux=-xper2;
-% per2flux=xper1;
-% 
-% heightper1=height*per1flux';
-% heightper2=height*per2flux';
-% 
-% jacobian=0.5*l*heightper1*xper1+0.5*l*heightper2*xper2;
-% a=jacobian;
-
 end
 
 function [A,Aeq]=nonlcon(y,s,n,dimension,lb,ub)
-
-% Aeq=[];
-
+% This is the nonlinear constraint that all the points forming the gait stay in bounds the gait is a closed loop 
 coeff=y;
 for i=1:1:n+1
     for j=1:dimension
@@ -521,250 +494,19 @@ y2=y1(:);
 
 b=length(y2);
 
-%A=max(max(abs(y1)))-2.2;
 
-A1=y2+lb;%-2.2*ones(b,1);
-A2=-y2-ub;%2.2*ones(b,1);
+
+A1=y2+lb;
+A2=-y2-ub;
 A3=y1(1,:)'-y1(n+1,:)'-[0.05;0.05];
 A4=-y1(1,:)'+y1(n+1,:)'-[0.05;0.05];
 
 A=[A1;A2;A3;A4];
 
-% Aeq=y1(1,:)'-y1(n+1,:)';
 Aeq=0;
 
 end
-% function [net_disp_orig, net_disp_opt, cost] = evaluate_displacement_and_cost1(s,p,tspan,ConnectionEval,IntegrationMethod,resolution)
-% % Evaluate the displacement and cost for the gait specified in the
-% % structure GAIT when executed by the system described in the structure
-% % S.
-% %
-% % S should be a sysplotter 's' structure loaded from a file
-% % sysf_FILENAME_calc.mat (note the _calc suffix)
-% %
-% % P should be a structure with fields "phi" and "dphi", returning a
-% % vector of shapes and shape velocities respectively. If it is not
-% % convenient to analytically describe the shape velocity function,
-% % gait.dphi should be defined as 
-% %
-% % p.dphi =  @(t) jacobianest(@(T) p.phi (T),t)
-% %
-% % as is done automatically by sysplotter, but note that this will be slower
-% % than specifying a function directly
-% %
-% % ConnectionEval can specify whether the local connection should be generated from
-% % its original function definiton, or by interpolation into the evaluated
-% % matrix, but is optional. Valid options are 'functional' or
-% % 'interpolated'. Defaults to "interpolated", which significantly faster
-% % when calculating the local connection or metric from scratch takes
-% % appreciable computational time
-% %
-% % IntegrationMethod can specify whether ODE45 or a fixed point
-% % (euler-exponential) integration method should be employed. Defaults to
-% % ODE, fixed point code is experimental.
-% %
-% % RESOLUTION specifies the number of points for fixed-point resolution
-% % evaluation. A future option may support autoconvergence, but ODE
-% % performance with interpolated evaluation appears to be fast enough that
-% % refinement of fixed-point performance is on hold.
-% 	
-% 
-% 	% if no ConnectionEval method is specified, default to interpolated
-% 	if ~exist('ConnectionEval','var')
-% 		ConnectionEval = 'interpolated';
-% 	end
-%     
-%     % if no IntegrationMethod is specified, default to ODE
-% 	if ~exist('IntegrationMethod','var')
-% 		IntegrationMethod = 'ODE';
-% 	end
-% 
-%     % if no resolution is specified, default to 100 (this only affects
-%     % fixed_step integration)
-% 	if ~exist('resolution','var')
-% 		resolution = 100;
-% 	end
-% 
-%     
-%     
-% 	switch IntegrationMethod
-% 		
-% 		case 'fixed_step'
-% 			
-% 			[net_disp_orig, cost] = fixed_step_integrator(s,p,tspan,ConnectionEval,resolution);
-%         
-%         case 'ODE'
-% 
-%             % Calculate the system motion over the gait
-%             sol = ode45(@(t,y) helper_function(t,y,s,p,ConnectionEval),tspan,[0 0 0 0]');
-% 
-%             % Extract the final motion
-%             disp_and_cost = deval(sol,tspan(end));
-% 
-%             net_disp_orig = disp_and_cost(1:3);
-%             cost = disp_and_cost(end);
-% 
-%             % Convert the final motion into its representation in optimal
-%             % coordinates
-%             startshape = p.phi(0);
-%             startshapelist = num2cell(startshape);
-%             beta_theta = interpn(s.grid.eval{:},s.B_optimized.eval.Beta{3},startshapelist{:},'cubic');
-%             net_disp_opt = [cos(beta_theta) sin(beta_theta) 0;...
-%                 -sin(beta_theta) cos(beta_theta) 0;...
-%                 0 0 1]*net_disp_orig;
-%             
-%         otherwise
-% 			error('Unknown method for integrating motion');
-% 	end
-% 
-% 	
-% 	% Convert the final motion into its representation in optimal
-% 	% coordinates
-% 	startshape = p.phi(0);
-% 	startshapelist = num2cell(startshape);
-% 	beta_theta = interpn(s.grid.eval{:},s.B_optimized.eval.Beta{3},startshapelist{:},'cubic');
-% 	net_disp_opt = [cos(beta_theta) sin(beta_theta) 0;...
-% 		-sin(beta_theta) cos(beta_theta) 0;...
-% 		0 0 1]*net_disp_orig;
-% 
-% 	
-% end
-% 
-% % Evaluate the body velocity and cost velocity (according to system metric)
-% % at a given time
-% function [xi, dcost] = get_velocities(t,s,gait,ConnectionEval)
-% 
-% 	% Get the shape and shape derivative at the current time
-% 	shape = gait.phi(t);
-% 	shapelist = num2cell(shape);
-% 	dshape = gait.dphi(t);
-% 	
-% 	
-% 	% Get the local connection and metric at the current time, in the new coordinates	
-% 	switch ConnectionEval
-% 		case 'functional'
-% 			
-% 			A = s.A_num(shapelist{:})./s.A_den(shapelist{:});
-% 			
-% 			M = s.metric(shapelist{:});
-% 
-% 		case 'interpolated'
-% 			
-% 			A = -cellfun(@(C) interpn(s.grid.eval{:},C,shapelist{:}),s.vecfield.eval.content.Avec);
-% 			
-% 			M =  cellfun(@(C) interpn(s.grid.metric_eval{:},C,shapelist{:}),s.metricfield.metric_eval.content.metric);
-% 			
-% 		otherwise
-% 			error('Unknown method for evaluating local connection');
-% 	end
-% 	
-% 	% Get the body velocity at the current time
-% 	xi = - A * dshape(:);
-% 
-% 	% get the cost velocity
-% 	dcost = sqrt(dshape(:)' * M * dshape(:));
-% 	
-% end
-% 
-% 
-% % Function to integrate up system velocities using a fixed-step method
-% function [net_disp_orig, cost] = fixed_step_integrator(s,gait,tspan,ConnectionEval,resolution)
-% 
-% 	% Duplicate 'resolution' to 'res' if it is a number, or place res at a
-% 	% starting resolution if an automatic convergence method is selected
-% 	% (automatic convergence not yet enabled)
-% 	default_res = 100;
-% 	if isnumeric(resolution)
-% 		res = resolution;
-% 	elseif isstr(resolution) && strcmp(resolution,'autoconverge')
-% 		res = default_res;
-% 	else
-% 		error('Unexpected value for resolution');
-% 	end
-% 	
-% 	% Generate the fixed points from the time span and resolution
-% 	tpoints = linspace(tspan(1),tspan(2),res);
-% 	tsteps = gradient(tpoints);
-% 
-% 	% Evaluate the velocity function at each time
-% 	[xi, dcost] = arrayfun(@(t) get_velocities(t,s,gait,ConnectionEval),tpoints,'UniformOutput',false);
-% 	
-% 	
-% 	%%%%%%%
-% 	% Integrate cost and displacement into final values
-% 	
-% 	%%
-% 	% Exponential integration for body velocity
-% 	
-% 	% Exponentiate each velocity over the corresponding time step
-% 	expXi = cellfun(@(xi,timestep) se2exp(xi*timestep),xi,num2cell(tsteps),'UniformOutput',false);
-% 	
-% 	% Start off with zero position and displacement
-% 	net_disp_matrix = eye(size(expXi{1}));
-% 	
-% 	% Loop over all the time steps from 1 to n-1, multiplying the
-% 	% transformation into the current displacement
-% 	for i = 1:(length(expXi)-1)
-% 		
-% 		net_disp_matrix = net_disp_matrix * expXi{i};
-% 		
-% 	end
-% 	
-% 	% De-matrixafy the result
-% 	g_theta = atan2(net_disp_matrix(2,1),net_disp_matrix(1,1));
-% 	g_xy = net_disp_matrix(1:2,3);
-% 	
-% 	net_disp_orig = [g_xy;g_theta];
-% 	
-% 	%%
-% 	% Trapezoidal integration for cost
-% 	dcost = [dcost{:}];
-% 	cost = trapz(tpoints,dcost);
-% 
-% end
-% 
-% 
-% % Function to evaluate velocity and differential cost at each time for ODE
-% % solver
-% function dX = helper_function(t,X,s,gait,ConnectionEval)
-% 
-% 	% X is the accrued displacement and cost
-% 
-% 	[xi, dcost] = get_velocities(t,s,gait,ConnectionEval);
-% 		
-% 	% Rotate body velocity into world frame
-% 	theta = X(3);
-% 	v = [cos(theta) -sin(theta) 0; sin(theta) cos(theta) 0; 0 0 1]*xi;
-% 		
-% 	% Combine the output
-% 	dX = [v;dcost];
-% 	
-% 
-% end
-% 
-% function expXi = se2exp(xi)
-% 
-% 	% Make sure xi is a column
-% 	xi = xi(:);
-% 
-% 	% Special case non-rotating motion
-% 	if xi(3) == 0
-% 		
-% 		expXi = [eye(2) xi(1:2); 0 0 1];
-% 		
-% 	else
-% 		
-% 		z_theta = xi(3);
-% 		
-% 		z_xy = 1/z_theta * [sin(z_theta), 1-cos(z_theta); cos(z_theta)-1, sin(z_theta)] * xi(1:2);
-% 		
-% 		expXi = [ [cos(z_theta), -sin(z_theta); sin(z_theta), cos(z_theta)], z_xy;
-% 			0 0 1];
-% 		
-% 	end
-% 
-% 
-% end
+
 function [net_disp_orig, net_disp_opt, cost] = evaluate_displacement_and_cost1(s,p,tspan,ConnectionEval,IntegrationMethod,resolution)
 % Evaluate the displacement and cost for the gait specified in the
 % structure GAIT when executed by the system described in the structure
