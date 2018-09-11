@@ -14,6 +14,9 @@ delete(get(handles.plot_thumbnails,'Children'))
 %extract name of source
 source_name = get(hObject,'Tag');
 
+% Save this source name as the last plot button pushed
+handles.figure1.UserData.lastpushbutton = source_name;
+
 %extract the column number as text
 source_number_text = source_name(end);
 
