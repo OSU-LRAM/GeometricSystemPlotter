@@ -105,7 +105,7 @@ function [frame_info, endframe] = animation(frame_gen_function,frame_info,timing
 	% is not present
     Animation_dir = 'Animation';
     
-	if ~ ( (ispc && strncmp(':\',destination{1},2)) || (isunix && strncmp('/',destination{1},1) ) )
+	if ~ ( (ispc && strcmp(':\',destination{1}(2:3))) || (isunix && strncmp('/',destination{1},1) ) )
 		
 		destination = cellfun(@(x)fullfile(pwd, x, Animation_dir),destination,'UniformOutput',false);
 			
