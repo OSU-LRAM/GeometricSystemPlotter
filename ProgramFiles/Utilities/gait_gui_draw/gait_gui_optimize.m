@@ -34,22 +34,22 @@ elseif exist(g2,'file') == 2
     end
 end
 
+% Interpolating to increase number of points forming the gait
 endslope1 = (alpha1(2)-alpha1(end-1))/(t(end)-t(end-2));
 endslope2 = (alpha2(2)-alpha2(end-1))/(t(end)-t(end-2));
 spline_alpha1 = spline(t,[endslope1;alpha1(:);endslope1]);
 spline_alpha2 = spline(t,[endslope2;alpha2(:);endslope2]);
 period = 2*pi;
-
-
-
 n_plot = 100;
 t_plot = linspace(0,period,n_plot+1);
-
 alpha1_plot = ppval(spline_alpha1,t_plot);
 alpha2_plot = ppval(spline_alpha2,t_plot);
 
+% loading sysf file 
 f=fullfile(datapath,strcat(current_system,'_calc.mat'));
 load(f);
+
+% Calling the optimizer
 lb=0.95*[s.grid_range(1)*ones(n_plot+1,1);s.grid_range(3)*ones(n_plot+1,1)];%0.9 was points value
 ub=0.95*[s.grid_range(2)*ones(n_plot+1,1);s.grid_range(4)*ones(n_plot+1,1)];
 y=optimalgaitgenerator(s,2,n_plot,alpha1_plot,alpha2_plot,lb,ub);
