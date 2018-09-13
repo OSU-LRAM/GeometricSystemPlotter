@@ -32,16 +32,20 @@ P1(:,2)=a2(1,1:n)';
 
 t=1:1:npoints+1;
 fa=cell(dimension);
+% The bounds ensure the fourier series terms have the right period
+options = fitoptions('fourier4');
+options.Lower = [-Inf -Inf -Inf -Inf -Inf -Inf -Inf -Inf -Inf 2*pi/n];
+options.Upper = -[-Inf -Inf -Inf -Inf -Inf -Inf -Inf -Inf -Inf -2*pi/n];
 
 for i=1:1:dimension
-    fa{i}=fit(t',[P1(:,i);P1(1,i)],'fourier4');
+    fa{i}=fit(t',[P1(:,i);P1(1,i)],'fourier4',options);
 end
 
 %% The next step is to setup the fmincon call. 
 % y0 is the marix of all fourier series coefficients that describe the
 %   initial gait
 % nonlcon is the function that imposes the constraints that all the points
-%   stay inside the grid and that the gait is a closed loop
+%   stay inside the grid
 % outfun is the function that updates the gait on the GUI after every iteration 
 
 A=[];
@@ -59,7 +63,6 @@ for i=1:dimension
     end
 end
 
-% options = optimoptions('fmincon','SpecifyObjectiveGradient',true,'Display','iter','Algorithm','active-set','GradObj','on','TolX',10^-4,'TolFun',10^-6,'MaxIter',4000,'MaxFunEvals',20000);
  options = optimoptions('fmincon','SpecifyObjectiveGradient',true,'Display','iter','Algorithm','sqp','SpecifyObjectiveGradient',true,'CheckGradients',false,'FiniteDifferenceType','central','MaxIter',4000,'MaxFunEvals',20000,'TolCon',10^-2,'OutputFcn', @outfun);
  [yf fval exitflag output]=fmincon(@(y) solvedifffmincon(y,s,n,dimension,lb,ub),y0,A,b,Aeq,beq,lb1,ub1,@(y) nonlcon(y,s,n,dimension,lb,ub),options);
 
@@ -71,7 +74,9 @@ end
 
 for i=1:1:n
     for j=1:dimension
-        y1(i,j)=yf(1,j)+yf(2,j)*cos(i*yf(end,j))+yf(3,j)*sin(i*yf(end,j))+yf(4,j)*cos(2*i*yf(end,j))+yf(5,j)*sin(2*i*yf(end,j))+yf(6,j)*cos(3*i*yf(end,j))+yf(7,j)*sin(3*i*yf(end,j))+yf(8,j)*cos(4*i*yf(end,j))+yf(9,j)*sin(4*i*yf(end,j));%+yf(10,j)*cos(5*i*yf(end,j))+yf(11,j)*sin(5*i*yf(end,j));%+yf(12,j)*cos(6*i*yf(end,j))+yf(13,j)*sin(6*i*yf(end,j));
+        y1(i,j)=yf(1,j)+yf(2,j)*cos(i*yf(end,j))+yf(3,j)*sin(i*yf(end,j))+yf(4,j)*cos(2*i*yf(end,j))+...
+            +yf(5,j)*sin(2*i*yf(end,j))+yf(6,j)*cos(3*i*yf(end,j))+yf(7,j)*sin(3*i*yf(end,j))+...
+            +yf(8,j)*cos(4*i*yf(end,j))+yf(9,j)*sin(4*i*yf(end,j));%+yf(10,j)*cos(5*i*yf(end,j))+yf(11,j)*sin(5*i*yf(end,j));%+yf(12,j)*cos(6*i*yf(end,j))+yf(13,j)*sin(6*i*yf(end,j));
     end    
 end
 y=y1(:);
@@ -96,7 +101,7 @@ end
 function [f,g]=solvedifffmincon(y,s,n,dimension,lb,ub)
 %%%%%%%%%%%%%
 % This function calculates efficiency (or displacement, if
-% that is the objective function) and it's gradient with respect to the coefficients obtained
+% that is the objective function) and its gradient with respect to the coefficients obtained
 % by the fourier series parametrization
 % 
 % Inputs: 
@@ -123,20 +128,21 @@ function [f,g]=solvedifffmincon(y,s,n,dimension,lb,ub)
 % The first step is to obtain a direct transcription of the gait from the
 % fourier series parametrization. y is the matrix of coordinate values of
 % the points forming the gait.
-
 afactor=0.001;
 coeff=y;
 for i=1:1:n
     for j=1:dimension
-        y1(i,j)=y(1,j)+y(2,j)*cos(i*y(end,j))+y(3,j)*sin(i*y(end,j))+y(4,j)*cos(2*i*y(end,j))+y(5,j)*sin(2*i*y(end,j))+y(6,j)*cos(3*i*y(end,j))+y(7,j)*sin(3*i*y(end,j))+y(8,j)*cos(4*i*y(end,j))+y(9,j)*sin(4*i*y(end,j));%+y(10,j)*cos(5*i*y(end,j))+y(11,j)*sin(5*i*y(end,j));%+y(12,j)*cos(6*i*y(end,j))+y(13,j)*sin(6*i*y(end,j));%
+        y1(i,j)=y(1,j)+y(2,j)*cos(i*y(end,j))+y(3,j)*sin(i*y(end,j))+y(4,j)*cos(2*i*y(end,j))+...
+            +y(5,j)*sin(2*i*y(end,j))+y(6,j)*cos(3*i*y(end,j))+y(7,j)*sin(3*i*y(end,j))+...
+            +y(8,j)*cos(4*i*y(end,j))+y(9,j)*sin(4*i*y(end,j));%+y(10,j)*cos(5*i*y(end,j))+y(11,j)*sin(5*i*y(end,j));%+y(12,j)*cos(6*i*y(end,j))+y(13,j)*sin(6*i*y(end,j));%
     end    
 end
 clear y
 y=y1;
 
 %% Calculating cost and displacement per gait
-
-g=10; %assign a time period for executing the gait
+velocityvalues=zeros(n,dimension);
+g=1; %assign a time period for executing the gait
 p.phi_def = @(t) interp1( linspace(0,g,n+1), [y; y(1,:)], t); % function parametrizing the gait as a function of time
 
 for i=1:1:n-1
@@ -168,9 +174,9 @@ end
 % Preallocating memory for variables which we will need in further
 % calculation 
 yvalues=cell(n,dimension); % Cell representation of the coordinates of all points forming the gait
-interpstateheight=cell(1,dimension); % Variable which will store the height function grid used for interpolation
+interpstateccf=cell(1,dimension); % Variable which will store the ccf function grid used for interpolation
 interpmetricgrid=cell(1,dimension);  % Variable which will store the metric grid used for interpolation
-height=zeros(n,dimension*(dimension-1)/2); % Variable which will store height function at each point
+ccf=zeros(n,dimension*(dimension-1)/2); % Variable which will store ccf function at each point
 metric1=zeros(n,dimension,dimension);% Variable which will store metric at each point in the form of a matrix
 metric = repmat({zeros(dimension)},[n 1]); % Variable which stores the metric at each point in the form of a 2x2 matrix
 metricgrad1=zeros(n,dimension,dimension,dimension);% Variable which will store gradient of metric at each point in the form of a matrix
@@ -184,14 +190,14 @@ for i=1:1:n
     end
 
     for j=1:1:dimension
-        interpstateheight{j}=s.grid.eval{j,1};
+        interpstateccf{j}=s.grid.eval{j,1};
         interpmetricgrid{j}=s.grid.metric_eval{j,1};
     end
 end
 
 
 for j=1:dimension*(dimension-1)/2
-    height(:,j)=interpn(interpstateheight{:},s.DA_optimized{1,j},y(:,1),y(:,2),'spline');
+    ccf(:,j)=interpn(interpstateccf{:},s.DA_optimized{1,j},y(:,1),y(:,2),'spline');
 end
 
 
@@ -258,7 +264,8 @@ for i=2:n-1
         contrigrad(i,j)=0.5*delp{i}*metricgrad{i,j}*delp{i}'/(2*l(i))+0.5*delp{i-1}*metricgrad{i,j}*delp{i-1}'/(2*l(i-1)); 
     end
     % Total gradient is the result of distance changing due to movement of point and the metric changing due to movement of the point
-    jacobianstroke(i,:)=(-(((metric{i}+metric{i+1})/2)*delp{i}')'-(delp{i}*((metric{i}+metric{i+1})/2)))/(2*l(i))+((((metric{i-1}+metric{i})/2)*delp{i-1}')'+(delp{i-1}*((metric{i}+metric{i-1})/2)))/(2*l(i-1))+contrigrad(i,:); 
+    jacobianstroke(i,:)=(-(((metric{i}+metric{i+1})/2)*delp{i}')'-(delp{i}*((metric{i}+metric{i+1})/2)))/(2*l(i))+...
+        +((((metric{i-1}+metric{i})/2)*delp{i-1}')'+(delp{i-1}*((metric{i}+metric{i-1})/2)))/(2*l(i-1))+contrigrad(i,:); 
 end
 
 % Calculation for the 1st point and last point have to be done outside the
@@ -267,26 +274,28 @@ end
 for j=1:dimension
     contrigrad(1,j)=0.5*delp{1}*metricgrad{1,j}*delp{1}'/(2*l(1))+0.5*delp{n}*metricgrad{1,j}*delp{n}'/(2*l(n));
 end
-jacobianstroke(1,:)=(-(((metric{1}+metric{2})/2)*delp{1}')'-(delp{1}*((metric{1}+metric{2})/2)))/(2*l(1))+((((metric{n}+metric{1})/2)*delp{n}')'+(delp{n}*((metric{n}+metric{1})/2)))/(2*l(n))+contrigrad(1,:);
+jacobianstroke(1,:)=(-(((metric{1}+metric{2})/2)*delp{1}')'-(delp{1}*((metric{1}+metric{2})/2)))/(2*l(1))+...
+    +((((metric{n}+metric{1})/2)*delp{n}')'+(delp{n}*((metric{n}+metric{1})/2)))/(2*l(n))+contrigrad(1,:);
 
 for j=1:dimension
     contrigrad(n,j)=0.5*delp{n}*metricgrad{n,j}*delp{n}'/(2*l(n))+0.5*delp{n-1}*metricgrad{n,j}*delp{n-1}'/(2*l(n-1));
 end
-jacobianstroke(n,:)=(-(((metric{n}+metric{1})/2)*delp{n}')'-(delp{n}*((metric{n}+metric{1})/2)))/(2*l(n))+((((metric{n}+metric{n-1})/2)*delp{n-1}')'+(delp{n-1}*((metric{n}+metric{n-1})/2)))/(2*l(n-1))+contrigrad(n,:);   
+jacobianstroke(n,:)=(-(((metric{n}+metric{1})/2)*delp{n}')'-(delp{n}*((metric{n}+metric{1})/2)))/(2*l(n))+...
+    +((((metric{n}+metric{n-1})/2)*delp{n-1}')'+(delp{n-1}*((metric{n}+metric{n-1})/2)))/(2*l(n-1))+contrigrad(n,:);   
 
 
 %% Jacobiandisp is the gradient of displacement.
 % jacobiandispcalculator3 is the function that calculates the gradient of 
 % displacement for the ith point. It's input arguments are the coordinates of 
-% the (i-1)th, ith and (i+1)th point, CCF value at point i(height) and the dimension of     
+% the (i-1)th, ith and (i+1)th point, CCF value at point i and the dimension of     
 % the shape space (dimension)
 
 jacobiandisp = zeros(n,dimension);
 for i=2:1:n-1
-    jacobiandisp(i,:)=jacobiandispcalculator3(y(i-1,:),y(i,:),y(i+1,:),height(i,:),dimension);
+    jacobiandisp(i,:)=jacobiandispcalculator3(y(i-1,:),y(i,:),y(i+1,:),ccf(i,:),dimension);
 end
-jacobiandisp(1,:)=jacobiandispcalculator3(y(n,:),y(1,:),y(2,:),height(1,:),dimension);
-jacobiandisp(n,:)=jacobiandispcalculator3(y(n-1,:),y(n,:),y(1,:),height(n,:),dimension);
+jacobiandisp(1,:)=jacobiandispcalculator3(y(n,:),y(1,:),y(2,:),ccf(1,:),dimension);
+jacobiandisp(n,:)=jacobiandispcalculator3(y(n-1,:),y(n,:),y(1,:),ccf(n,:),dimension);
 
 %% Jacobianeqi is the concentration gradient. 
 %It is the term that keeps points eqi distant from each other and prevents crossover of gait.
@@ -427,10 +436,10 @@ end
 %     O(i)=jacobianeqi(i,1);
 %     S(i)=jacobianeqi(i,2);
 %     R(i)=jacobianeqi(i,3);
-%     heightx(i)=height(i,1);
-%     heighty(i)=height(i,2); 
-%     heightz(i)=height(i,3);
-%     heightcrosscheck(i)=height(i,:)*jacobiandisp(i,:)';
+%     ccfx(i)=ccf(i,1);
+%     ccfy(i)=ccf(i,2); 
+%     ccfz(i)=ccf(i,3);
+%     ccfcrosscheck(i)=ccf(i,:)*jacobiandisp(i,:)';
 % end
 % % % % 
 % % % % 
@@ -441,7 +450,7 @@ end
 % quiver(G,H,K,L,scale1)
 % hold on
 % quiver(G,H,K1,L1,scale1)
-% % quiver(G,H,heightx,heighty,scale1)
+% % quiver(G,H,ccfx,ccfy,scale1)
 % plot(G,H)
 % axis equal
 % hold off
@@ -452,7 +461,7 @@ end
 % % scale1=1;
 % % quiver(G,H,K1,L1,scale1)
 % % hold on
-% % % quiver(G,H,P,heightx,heighty,heightz,scale1)
+% % % quiver(G,H,P,ccfx,ccfy,ccfz,scale1)
 % % plot(G,H)
 % % axis equal
 % % hold off
@@ -503,8 +512,8 @@ end
 % % pause(0.1)
 % 
 % % 
-% % for i=1:1:length(height)
-% %     heightcheckper(i)=(heightcheck(i)-height(i))/height(i);
+% % for i=1:1:length(ccf)
+% %     ccfcheckper(i)=(ccfcheck(i)-ccf(i))/ccf(i);
 % % end
 % 
 % figure(5)
@@ -517,13 +526,13 @@ end
 
 end
 
-function a=jacobiandispcalculator3(p1,p2,p3,height,dimension)
+function a=jacobiandispcalculator3(p1,p2,p3,ccf,dimension)
 %%%%%%%%%
 %
 % jacobiandispcalculator3 is the function that calculates the gradient of 
 % displacement for the ith point. 
 % It's input arguments are the coordinates of the (i-1)th, ith and (i+1)th point,     
-% CCF value at point i(height) and the dimension of the shape space (dimension)
+% CCF value at point i(ccf) and the dimension of the shape space (dimension)
 %
 %%%%%%%%%
 
@@ -550,7 +559,7 @@ for i=1:1:dimension
             veca(j)=1;
             vecb(j+k)=1;
             f=(j-1)*dimension-(j*(j-1))/2+k;
-            jacobian(1,i)=jacobian(1,i)+0.5*height(f)*((veca*perp')*(vecb*base')-(vecb*perp')*(veca*base'));
+            jacobian(1,i)=jacobian(1,i)+0.5*ccf(f)*((veca*perp')*(vecb*base')-(vecb*perp')*(veca*base'));
         end
     end
 end
@@ -562,8 +571,7 @@ end
 function [A,Aeq]=nonlcon(y,s,n,dimension,lb,ub)
 %%%%%%%%% 
 %
-%This function imposes the nonlinear constraint that all the points forming the gait stay in bounds 
-%the constraint that the gait is a closed loop 
+%This function imposes the nonlinear constraint that all the points forming the gait stay within bounds
 %
 %Inputs:
 %
@@ -582,7 +590,9 @@ function [A,Aeq]=nonlcon(y,s,n,dimension,lb,ub)
 % fourier series parametrization
 for i=1:1:n+1
     for j=1:dimension
-        y1(i,j)=y(1,j)+y(2,j)*cos(i*y(end,j))+y(3,j)*sin(i*y(end,j))+y(4,j)*cos(2*i*y(end,j))+y(5,j)*sin(2*i*y(end,j))+y(6,j)*cos(3*i*y(end,j))+y(7,j)*sin(3*i*y(end,j))+y(8,j)*cos(4*i*y(end,j))+y(9,j)*sin(4*i*y(end,j));%+y(10,j)*cos(5*i*y(end,j))+y(11,j)*sin(5*i*y(end,j));%+y(12,j)*cos(6*i*y(end,j))+y(13,j)*sin(6*i*y(end,j));
+        y1(i,j)=y(1,j)+y(2,j)*cos(i*y(end,j))+y(3,j)*sin(i*y(end,j))+y(4,j)*cos(2*i*y(end,j))+...
+            +y(5,j)*sin(2*i*y(end,j))+y(6,j)*cos(3*i*y(end,j))+y(7,j)*sin(3*i*y(end,j))+...
+            +y(8,j)*cos(4*i*y(end,j))+y(9,j)*sin(4*i*y(end,j));%+y(10,j)*cos(5*i*y(end,j))+y(11,j)*sin(5*i*y(end,j));%+y(12,j)*cos(6*i*y(end,j))+y(13,j)*sin(6*i*y(end,j));
     end    
 end
 
@@ -592,16 +602,14 @@ b=length(y2);
 
 
 % A1 and A2 together impose the constraint that all the points forming the gait stay in bounds
-% A3 and A4 impose the constraint that the gait is a closed loop with a
-% tolerance of 0.05
 A1=y2+lb;
 A2=-y2-ub;
-A3=y1(1,:)'-y1(n+1,:)'-[0.05;0.05];
-A4=-y1(1,:)'+y1(n+1,:)'-[0.05;0.05];
 
-A=[A1;A2;A3;A4];
+A=[A1;A2];
 
-Aeq=0;
+% Aeq ensures that fmincon doesn't alter the period of fourier series
+% components
+Aeq=y(end,:)-2*pi/n*ones(size(y(end,:)));
 
 end
 
@@ -644,7 +652,9 @@ end
 if optimValues.iteration>0
     for i=1:1:n+1
         for j=1:dimension
-            y1(i,j)=y(1,j)+y(2,j)*cos(i*y(end,j))+y(3,j)*sin(i*y(end,j))+y(4,j)*cos(2*i*y(end,j))+y(5,j)*sin(2*i*y(end,j))+y(6,j)*cos(3*i*y(end,j))+y(7,j)*sin(3*i*y(end,j))+y(8,j)*cos(4*i*y(end,j))+y(9,j)*sin(4*i*y(end,j));%+y(10,j)*cos(5*i*y(end,j))+y(11,j)*sin(5*i*y(end,j));%+y(12,j)*cos(6*i*y(end,j))+y(13,j)*sin(6*i*y(end,j));
+            y1(i,j)=y(1,j)+y(2,j)*cos(i*y(end,j))+y(3,j)*sin(i*y(end,j))+y(4,j)*cos(2*i*y(end,j))+...
+                +y(5,j)*sin(2*i*y(end,j))+y(6,j)*cos(3*i*y(end,j))+y(7,j)*sin(3*i*y(end,j))+...
+                +y(8,j)*cos(4*i*y(end,j))+y(9,j)*sin(4*i*y(end,j));%+y(10,j)*cos(5*i*y(end,j))+y(11,j)*sin(5*i*y(end,j));%+y(12,j)*cos(6*i*y(end,j))+y(13,j)*sin(6*i*y(end,j));
         end    
     end
     hold on
