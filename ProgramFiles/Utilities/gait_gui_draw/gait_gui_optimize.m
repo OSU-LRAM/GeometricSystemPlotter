@@ -52,7 +52,7 @@ load(f);
 % Calling the optimizer
 lb=0.95*[s.grid_range(1)*ones(n_plot+1,1);s.grid_range(3)*ones(n_plot+1,1)];%0.9 was points value
 ub=0.95*[s.grid_range(2)*ones(n_plot+1,1);s.grid_range(4)*ones(n_plot+1,1)];
-y=optimalgaitgenerator(s,2,n_plot,alpha1_plot,alpha2_plot,lb,ub);
+y=optimalgaitgenerator(s,2,n_plot,alpha1_plot,alpha2_plot,lb,ub,hAx,hObject,eventdata,handles);
 alpha1 = [y(1:100)',y(1)]';
 alpha2 = [y(101:200)',y(101)]';
 t=t_plot;
@@ -112,7 +112,7 @@ paramfiletext = ['opt_',current_system(6:end),'_',current_shch(7:end),'_Xeff'];
     
 %  end
   
- shch_index = get(handles.shapechangemenu,'Value');
+shch_index = get(handles.shapechangemenu,'Value');
 shch_names = get(handles.shapechangemenu,'UserData');
 
 current_shch = shch_names{shch_index};
