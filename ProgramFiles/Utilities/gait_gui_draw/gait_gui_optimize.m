@@ -56,6 +56,10 @@ y=optimalgaitgenerator(s,2,n_plot,alpha1_plot,alpha2_plot,lb,ub,hAx,hObject,even
 alpha1 = [y(1:100)',y(1)]';
 alpha2 = [y(101:200)',y(101)]';
 t=t_plot;
+tnew=t(1):(t(2)-t(1))/4:t(end);
+alpha12=interp1(t,alpha1,tnew,'spline');
+alpha22=interp1(t,alpha2,tnew,'spline');
+
 
 % Provide zdata to line if necessary
 maxZ = 0;
@@ -68,7 +72,7 @@ if ~isempty(hAxChildren)
    end
 end
 
-gaitline = line('Parent',hAx,'XData',alpha1,'YData',alpha2,'ZData',maxZ*ones(size(alpha1)),'Color',Colorset.spot,'LineWidth',5);
+gaitline = line('Parent',hAx,'XData',alpha12,'YData',alpha22,'ZData',maxZ*ones(size(alpha1)),'Color',Colorset.spot,'LineWidth',5);
 
 %%%% Ask the user for a filename
 current_dir = pwd; % Remember where we started
