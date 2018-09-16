@@ -339,7 +339,9 @@ function [Sinv,nodes,cubes] = preprocessor(grid,Vt,weight,data_storage_location)
 		
 		% Multiply the matrices by the node weighting factors
 		%S1 = diag([weight(:);weight(:)])*S1;
-		%S2 = diag([weight(:);weight(:)])*S2;		%Combine the S1 and S2 matrices
+		S2 = diag([weight(:);weight(:)])*S2;		
+        
+        %Combine the S1 and S2 matrices
 		Sinv = S1\S2;
 		
 		%Save the Sinv matrix and grid parameters to the hashnamed data

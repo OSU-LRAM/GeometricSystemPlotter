@@ -28,17 +28,17 @@ function s = optimize_coordinate_choice(s)
 	% and no weighting function specified, use a squared-distance from
 	% singularity weighting on points in the shape space for the coordinate
 	% optimization
-% 	if isfield(s,'coordinate_optimization_weighting_function')
-% 		
-% 		weight = s.coordinate_optimization_weighting_function(s.grid.eval{:});
-% 		
-% 	elseif s.singularity
-% 		
-% 		weight = weight_away_from_singularities(s.vecfield.eval.singularities, s.grid.eval);
-% 		
-% 	else
+	if isfield(s,'coordinate_optimization_weighting_function')
+		
+		weight = s.coordinate_optimization_weighting_function(s.grid.eval{:});
+		
+	elseif s.singularity
+		
+		weight = weight_away_from_singularities(s.vecfield.eval.singularities, s.grid.eval);
+		
+	else
 		weight = ones(size(s.grid.eval{1}));
-%	end
+	end
 	
 	
 % 	% Set a default density for the finite element grids
