@@ -24,7 +24,7 @@ paramgrid = visual.grid(:);
 try 
     target_type = get(target,'type');
 catch
-    target_type = 'DNE'
+    target_type = 'DNE';
 end
 
 if strcmp(target_type,'axes')
@@ -33,7 +33,7 @@ else
     fh = figure(target);
     clf(fh);
     fh = figure(target);
-    set(fh,'name',['Baseframe: ' displayname]);
+    set(fh,'name',['Baseframe: ' geometry.baseframe]);
 
     axh = axes('Parent',fh);
 end

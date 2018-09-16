@@ -90,7 +90,14 @@ jointangles = jointangles(:);
 
 %%%%%%%%%%%%
 
+% Prevent Matlab from playing tricks with imaginary numbers on symbolic
+% inputs and from complaining about assumptions on constants
+if isa(jointangles,'sym')
+        
+    assume(symvar(jointangles),'real');
 
+    warning('off','symbolic:sym:sym:AssumptionsOnConstantsIgnored')
+end
 
 %%%%%%%%%%%%%%
 % Get some basic information about the chain whose kinematics we're
@@ -303,5 +310,9 @@ end
 % link lengths included
 h.pos = mat_to_vec_SE2(h_m);
 h.lengths = linklengths;
+
+
+
+
 
 end
