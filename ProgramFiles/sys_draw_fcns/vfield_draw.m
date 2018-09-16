@@ -18,6 +18,16 @@ function plot_info = vfield_draw(s,p,plot_info,sys,shch,resolution)
     % Extract the plotting grid
     grid = s.grid.vector;
     
+    % Set all "small" values of V to zero, to avoid spurious arrows
+    % appearing
+    for idx = 1:size(V,1)
+        
+        normV = sqrt(V{idx,1}.^2 + V{idx,2}.^2);
+        
+        V{idx,1}(normV < 1e-10) = 0;
+        V{idx,2}(normV < 1e-10) = 0;
+        
+    end
 	
 	%%
 	% Convert the vector field to the plotting grid specified in the gui

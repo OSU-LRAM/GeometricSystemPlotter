@@ -58,7 +58,7 @@ switch tensorfunctiontype
 
 
         A_cell = cell(size(grid{1})); % Build a cell array to hold the function at each point
-        parfor par_idx = 1:numel(grid{1});   % Loop over all elements of the grid
+        parfor par_idx = 1:numel(grid{1})   % Loop over all elements of the grid
             
             if ignore_singular_warning
                 warning('off','MATLAB:singularMatrix');

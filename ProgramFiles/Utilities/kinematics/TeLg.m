@@ -5,7 +5,7 @@ function LA = TeLg(g)
 % Prevent Matlab from playing tricks with imaginary numbers on symbolic
 % inputs and from complaining about assumptions on constants
 if isa(g,'sym')
-    assume(g,'real');
+    assume(symvar(g),'real');
     warning('off','symbolic:sym:sym:AssumptionsOnConstantsIgnored')
 end
 
