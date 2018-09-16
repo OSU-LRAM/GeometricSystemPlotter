@@ -20,8 +20,8 @@ function weight = weight_away_from_singularities(singularity_locs, grid)
 		% Reshape this back into the original grid
 		min_singular_distance_gridded = reshape(min_singular_distance,size(grid{1}));
 		
-		% Set the weight to the squared distance from the singularity
-		weight = (min_singular_distance_gridded).^2;
+		% Set the weight to the distance from the singularity
+		weight = (min_singular_distance_gridded);%.^2;
 		
 		% Add in a fudge factor to avoid zero-values at singularities
 		weight = weight+0.01*max(weight(:));
