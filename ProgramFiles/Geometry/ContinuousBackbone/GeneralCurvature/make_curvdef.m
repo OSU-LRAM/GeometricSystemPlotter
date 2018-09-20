@@ -293,7 +293,7 @@ end
 
 
 % Open the template file
-fidi = fopen(fullfile(sysplotterpath,'Utilities','curvature_mode_toolbox',...
+fidi = fopen(fullfile(fileparts(which('make_curvdef')),...
     'make_curvdef_template.txt'));
 
 % Create the output file

@@ -5,7 +5,7 @@ function response = onoff(input)
 % 'cancel').
 
 % error checking
-error(nargchk(1, 1, nargin))
+narginchk(1, 1)
 
 % if the input is a cell array of strings
 if iscell(input)
