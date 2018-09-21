@@ -30,7 +30,7 @@ function plot_info = beta_draw(s,p,plot_info,sys,shch,resolution)
 
 			for i = 1:numel(p.phi_locus)
 
-				for j = 1:numel(p.phi_locus{i})
+				for j = 1:numel(p.phi_locus_full{i}.Beta)
                     
                     zdata{j}{i} = p.phi_locus_full{i}.Beta{j};
  
