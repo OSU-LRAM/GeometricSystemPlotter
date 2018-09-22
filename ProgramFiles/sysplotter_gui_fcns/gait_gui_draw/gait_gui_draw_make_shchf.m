@@ -3,7 +3,7 @@ function gait_gui_draw_make_shchf(paramfilename, displayname)
 load sysplotter_config
 
 % Open the template file
-fidi = fopen(fullfile(sysplotterpath,'Utilities','gait_gui_draw',...
+fidi = fopen(fullfile(fileparts(which('gait_gui_draw')),...
     'gait_gui_draw_template.txt'));
 
 % Create the output file

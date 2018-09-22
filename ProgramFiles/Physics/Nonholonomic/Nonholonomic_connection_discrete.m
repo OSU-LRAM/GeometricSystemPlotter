@@ -156,8 +156,8 @@ function [A_out, h, J, J_full, omega] = Nonholonomic_connection_discrete(geometr
 
     % Simplify numerator and denominator
     if isa(omega,'sym')
-        A_num = simplify(A_num);
-        A_den = simplify(A_den);
+        A_num = simplify(A_num,'Steps',50);
+        A_den = simplify(A_den,'Steps',30);
     end
     
     % Return, the numerator, the denominator, or their combination
