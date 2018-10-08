@@ -23,7 +23,7 @@ function s = calc_constraint_curvature(s)
 		%Extract the high density grid
 		grid = s.grid.eval;
 
-		if n_col <= 3
+		if n_col <= 4
 	
 			s.(['dA' Avec_names{i}]) = cell(n_rows,(n_col^2 - n_col)/2);
 			s.(['DA' Avec_names{i}]) = cell(n_rows,(n_col^2 - n_col)/2);
@@ -32,8 +32,8 @@ function s = calc_constraint_curvature(s)
 		
 		else % For dimensions not yet implemented. The 'return' skips over the processing that would break for string input
 					
-			s.(['dA' Avec_names{i}]) = 'Exterior derivative for n>3 not yet implemented';
-			s.(['DA' Avec_names{i}]) = 'Exterior derivative for n>3 not yet implemented';
+			s.(['dA' Avec_names{i}]) = 'Exterior derivative for n>4 not yet implemented';
+			s.(['DA' Avec_names{i}]) = 'Exterior derivative for n>4 not yet implemented';
 				
 			return
 				
@@ -49,9 +49,13 @@ function s = calc_constraint_curvature(s)
 			
 		elseif n_col == 3
 			
-			basis_ordering = [1 2; 2 3; 3 1];
+            basis_ordering = [1 2; 2 3; 3 1];
 			
-			curl_ordering = [3 1 2];
+            curl_ordering = [3 1 2];
+            
+        elseif n_col == 4
+            
+            basis_ordering = [1 2; 1 3; 1 4; 2 3; 2 4; 3 4];
 					
 		else
 			
@@ -61,22 +65,44 @@ function s = calc_constraint_curvature(s)
 		end
 
 		%loop over the rows, generating curvature forms
-		for j = 1:n_rows
-			
-			% Convert the data into meshgrid ordering
-			vecfield_meshgrid = cellfun(@(x) permute(x,inputorder),vecfield(j,:),'UniformOutput',false);
+		if n_col<4
+            for j = 1:n_rows
 
-			% If the higher-dimensional exterior derivative becomes useful,
-			% replace the curl function here with that function (and maybe
-			% write that function to be ndgrid compatible)
-			curlfield = cell(1,size(basis_ordering,1));
-			[curlfield{curl_ordering},junk] ...
-				= curl(grid{inputorder},vecfield_meshgrid{:}); %#ok<NASGU>
+                % Convert the data into meshgrid ordering
+                vecfield_meshgrid = cellfun(@(x) permute(x,inputorder),vecfield(j,:),'UniformOutput',false);
 
-			% Convert the data back into ndgrid ordering
-			s.(['dA' Avec_names{i}])(j,:) = cellfun(@(x) permute(x,inputorder),curlfield,'UniformOutput',false);
-			
-		end
+                % If the higher-dimensional exterior derivative becomes useful,
+                % replace the curl function here with that function (and maybe
+                % write that function to be ndgrid compatible)
+                curlfield = cell(1,size(basis_ordering,1));
+                [curlfield{curl_ordering},junk] ...
+                    = curl(grid{inputorder},vecfield_meshgrid{:}); %#ok<NASGU>
+
+                % Convert the data back into ndgrid ordering
+                s.(['dA' Avec_names{i}])(j,:) = cellfun(@(x) permute(x,inputorder),curlfield,'UniformOutput',false);
+
+            end
+        else
+            for j=1:n_rows
+                for l=1:n_col
+                    
+                    [grad{j,l,2},grad{j,l,1},grad{j,l,3},grad{j,l,4}]=gradient(vecfield{j,l},(grid{2,1}(1,2,1,1)-grid{2,1}(1,1,1,1)),(grid{1,1}(2,1,1,1)-grid{1,1}(1,1,1,1)),(grid{3,1}(1,1,2,1)-grid{3,1}(1,1,1,1)),(grid{4,1}(1,1,1,2)-grid{4,1}(1,1,1,1)));
+                end
+                
+                for fe=1:n_col-1
+                    for ge=fe+1:n_col
+                        xval=0;
+                        for x=fe-1:-1:1
+                            xval=xval+n_col-x;
+                        end
+                        curlfield{xval+(ge-fe)}=grad{j,ge,fe}-grad{j,fe,ge};
+                    end
+                end
+                
+                s.(['dA' Avec_names{i}])(j,:) = curlfield;
+                
+            end
+        end
 			
 		% Duplicate the exterior derivative to initiate a
 		% Lie-bracket corrected version

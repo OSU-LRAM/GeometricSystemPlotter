@@ -14,7 +14,7 @@ function s = evaluate_connection(s)
     s = evaluate_tensors_in_system_file(s,component_list,{'eval','eval'},'vecfield');
     
     % resample the fields at a low density for vector field display
-    s = resample_tensors_in_system_file(s,component_list,'eval',{'display','vector'},'vecfield');
+    s = resample_tensors_in_system_file(s,component_list,'eval',{'display','vector';'finite_element','finite_element'},'vecfield');
         
     
     

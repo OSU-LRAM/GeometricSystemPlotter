@@ -7,7 +7,8 @@ function s = optimize_coordinate_choice(s)
 	load(configfile,'datapath');
 	
     %Extract the high density "eval" vector field
-    vecfield = s.vecfield.eval.content.Avec;
+    vecfield = s.vecfield.finite_element.content.Avec;
+    vecfield_eval = s.vecfield.eval.content.Avec;
      
     %get the number of rows in the local connection
     n_rows = size(vecfield,3);
@@ -37,18 +38,17 @@ function s = optimize_coordinate_choice(s)
 		weight = weight_away_from_singularities(s.vecfield.eval.singularities, s.grid.eval);
 		
 	else
-		weight = ones(size(s.grid.eval{1}));
+		weight = ones(size(s.grid.finite_element{1}));
 	end
 	
-	
-% 	% Set a default density for the finite element grids
+	% 	% Set a default density for the finite element grids
 % 	if ~isfield(s,'finite_element_density')
 % 		s.finite_element_density = 20;
 % 	end
 	
 	%Perform the Helmholtz decomposition on the theta row
 	[gradE_theta, E_theta] =...
-		helmholtz(s.grid.eval...
+		helmholtz(s.grid.finite_element...
 		,vecfield_temp(3,:),weight,datapath);
 
 	%Correct the sign of the output for theta
@@ -59,7 +59,7 @@ function s = optimize_coordinate_choice(s)
 	if (~isfield(s,'xy_no_opt')) || (s.xy_no_opt == 0)
 	
 		[gradE_x, gradE_y,E_x, E_y] =...
-			ref_point_optimizer(s.grid.eval...
+			ref_point_optimizer(s.grid.finite_element...
 			,vecfield_temp(1,:),vecfield_temp(2,:)... %U1,V1 and U2,V2
 			,vecfield_temp_smallest_coefficient(3,:)... %U3, V3
 			,weight,datapath);
@@ -69,7 +69,6 @@ function s = optimize_coordinate_choice(s)
 		[gradE_x{:},gradE_y{:},E_x,E_y] = deal(zeros(size(E_theta)));
 		
 	end
-
 
 
 	%%%%%
@@ -101,7 +100,6 @@ function s = optimize_coordinate_choice(s)
 % 		E_theta_offset = mean(centervals(:));
 % 		
 % 	end
-
     n_dim = numel(size(E_theta));
     centervals = num2cell(zeros(n_dim,1));
 
@@ -129,30 +127,49 @@ function s = optimize_coordinate_choice(s)
 
     end
 
-    E_theta_offset = interpn(s.grid.eval{:},E_theta,centervals{:},'cubic');
+    E_theta_offset = interpn(s.grid.finite_element{:},E_theta,centervals{:},'cubic');
 
 	E_theta = E_theta-E_theta_offset;
+    
+    E_theta1= interpn(s.grid.finite_element{:},E_theta,s.grid.eval{:});
+    E_x1= interpn(s.grid.finite_element{:},E_x,s.grid.eval{:});
+    E_y1= interpn(s.grid.finite_element{:},E_y,s.grid.eval{:});
+    
+    gradE_theta1= cellfun(@(V) interpn(s.grid.finite_element{:},V,s.grid.eval{:})...
+		,gradE_theta,'UniformOutput',false);
+    
+    gradE_x1= cellfun(@(V) interpn(s.grid.finite_element{:},V,s.grid.eval{:})...
+		,gradE_x,'UniformOutput',false);
+    
+    gradE_y1= cellfun(@(V) interpn(s.grid.finite_element{:},V,s.grid.eval{:})...
+		,gradE_y,'UniformOutput',false);
+    
 		
-		
+	%%%%%	Boost the resolution of E_theta, E_x, and E_y to the eval resolution
+    % then the lines below should have the vecfield_eval fields instead
+    % of the vecfields. 
+    
+    %%% below things should be done at vecfield.eval density. Upsample the
+    %%% results from finite element method.
 	
 	%Modify the x and y rows by their gradients and include the cross-product term
-	vecfield(1,:) = cellfun(@(V0,Vx,Vt) V0 + Vx - (E_y.*Vt),vecfield(1,:)...
-		,gradE_x',vecfield(3,:),'UniformOutput',false);
-	vecfield(2,:) = cellfun(@(V0,Vy,Vt) V0 + Vy + (E_x.*Vt),vecfield(2,:)...
-		,gradE_y',vecfield(3,:),'UniformOutput',false);
+	vecfield_eval(1,:) = cellfun(@(V0,Vx,Vt) V0 + Vx - (E_y1.*Vt),vecfield_eval(1,:)...
+		,gradE_x1',vecfield_eval(3,:),'UniformOutput',false);
+	vecfield_eval(2,:) = cellfun(@(V0,Vy,Vt) V0 + Vy + (E_x1.*Vt),vecfield_eval(2,:)...
+		,gradE_y1',vecfield_eval(3,:),'UniformOutput',false);
 
 	%Reassign vecfield_temp to be an unchanging copy of vecfield
-	vecfield_temp = vecfield;
+	vecfield_temp = vecfield_eval;
 
 	%rotate through the x and y rows
-	vecfield(1,:) = cellfun(@(Vx,Vy) (Vx .* cos(E_theta)) + (Vy .* sin(E_theta))...
+	vecfield_eval(1,:) = cellfun(@(Vx,Vy) (Vx .* cos(E_theta1)) + (Vy .* sin(E_theta1))...
 		,vecfield_temp(1,:),vecfield_temp(2,:),'UniformOutput',false);
-	vecfield(2,:) = cellfun(@(Vx,Vy) -(Vx .* sin(E_theta)) + (Vy .* cos(E_theta))...
+	vecfield_eval(2,:) = cellfun(@(Vx,Vy) -(Vx .* sin(E_theta1)) + (Vy .* cos(E_theta1))...
 		,vecfield_temp(1,:),vecfield_temp(2,:),'UniformOutput',false);
 	
 
 	%Modify the theta row
-	vecfield(3,:) = cellfun(@(V0,Vt) V0+Vt,vecfield(3,:),gradE_theta','UniformOutput',false);
+	vecfield_eval(3,:) = cellfun(@(V0,Vt) V0+Vt,vecfield_eval(3,:),gradE_theta1','UniformOutput',false);
 	
 	
 	%Re-zero the singularities
@@ -165,14 +182,12 @@ function s = optimize_coordinate_choice(s)
 	end
 	
 	%Save the modified vector field to the system structure
-	s.vecfield.eval.content.Avec_optimized = vecfield;
-	
-
+	s.vecfield.eval.content.Avec_optimized = vecfield_eval;
 	
 	%Save the coordinate change data to the system structure
-	s.B_optimized.eval.Beta = {E_x;E_y;E_theta};
-	s.B_optimized.eval.gradBeta = [gradE_x';gradE_y';gradE_theta'];
-	
+	s.B_optimized.eval.Beta = {E_x1;E_y1;E_theta1};
+	s.B_optimized.eval.gradBeta = [gradE_x1';gradE_y1';gradE_theta1'];
+    
 	%%%%%%%%%%%%%%%%%%%
 	%%%%%%%%%%%%%%%%%%%
 	
@@ -185,11 +200,12 @@ function s = optimize_coordinate_choice(s)
 	if s.singularity
 	
 		for i = 1:numel(s.vecfield.display.content.Avec_optimized)
-			s.vecfield.display.content.Avec_optimized{i} = s.vecfield.display.content.Avec_optimized{i} .* (1-s.vecfield.display.singularities{i});
+			s.vecfield.display.content.Avec_optimized{i} = s.vecfield.display.content.Avec_optimized1{i} .* (1-s.vecfield.display.singularities{i});
 		end
 		
 	end
 	
+		
 	
 	%Save the coordinate change data to the system structure
 	s.B_optimized.disp.Beta     = cellfun(@(V) interpn(s.grid.eval{:},V,s.grid.vector{:})...
