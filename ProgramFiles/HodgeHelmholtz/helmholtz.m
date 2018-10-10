@@ -300,7 +300,7 @@ function [Sinv,nodes,cubes] = preprocessor(grid,weight,data_storage_location,gri
 		end
 				
 		% Multiply the matrices by the node weighting factors
-		S1 = diag(weight(:))*S1;
+		%S1 = diag(weight(:))*S1;
 		S2 = diag(weight(:))*S2;
 			
 		%Remove first row/column of S1 and first row of S2(equivalent to setting E_1 to zero for now)
