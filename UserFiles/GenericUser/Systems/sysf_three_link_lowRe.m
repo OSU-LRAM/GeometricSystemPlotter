@@ -74,6 +74,7 @@ function output = sysf_three_link_lowRe(input_mode,pathnames)
 			s.density.scalar = [51 51 ]; %density to display scalar functions
 			s.density.eval = [31 31 ];   %density for function evaluations
             s.density.metric_eval = [11 11]; %density for metric evaluation
+            s.density.finite_element=9;
 
 
 			%shape space tic locations

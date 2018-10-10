@@ -228,7 +228,7 @@ function plot_info = CCF_draw(s,p,plot_info,sys,shch,resolution)
                         curvature(:,j)=interpn(interpstatecurvature{:},H{function_number,j},y(1),y(2),y(3),'cubic');
                     end
                     
-                    B=[0,curvature(2),-curvature(1);-curvature(2),0,curvature(3);curvature(1),-curvature(3),0];
+                    B=[0,curvature(1),curvature(2);-curvature(1),0,curvature(3);-curvature(2),-curvature(3),0];
 
                     [V,D]=eig(B);
                     [d,ind] = sort(diag(D));
@@ -260,7 +260,7 @@ function plot_info = CCF_draw(s,p,plot_info,sys,shch,resolution)
                                 for k=1:n_dim*(n_dim-1)/2
                                     curvaturetemp(:,k)=interpn(interpstatecurvature{:},H{function_number,k},xgrid(m,j),ygrid(m,j),zgrid(m,j),'spline');
                                 end
-                                curvatureproj(m,j)=curvaturetemp(1)*(Xnorm(3)*Ynorm(1)-Ynorm(3)*Xnorm(1))+curvaturetemp(2)*(Xnorm(1)*Ynorm(2)-Ynorm(1)*Xnorm(2))+curvaturetemp(3)*(Xnorm(2)*Ynorm(3)-Ynorm(2)*Xnorm(3));
+                                curvatureproj(m,j)=curvaturetemp(1)*(Xnorm(1)*Ynorm(2)-Ynorm(1)*Xnorm(2))+curvaturetemp(2)*(Xnorm(1)*Ynorm(3)-Ynorm(1)*Xnorm(3))+curvaturetemp(3)*(Xnorm(2)*Ynorm(3)-Ynorm(2)*Xnorm(3));
                         end
                     end
                     
@@ -336,7 +336,7 @@ function plot_info = CCF_draw(s,p,plot_info,sys,shch,resolution)
                         curvature(:,j)=interpn(interpstatecurvature{:},H{function_number,j},y(1),y(2),y(3),'cubic');
                     end
                     
-                   B=[0,curvature(2),-curvature(1);-curvature(2),0,curvature(3);curvature(1),-curvature(3),0];
+                   B=[0,curvature(1),curvature(2);-curvature(1),0,curvature(3);-curvature(2),-curvature(3),0];
 
                     [V,D]=eig(B);
                     [d,ind] = sort(diag(D));
@@ -365,7 +365,7 @@ function plot_info = CCF_draw(s,p,plot_info,sys,shch,resolution)
                                 for k=1:n_dim*(n_dim-1)/2
                                     curvaturetemp(:,k)=interpn(interpstatecurvature{:},H{function_number,k},xgrid(m,j),ygrid(m,j),zgrid(m,j),'cubic');
                                 end
-                                curvatureproj(m,j)=curvaturetemp(1)*(Xnorm(3)*Ynorm(1)-Ynorm(3)*Xnorm(1))+curvaturetemp(2)*(Xnorm(1)*Ynorm(2)-Ynorm(1)*Xnorm(2))+curvaturetemp(3)*(Xnorm(2)*Ynorm(3)-Ynorm(2)*Xnorm(3));
+                                curvatureproj(m,j)=curvaturetemp(1)*(Xnorm(1)*Ynorm(2)-Ynorm(1)*Xnorm(2))+curvaturetemp(2)*(Xnorm(1)*Ynorm(3)-Ynorm(1)*Xnorm(3))+curvaturetemp(3)*(Xnorm(2)*Ynorm(3)-Ynorm(2)*Xnorm(3));
                         end
                     end
                     meshhandle=pcolor(xgrid,ygrid,-curvatureproj);

@@ -15,6 +15,15 @@ end
 % the components of the grid are in a column cell array to avoid any
 % row/column problems below
 paramgrid = visual.grid(:);
+n_dim=size(visual.grid,1);
+test2=cell(1,n_dim-1);
+test3=cell(1,n_dim-2);
+test2{1}=1;
+for i=1:length(test3)
+    test2{1,i+1}=1;
+    test3{1,i}=1;
+end
+
 
 % Get the spacing of parameter values in the first two dimensions
 [~,grid_spacing_x] = gradient(paramgrid{1});
@@ -42,8 +51,8 @@ end
 axis(axh,'equal')
 hold(axh,'on')
 % Set tick spacing
-set(axh,'XTick', paramgrid{1}(:,1));
-set(axh,'YTick', paramgrid{2}(1,:));
+set(axh,'XTick', paramgrid{1}(:,test2{:}));
+set(axh,'YTick', paramgrid{2}(1,:,test3{:}));
 set(axh,'XLim', [min(paramgrid{1}(:))-grid_spacing_x(1)/2,max(paramgrid{1}(:))+grid_spacing_x(end)/2]);
 set(axh,'YLim', [min(paramgrid{2}(:))-grid_spacing_y(1)/2,max(paramgrid{2}(:))+grid_spacing_y(end)/2]);
 % Figure stylistic settings
@@ -94,13 +103,21 @@ for idx = 1:numel(paramgrid{1})
         B{idx2} = B{idx2}(:);
         
         for idx3 = 1:numel(B{idx2})
+            if n_dim==3
+                B{idx2}{idx3}(3,:)=zeros(1,length(B{idx2}{idx3}(1,:)));
+            end
             % transform the body elements to their position on the grid
-            for idx4 = 1:2
+            for idx4 = 1:3
                 B{idx2}{idx3}(idx4,:) = B{idx2}{idx3}(idx4,:) + p(idx4);
             end
     
             % draw the backbone at the specified location
-            bp{idx,idx2,idx3} = patch('Xdata',B{idx2}{idx3}(1,:),'Ydata',B{idx2}{idx3}(2,:),'Parent',axh,'EdgeColor','k','FaceColor',fillcolors{idx2});
+            if n_dim==2
+                bp{idx,idx2,idx3} = patch('Xdata',B{idx2}{idx3}(1,:),'Ydata',B{idx2}{idx3}(2,:),'Parent',axh,'EdgeColor','k','FaceColor',fillcolors{idx2});
+            end
+            if n_dim==3
+                bp{idx,idx2,idx3} = patch('Xdata',B{idx2}{idx3}(1,:),'Ydata',B{idx2}{idx3}(2,:),'Zdata',B{idx2}{idx3}(3,:),'Parent',axh,'EdgeColor','k','FaceColor',fillcolors{idx2});
+            end
         end
     end
 end
