@@ -377,7 +377,7 @@ function plot_info = CCF_draw(s,p,plot_info,sys,shch,resolution)
                     end
                                
 
-                    meshhandle=contourslice(grid{2,1},grid{1,1},grid{3,1},curvatureproj,xgrid,ygrid,zgrid);
+                   meshhandle=contourslice(grid{2,1},grid{1,1},grid{3,1},curvatureproj,xgrid,ygrid,zgrid);
                     view(3)
 
                     
@@ -390,8 +390,8 @@ function plot_info = CCF_draw(s,p,plot_info,sys,shch,resolution)
 					overlay_shape_change_2d(ax,p,plot_info.stretch,s.convert);
                     end
                     if n_dim==3
-                        meshhandle.FaceAlpha=0.9;
-                         plot3(p.phi_locus_full{i}.shape(:,1),p.phi_locus_full{i}.shape(:,2),p.phi_locus_full{i}.shape(:,3),'b','LineWidth',6);
+                        hold on
+                        plot3(p.phi_locus_full{i}.shape(:,1),p.phi_locus_full{i}.shape(:,2),p.phi_locus_full{i}.shape(:,3),'b','LineWidth',6);
                     end
     
 				end
