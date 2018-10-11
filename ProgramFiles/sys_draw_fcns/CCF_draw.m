@@ -269,8 +269,9 @@ function plot_info = CCF_draw(s,p,plot_info,sys,shch,resolution)
                     
                     hold on
                     
-                     colormap(Colorset.colormap); 
-                     shading interp
+                    colormap(Colorset.colormap); 
+                    shading interp
+                    view(3)
                     
                     
                 end
@@ -346,8 +347,6 @@ function plot_info = CCF_draw(s,p,plot_info,sys,shch,resolution)
                     
                     X=real(Vs(:,end));
                     Y=(Vs(:,end)-X)/(sqrt(-1));
-
-%                     normal=cross(X,Y);
                     
                     Xnorm=X/(norm(X));
                     Ynorm=Y/(norm(Y));
@@ -362,19 +361,25 @@ function plot_info = CCF_draw(s,p,plot_info,sys,shch,resolution)
                                 xgrid(m,j)=Xtemp(m,j)*Xnorm(1)+Ytemp(m,j)*Ynorm(1);
                                 ygrid(m,j)=Xtemp(m,j)*Xnorm(2)+Ytemp(m,j)*Ynorm(2);
                                 zgrid(m,j)=Xtemp(m,j)*Xnorm(3)+Ytemp(m,j)*Ynorm(3);
-                                for k=1:n_dim*(n_dim-1)/2
-                                    curvaturetemp(:,k)=interpn(interpstatecurvature{:},H{function_number,k},xgrid(m,j),ygrid(m,j),zgrid(m,j),'cubic');
-                                end
-                                curvatureproj(m,j)=curvaturetemp(1)*(Xnorm(1)*Ynorm(2)-Ynorm(1)*Xnorm(2))+curvaturetemp(2)*(Xnorm(1)*Ynorm(3)-Ynorm(1)*Xnorm(3))+curvaturetemp(3)*(Xnorm(2)*Ynorm(3)-Ynorm(2)*Xnorm(3));
                         end
                     end
-                    meshhandle=pcolor(xgrid,ygrid,-curvatureproj);
-                    meshhandle.ZData=zgrid;
-                    
-                    hold on
-                    
-                     colormap(Colorset.colormap); 
-                     shading interp
+
+
+                    for idx1=1:length(grid{1,1}(:,1))
+                        for idx2=1:length(grid{2,1}(:,1))
+                            for idx3=1:length(grid{3,1}(:,1))
+                                for k=1:n_dim*(n_dim-1)/2
+                                    curvaturetemp(:,k)=interpn(interpstatecurvature{:},H{function_number,k},grid{2,1}(idx1,idx2,idx3),grid{1,1}(idx1,idx2,idx3),grid{3,1}(idx1,idx2,idx3),'cubic');
+                                end
+                                curvatureproj(idx1,idx2,idx3)=curvaturetemp(1)*(Xnorm(1)*Ynorm(2)-Ynorm(1)*Xnorm(2))+curvaturetemp(2)*(Xnorm(1)*Ynorm(3)-Ynorm(1)*Xnorm(3))+curvaturetemp(3)*(Xnorm(2)*Ynorm(3)-Ynorm(2)*Xnorm(3));
+                            end
+                        end
+                    end
+                               
+
+                    meshhandle=contourslice(grid{2,1},grid{1,1},grid{3,1},curvatureproj,xgrid,ygrid,zgrid);
+                    view(3)
+
                     
                 end
                                  
@@ -388,7 +393,7 @@ function plot_info = CCF_draw(s,p,plot_info,sys,shch,resolution)
                         meshhandle.FaceAlpha=0.9;
                          plot3(p.phi_locus_full{i}.shape(:,1),p.phi_locus_full{i}.shape(:,2),p.phi_locus_full{i}.shape(:,3),'b','LineWidth',6);
                     end
-
+    
 				end
 				
 				
