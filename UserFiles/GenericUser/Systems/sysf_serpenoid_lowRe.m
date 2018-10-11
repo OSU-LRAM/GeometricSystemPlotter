@@ -82,10 +82,9 @@ function output = sysf_serpenoid_lowRe(input_mode,pathnames)
             % Locomotion model derived from viscous drag forces reacting to
             % local velocities of elements on the body
             s.metric = @(a1,a2) LowRE_dissipation_metric(s.geometry,s.physics,[a1;a2]);
+            
             %%%
-
-
-            %%%
+            
             % Processing details
 
             %Range over which to evaluate connection
@@ -100,8 +99,11 @@ function output = sysf_serpenoid_lowRe(input_mode,pathnames)
             %shape space tic locations
             s.tic_locs.x = [-1 0 1]*6;
             s.tic_locs.y = [-1 0 1]*6;
+            
+            % Flag system type as drag-dominated
+            s.system_type = 'drag';
+            
             %%%%
-    
     
 			%Save the system properties
 			output = s;

@@ -31,7 +31,6 @@ function output = sysf_three_link_lowRe(input_mode,pathnames)
             s.geometry.baseframe = 'center';
             s.geometry.length = 1;
             
-            
             %%%
             % Define properties for visualizing the system
             
@@ -42,14 +41,12 @@ function output = sysf_three_link_lowRe(input_mode,pathnames)
             s.visual.grid = cell(numel(s.geometry.linklengths)-1,1);
             [s.visual.grid{:}] = ndgrid([-1  0  1]);
 
-            
             %%%
             %%%%%%
             % Define system physics
             s.physics.drag_ratio = 2;
             s.physics.drag_coefficient = 1;
            
- 
             %Functional Local connection and dissipation metric
 
             s.A = @(alpha1,alpha2) LowRE_local_connection( ...
@@ -61,9 +58,9 @@ function output = sysf_three_link_lowRe(input_mode,pathnames)
                         s.geometry,...                           % Geometry of body
                         s.physics,...                            % Physics properties
                         [alpha1,alpha2]);                        % Joint angles
-
-                    
+     
 			%%%
+            
 			%Processing details
 
 			%Range over which to evaluate connection
@@ -75,12 +72,13 @@ function output = sysf_three_link_lowRe(input_mode,pathnames)
 			s.density.eval = [31 31 ];   %density for function evaluations
             s.density.metric_eval = [11 11]; %density for metric evaluation
 
-
 			%shape space tic locations
 			s.tic_locs.x = [-1 0 1]*1;
 			s.tic_locs.y = [-1 0 1]*1;
 
-
+            % Flag system type as drag-dominated
+            s.system_type = 'drag';
+            
 			%%%%
 			%Save the system properties
 			output = s;

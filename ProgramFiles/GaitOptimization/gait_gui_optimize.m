@@ -52,7 +52,13 @@ load(f);
 % Calling the optimizer
 lb=0.95*[s.grid_range(1)*ones(n_plot+1,1);s.grid_range(3)*ones(n_plot+1,1)];%0.9 was points value
 ub=0.95*[s.grid_range(2)*ones(n_plot+1,1);s.grid_range(4)*ones(n_plot+1,1)];
-y=optimalgaitgenerator(s,2,n_plot,alpha1_plot,alpha2_plot,lb,ub,hAx,hObject,eventdata,handles);
+if strcmpi(s.system_type,'drag')
+    % Use drag-dominated gait generator
+    y=optimalgaitgenerator(s,2,n_plot,alpha1_plot,alpha2_plot,lb,ub,hAx,hObject,eventdata,handles);
+elseif strcmpi(s.system_type,'inertial')
+    % Use inertia-based gait generator
+end
+    
 alpha1 = [y(1:100)',y(1)]';
 alpha2 = [y(101:200)',y(101)]';
 t=t_plot;

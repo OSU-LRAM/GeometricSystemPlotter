@@ -43,8 +43,6 @@ function output = sysf_diffdrive(input_mode,pathnames)
 			s.density.scalar = [51 51]; %density to display scalar functions
 			s.density.eval = [21 21];   %density for function evaluations
 
-
-
 			%%%
 			%Display parameters
 
@@ -56,8 +54,12 @@ function output = sysf_diffdrive(input_mode,pathnames)
 			%Don't optimize the reference point (turn this off for
 			%non-carlike systems)
 			s.xy_no_opt = 1;
+            
+            % Flag system type as inertial
+            s.system_type = 'inertial';
 
 			%%%%
+            
 			%Output the system properties
 			output = s;
 		

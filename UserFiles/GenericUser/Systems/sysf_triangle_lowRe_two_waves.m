@@ -138,7 +138,9 @@ function output = sysf_triangle_lowRe_two_waves(input_mode,pathnames)
 			s.tic_locs.x = [-1 0 1]*6;
 			s.tic_locs.y = [-1 0 1]*6;
 
-
+            % Flag system type as drag-dominated
+            s.system_type = 'drag';
+            
 			%%%%
 			%Save the system properties
 			output = s;

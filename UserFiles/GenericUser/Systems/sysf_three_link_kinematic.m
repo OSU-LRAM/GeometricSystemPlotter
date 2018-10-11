@@ -77,6 +77,8 @@ function output = sysf_three_link_kinematic(input_mode,pathnames)
 			s.tic_locs.x = [-1 0 1];
 			s.tic_locs.y = [-1 0 1];
 
+            % Flag system type inertial
+            s.system_type = 'inertial';
 
 			%%%%
 			%Save the system properties
