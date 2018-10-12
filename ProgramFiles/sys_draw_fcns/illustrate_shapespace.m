@@ -107,7 +107,7 @@ for idx = 1:numel(paramgrid{1})
                 B{idx2}{idx3}(3,:)=zeros(1,length(B{idx2}{idx3}(1,:)));
             end
             % transform the body elements to their position on the grid
-            for idx4 = 1:3
+            for idx4 = 1:n_dim
                 B{idx2}{idx3}(idx4,:) = B{idx2}{idx3}(idx4,:) + p(idx4);
             end
     
