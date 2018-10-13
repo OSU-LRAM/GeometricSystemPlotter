@@ -22,43 +22,116 @@ g1 = fullfile(shchpath,strcat(current_shch(7:end),'.mat'));
 g2 = fullfile(datapath,strcat(current_system,'__',current_shch,'.mat'));
 if exist(g1,'file') == 2
     load(g1);
+    if exist('alpha4')==1
+        n_dim=4;
+    elseif exist('alpha3')==1
+        n_dim=3;
+    else
+        n_dim=2;
+    end
 elseif exist(g2,'file') == 2
     load(g2);
+    n_dim=length(s.vecfield.eval.content.Avec_optimized(1,:));
     if numel(p.phi_fun_full) == 1
         t = p.time_full{1,1};
         a12 = p.phi_fun_full{1,1}(t);
-        alpha1 = a12(:,1);
-        alpha2 = a12(:,2);
+        if n_dim>=2
+            alpha1 = a12(:,1);
+            alpha2 = a12(:,2);
+        end
+        if n_dim>=3
+            alpha3 = a12(:,3);
+        end
+        if n_dim>=4
+            alpha4 = a12(:,4);
+        end       
     else
         error('Selected gait file has more than one cycle. Optimizer only works on single cycles.')
     end
 end
 
-% Interpolating to increase number of points forming the gait
-endslope1 = (alpha1(2)-alpha1(end-1))/(t(end)-t(end-2));
-endslope2 = (alpha2(2)-alpha2(end-1))/(t(end)-t(end-2));
-spline_alpha1 = spline(t,[endslope1;alpha1(:);endslope1]);
-spline_alpha2 = spline(t,[endslope2;alpha2(:);endslope2]);
-period = 2*pi;
-n_plot = 100;
-t_plot = linspace(0,period,n_plot+1);
-alpha1_plot = ppval(spline_alpha1,t_plot);
-alpha2_plot = ppval(spline_alpha2,t_plot);
-
+if n_dim==2
+    % Interpolating to increase number of points forming the gait
+    endslope1 = (alpha1(2)-alpha1(end-1))/(t(end)-t(end-2));
+    endslope2 = (alpha2(2)-alpha2(end-1))/(t(end)-t(end-2));
+    spline_alpha1 = spline(t,[endslope1;alpha1(:);endslope1]);
+    spline_alpha2 = spline(t,[endslope2;alpha2(:);endslope2]);
+    period = 2*pi;
+    n_plot = 100;
+    t_plot = linspace(0,period,n_plot+1);
+    alpha1_plot = ppval(spline_alpha1,t_plot);
+    alpha2_plot = ppval(spline_alpha2,t_plot);
+elseif n_dim==3
+    endslope1 = (alpha1(2)-alpha1(end-1))/(t(end)-t(end-2));
+    endslope2 = (alpha2(2)-alpha2(end-1))/(t(end)-t(end-2));
+    endslope3 = (alpha3(2)-alpha3(end-1))/(t(end)-t(end-2));
+    spline_alpha1 = spline(t,[endslope1;alpha1(:);endslope1]);
+    spline_alpha2 = spline(t,[endslope2;alpha2(:);endslope2]);
+    spline_alpha3 = spline(t,[endslope3;alpha3(:);endslope3]);
+    period = 2*pi;
+    n_plot = 100;
+    t_plot = linspace(0,period,n_plot+1);
+    alpha1_plot = ppval(spline_alpha1,t_plot);
+    alpha2_plot = ppval(spline_alpha2,t_plot);
+    alpha3_plot = ppval(spline_alpha3,t_plot);
+elseif n_dim==4
+    endslope1 = (alpha1(2)-alpha1(end-1))/(t(end)-t(end-2));
+    endslope2 = (alpha2(2)-alpha2(end-1))/(t(end)-t(end-2));
+    endslope3 = (alpha3(2)-alpha3(end-1))/(t(end)-t(end-2));
+    endslope4 = (alpha4(2)-alpha4(end-1))/(t(end)-t(end-2));
+    spline_alpha1 = spline(t,[endslope1;alpha1(:);endslope1]);
+    spline_alpha2 = spline(t,[endslope2;alpha2(:);endslope2]);
+    spline_alpha3 = spline(t,[endslope3;alpha3(:);endslope3]);
+    spline_alpha4 = spline(t,[endslope4;alpha4(:);endslope3]);
+    period = 2*pi;
+    n_plot = 100;
+    t_plot = linspace(0,period,n_plot+1);
+    alpha1_plot = ppval(spline_alpha1,t_plot);
+    alpha2_plot = ppval(spline_alpha2,t_plot);
+    alpha3_plot = ppval(spline_alpha3,t_plot);
+    alpha4_plot = ppval(spline_alpha4,t_plot);
+end
 % loading sysf file 
 f=fullfile(datapath,strcat(current_system,'_calc.mat'));
 load(f);
 
-% Calling the optimizer
-lb=0.95*[s.grid_range(1)*ones(n_plot+1,1);s.grid_range(3)*ones(n_plot+1,1)];%0.9 was points value
-ub=0.95*[s.grid_range(2)*ones(n_plot+1,1);s.grid_range(4)*ones(n_plot+1,1)];
-y=optimalgaitgenerator(s,2,n_plot,alpha1_plot,alpha2_plot,lb,ub,hAx,hObject,eventdata,handles);
-alpha1 = [y(1:100)',y(1)]';
-alpha2 = [y(101:200)',y(101)]';
-t=t_plot;
-tnew=t(1):(t(2)-t(1))/4:t(end);
-alpha12=interp1(t,alpha1,tnew,'spline');
-alpha22=interp1(t,alpha2,tnew,'spline');
+if n_dim==2
+    % Calling the optimizer
+    lb=0.95*[s.grid_range(1)*ones(n_plot+1,1);s.grid_range(3)*ones(n_plot+1,1)];%0.9 was points value
+    ub=0.95*[s.grid_range(2)*ones(n_plot+1,1);s.grid_range(4)*ones(n_plot+1,1)];
+    y=optimalgaitgenerator(s,2,n_plot,alpha1_plot,alpha2_plot,lb,ub);
+    alpha1 = [y(1:100)',y(1)]';
+    alpha2 = [y(101:200)',y(101)]';
+    t=t_plot;
+    tnew=t(1):(t(2)-t(1))/4:t(end);
+    alpha12=interp1(t,alpha1,tnew,'spline');
+    alpha22=interp1(t,alpha2,tnew,'spline');
+elseif n_dim==3
+    % Calling the optimizer
+    lb=0.95*[s.grid_range(1)*ones(n_plot+1,1);s.grid_range(3)*ones(n_plot+1,1);s.grid_range(5)*ones(n_plot+1,1)];%0.9 was points value
+    ub=0.95*[s.grid_range(2)*ones(n_plot+1,1);s.grid_range(4)*ones(n_plot+1,1);s.grid_range(6)*ones(n_plot+1,1)];
+    y=optimalgaitgenerator3(s,3,n_plot,alpha1_plot,alpha2_plot,alpha3_plot,lb,ub);
+    alpha1 = [y(1:100)',y(1)]';
+    alpha2 = [y(101:200)',y(101)]';
+    alpha3 = [y(201:300)',y(201)]';
+    t=t_plot;
+    tnew=t(1):(t(2)-t(1))/4:t(end);
+    alpha12=interp1(t,alpha1,tnew,'spline');
+    alpha22=interp1(t,alpha2,tnew,'spline');
+elseif n_dim==4
+    % Calling the optimizer
+    lb=0.95*[s.grid_range(1)*ones(n_plot+1,1);s.grid_range(3)*ones(n_plot+1,1);s.grid_range(5)*ones(n_plot+1,1);s.grid_range(7)*ones(n_plot+1,1)];%0.9 was points value
+    ub=0.95*[s.grid_range(2)*ones(n_plot+1,1);s.grid_range(4)*ones(n_plot+1,1);s.grid_range(6)*ones(n_plot+1,1);s.grid_range(8)*ones(n_plot+1,1)];
+    y=optimalgaitgenerator4(s,4,n_plot,alpha1_plot,alpha2_plot,alpha3_plot,alpha4_plot,lb,ub);
+    alpha1 = [y(1:100)',y(1)]';
+    alpha2 = [y(101:200)',y(101)]';
+    alpha3 = [y(201:300)',y(201)]';
+    alpha4 = [y(301:400)',y(301)]';
+    t=t_plot;
+    tnew=t(1):(t(2)-t(1))/4:t(end);
+    alpha12=interp1(t,alpha1,tnew,'spline');
+    alpha22=interp1(t,alpha2,tnew,'spline');
+end
 
 
 % Provide zdata to line if necessary
@@ -97,7 +170,13 @@ paramfiletext = ['opt_',current_system(6:end),'_',current_shch(7:end),'_Xeff'];
     % Save the data to a parameters file
 %     save(fullfile(shchpath,paramfilename),'alpha1','alpha2','t')
 %     save(fullfile(shchpath,strcat(paramfilenamebare,'_optimal.mat')),'alpha1','alpha2','t')
+if n_dim==2
     save(fullfile(shchpath,strcat(paramfiletext,'.mat')),'alpha1','alpha2','t')
+elseif n_dim==3
+    save(fullfile(shchpath,strcat(paramfiletext,'.mat')),'alpha1','alpha2','alpha3','t')
+elseif n_dim==4
+    save(fullfile(shchpath,strcat(paramfiletext,'.mat')),'alpha1','alpha2','alpha3','alpha4','t')
+end
     
     % Create the file if it doesn't already exist; future work could be
     % more fine-grained about this (making sure that any patches are
@@ -107,7 +186,7 @@ paramfiletext = ['opt_',current_system(6:end),'_',current_shch(7:end),'_Xeff'];
     % ['shchf_' paramfilenamebare '.m']
     if ~exist(fullfile(shchpath,['shchf_' paramfiletext '.m']),'file')
         % [paramfilenamebare '_optimal'], [paramfilenamebare '_optimal']
-        gait_gui_draw_make_shchf(paramfiletext,paramfiledisplaytext)
+        gait_gui_draw_make_shchf(paramfiletext,paramfiledisplaytext,n_dim)
         
     end
     
@@ -134,7 +213,7 @@ else
     lastpushbutton = 'plotpushbutton1';
 end
 
- plot_info = plotpushbutton_Callback(findall(0,'tag',lastpushbutton), eventdata, handles);   
+plot_info = plotpushbutton_Callback(findall(0,'tag',lastpushbutton), eventdata, handles);   
     
 
 end

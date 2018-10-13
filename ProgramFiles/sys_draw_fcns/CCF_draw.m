@@ -391,7 +391,7 @@ function plot_info = CCF_draw(s,p,plot_info,sys,shch,resolution)
                     end
                     if n_dim==3
                         hold on
-                        plot3(p.phi_locus_full{i}.shape(:,1),p.phi_locus_full{i}.shape(:,2),p.phi_locus_full{i}.shape(:,3),'b','LineWidth',6);
+                        plot3(p.phi_locus_full{i}.shape(:,1),p.phi_locus_full{i}.shape(:,2),p.phi_locus_full{i}.shape(:,3),'r','LineWidth',6);
                     end
     
 				end
