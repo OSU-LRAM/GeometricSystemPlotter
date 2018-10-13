@@ -1,4 +1,4 @@
-function output = sysf_serpenoid_lowRe(input_mode,pathnames)
+function output = sysf_constantcurv2_lowRe(input_mode,pathnames)
 % System file for a low Reynolds
 
     % Default arguments
@@ -14,14 +14,15 @@ function output = sysf_serpenoid_lowRe(input_mode,pathnames)
 
 		case 'name'
 
-			output = 'Viscous swimmer: Serpenoid'; % Display name
+			output = 'Viscous swimmer: Constantcurve2'; % Display name
 
 		case 'dependency'
 
 			output.dependency = fullfile(pathnames.sysplotterpath,...
                 {'Utilities/curvature_mode_toolbox/backbone_from_curvature_bases.m',...
-				'Utilities/curvature_mode_toolbox/curvatures/serpenoid_1.m',...
-				'Utilities/curvature_mode_toolbox/curvatures/serpenoid_2.m',...
+				'Utilities/curvature_mode_toolbox/curvatures/constant_curvature_1.m',...
+				'Utilities/curvature_mode_toolbox/curvatures/constant_curvature_2.m',...
+                'Utilities/curvature_mode_toolbox/curvatures/constant_curvature_3_3.m',...
 				'Utilities/LowRE_toolbox/LowRE_dissipation_metric.m',...
 				'Utilities/LowRE_toolbox/LowRE_local_connection.m'});
 
@@ -44,7 +45,7 @@ function output = sysf_serpenoid_lowRe(input_mode,pathnames)
             % is taken as one unit long. For this system, we use a
             % wavelength equal to the body length.
             n_waves = 1;
-            s.geometry.function = {@(s)serpenoid_1(s,n_waves);@(s)serpenoid_2(s,n_waves)};
+            s.geometry.function = {@(s)constant_curvature_1(s);@(s)constant_curvature_2(s)};
 
             % Total length of the swimmer, in real units
             s.geometry.length = 1;
@@ -89,13 +90,13 @@ function output = sysf_serpenoid_lowRe(input_mode,pathnames)
             % Processing details
 
             %Range over which to evaluate connection
-            s.grid_range = [-1,1,-1,1]*12;
+            s.grid_range = [-1,1,-1,1]*5;
 
             %densities for various operations
-            s.density.vector = [11 11]; %density to display vector field
-            s.density.scalar = [21 21]; %density to display scalar functions
-            s.density.eval = [21 21];   %density for function evaluations
-            s.density.metric_eval = [1 1]*11;
+            s.density.vector = [11 11 11]; %density to display vector field
+            s.density.scalar = [11 11 11]; %density to display scalar functions
+            s.density.eval = [11 11 11];   %density for function evaluations
+            s.density.metric_eval = [1 1 1]*11;
             s.density.finite_element=31;
 
             %shape space tic locations
