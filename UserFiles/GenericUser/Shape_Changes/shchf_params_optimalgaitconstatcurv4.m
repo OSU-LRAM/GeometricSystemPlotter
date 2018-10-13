@@ -15,7 +15,7 @@ function output = shchf_params_optimalgaitconstatcurv4(input_mode,pathnames)
 		
 		case 'name'
 			
-			output = 'params_optimalgaitconstatcurv4';
+			output = 'Viscous swimmer: 4 segment pcc optimal gait';
 			
 		case 'dependency'
 			

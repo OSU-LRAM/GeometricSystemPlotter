@@ -15,7 +15,7 @@ function output = shchf_params_optimalgaitserpenoid2(input_mode,pathnames)
 		
 		case 'name'
 			
-			output = 'params_optimalgaitserpenoid2';
+			output = 'Viscous swimmer: Serpenoid with 2 shape variables optimal gait';
 			
 		case 'dependency'
 			

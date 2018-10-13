@@ -15,7 +15,7 @@ function output = shchf_params_4link_optimal(input_mode,pathnames)
 		
 		case 'name'
 			
-			output = 'params_4link_optimal';
+			output = 'Viscous swimmer: 4-link optimal gait';
 			
 		case 'dependency'
 			

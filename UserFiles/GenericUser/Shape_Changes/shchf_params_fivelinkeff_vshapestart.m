@@ -15,7 +15,7 @@ function output = shchf_params_fivelinkeff_vshapestart(input_mode,pathnames)
 		
 		case 'name'
 			
-			output = 'params_fivelinkeff_vshapestart';
+			output = 'Viscous swimmer: 5-link optimal gait';
 			
 		case 'dependency'
 			

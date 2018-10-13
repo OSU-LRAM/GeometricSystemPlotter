@@ -70,7 +70,7 @@ for i=1:dimension
     end
 end
 
- options = optimoptions('fmincon','SpecifyObjectiveGradient',true,'Display','iter','Algorithm','sqp','SpecifyObjectiveGradient',true,'CheckGradients',false,'FiniteDifferenceType','central','MaxIter',4000,'MaxFunEvals',20000,'TolCon',10^-2);
+ options = optimoptions('fmincon','SpecifyObjectiveGradient',true,'Display','iter','Algorithm','sqp','SpecifyObjectiveGradient',true,'CheckGradients',false,'FiniteDifferenceType','central','MaxIter',4000,'MaxFunEvals',20000,'TolCon',10^-2,'OutputFcn', @outfun);
  [yf fval exitflag output]=fmincon(@(y) solvedifffmincon(y,s,n,dimension,lb,ub),y0,A,b,Aeq,beq,lb1,ub1,@(y) nonlcon(y,s,n,dimension,lb,ub),options);
 
 
@@ -631,29 +631,20 @@ function stop=outfun(y,optimValues,state)
 n=100;
 dimension=length(y(1,:));
 
-% % The if else statement below deletes gaits 2 iterations after they have been plotted
-% if optimValues.iteration>2
-%     children=get(gca,'children');
-%     delete(children(6:10));
-% else
-% end
-% 
-% % The if else statement below fades the gait plotted during the previous iteration
-% if optimValues.iteration>1
-%     children=get(gca,'children');
-%     children(1).Color=[0.5 0.5 0.5];
-%     children(2).Color=[0.5 0.5 0.5];
-%     children(3).Color=[0.5 0.5 0.5];
-%     children(4).Color=[0.5 0.5 0.5];
-%     children(5).Color=[0.5 0.5 0.5];
-% 
-%     children(1).LineWidth=4;
-%     children(2).LineWidth=4;
-%     children(3).LineWidth=4;
-%     children(4).LineWidth=4;
-%     children(5).LineWidth=4;
-% else
-% end
+% The if else statement below deletes gaits 2 iterations after they have been plotted
+if optimValues.iteration>2
+    children=get(gca,'children');
+    delete(children(2));
+else
+end
+
+% The if else statement below fades the gait plotted during the previous iteration
+if optimValues.iteration>1
+    children=get(gca,'children');
+    children(1).Color=[0.5 0.5 0.5];
+    children(1).LineWidth=4;
+else
+end
 % 
 % % The if else statement below plots the gait after every iteration
  if optimValues.iteration>0
@@ -664,8 +655,12 @@ dimension=length(y(1,:));
                 +y(8,j)*cos(4*i*y(end,j))+y(9,j)*sin(4*i*y(end,j));%+y(10,j)*cos(5*i*y(end,j))+y(11,j)*sin(5*i*y(end,j));%+y(12,j)*cos(6*i*y(end,j))+y(13,j)*sin(6*i*y(end,j));
         end    
     end
+    hold on
+    handle1=plot3(y1(:,1),y1(:,2),y1(:,3),'k','linewidth',3);
 else
 end
+
+
 pause(0.1)
 stop=false;
 end

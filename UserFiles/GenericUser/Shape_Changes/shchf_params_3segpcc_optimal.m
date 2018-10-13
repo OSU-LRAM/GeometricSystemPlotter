@@ -15,7 +15,7 @@ function output = shchf_params_3segpcc_optimal(input_mode,pathnames)
 		
 		case 'name'
 			
-			output = 'params_3segpcc_optimal';
+			output = 'Viscous swimmer: 3 segment pcc optimal gait';
 			
 		case 'dependency'
 			

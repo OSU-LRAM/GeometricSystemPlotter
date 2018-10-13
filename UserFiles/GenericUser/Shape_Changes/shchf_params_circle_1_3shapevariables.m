@@ -15,7 +15,7 @@ function output = shchf_params_circle_1_3shapevariables(input_mode,pathnames)
 		
 		case 'name'
 			
-			output = 'params_circle_1_3shapevariables';
+			output = 'Circular gaits: Amplitude 1, 3 shape variables';
 			
 		case 'dependency'
 			
