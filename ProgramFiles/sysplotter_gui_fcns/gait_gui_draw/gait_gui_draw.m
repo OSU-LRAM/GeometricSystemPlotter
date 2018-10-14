@@ -124,7 +124,9 @@ if ~usercancel
     % applied vs not overwriting any hand-edits the user made) and allowing
     % user to enter a prettier string for the display name here.
     
-    if ~exist(fullfile(shchpath,['shchf_' paramfilenamebare '.m']),'file')
+   
+    shchfile = fullfile(shchpath,['shchf_' paramfilenamebare]);
+    if ~exist([shchfile '.m'],'file') || ~isfunction(shchfile)
         
         gait_gui_draw_make_shchf(paramfilenamebare, paramfilenamebare)
         

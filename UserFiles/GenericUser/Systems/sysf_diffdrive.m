@@ -42,7 +42,7 @@ function output = sysf_diffdrive(input_mode,pathnames)
 			s.density.vector = [10 10]; %density to display vector field
 			s.density.scalar = [51 51]; %density to display scalar functions
 			s.density.eval = [21 21];   %density for function evaluations
-
+            s.density.finite_element=31;
 
 
 			%%%

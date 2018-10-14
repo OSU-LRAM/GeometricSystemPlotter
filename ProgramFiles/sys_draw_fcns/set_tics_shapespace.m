@@ -1,4 +1,4 @@
-function set_tics_shapespace(ax,s,convert)
+function set_tics_shapespace(ax,s)
 %place the tic marks
     
     %set the tic fontsize

@@ -130,6 +130,7 @@ function output = sysf_triangle_lowRe_two_waves(input_mode,pathnames)
 			s.density.scalar = [1 1]*21; %density to display scalar functions
 			s.density.eval = [1 1]*21;   %density for function evaluations
             s.density.metric_eval = [1 1]*11;
+            s.density.finite_element=31;
 
 			%%%
 			%Display parameters

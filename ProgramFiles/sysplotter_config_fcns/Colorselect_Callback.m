@@ -7,7 +7,10 @@ function Colorselect_Callback(hObject, eventdata, handles)
     % Set the directory string to a user-selected path
     [targetfile, targetpath, targetindex] = uigetfile('color_*.m','Select file with color specification', get(handles.Colorconfig,'String'));
     
+    try
     addpath(targetpath);
+    end
+    
     
     set(handles.Colorconfig,'String',fullfile(targetpath,targetfile));
 	

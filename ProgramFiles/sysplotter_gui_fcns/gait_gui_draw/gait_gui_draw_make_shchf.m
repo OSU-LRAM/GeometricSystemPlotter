@@ -1,10 +1,18 @@
-function gait_gui_draw_make_shchf(paramfilename, displayname)
+function gait_gui_draw_make_shchf(paramfilename, displayname,n_dim)
 
 load sysplotter_config
 
 % Open the template file
-fidi = fopen(fullfile(fileparts(which('gait_gui_draw')),...
-    'gait_gui_draw_template.txt'));
+if n_dim==2
+    fidi = fopen(fullfile(fileparts(which('gait_gui_draw')),...
+    'gait_gui_draw_template2.txt'));
+elseif n_dim==3
+     fidi = fopen(fullfile(fileparts(which('gait_gui_draw')),...
+    'gait_gui_draw_template3.txt'));
+else
+    fidi = fopen(fullfile(fileparts(which('gait_gui_draw')),...
+    'gait_gui_draw_template4.txt'));
+end
 
 % Create the output file
 fido = fopen(fullfile(shchpath,['shchf_' paramfilename '.m']),'w');

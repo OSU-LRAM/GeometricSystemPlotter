@@ -254,12 +254,18 @@ function plot_info = vfield_draw(s,p,plot_info,sys,shch,resolution)
         label_shapespace_axes(ax,[],plot_info.stretch);
 		
         %Set the tic marks
-        set_tics_shapespace(ax,s,s.convert);
+        set_tics_shapespace(ax,s);
         
         %If there's a shape change involved, plot it
         if ~strcmp(shch,'null')
-						
-            overlay_shape_change_2d(ax,p,plot_info.stretch,s.convert);
+			n_dim=length(s.grid_range)/2;
+            if n_dim==2
+                overlay_shape_change_2d(ax,p,plot_info.stretch,s.convert);
+            end            
+            if n_dim==3
+               hold on
+               plot3(p.phi_locus_full{i}.shape(:,1),p.phi_locus_full{i}.shape(:,2),p.phi_locus_full{i}.shape(:,3),'r','LineWidth',6);
+            end
             
         end
         

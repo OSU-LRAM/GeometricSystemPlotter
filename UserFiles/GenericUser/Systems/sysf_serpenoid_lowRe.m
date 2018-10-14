@@ -96,6 +96,7 @@ function output = sysf_serpenoid_lowRe(input_mode,pathnames)
             s.density.scalar = [21 21]; %density to display scalar functions
             s.density.eval = [21 21];   %density for function evaluations
             s.density.metric_eval = [1 1]*11;
+            s.density.finite_element=31;
 
             %shape space tic locations
             s.tic_locs.x = [-1 0 1]*6;

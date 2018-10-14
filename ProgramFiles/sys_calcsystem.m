@@ -51,8 +51,11 @@ function output = sys_calcsystem(input_mode,systemfilename)
 			%Calculate the constraint curvature functions from the connection
 			s = calc_constraint_curvature(s);
             
-            %Build a stretch function corresponding to the metric
-            s = calc_stretch_functions(s);
+            %Build a stretch function corresponding to the metric only if
+            %the system is 2 dimensional
+            if length(s.grid_range)/2<3
+                s = calc_stretch_functions(s);
+            end
 						
 			%Save out the updated system properties
 			save(outfile,'s')
