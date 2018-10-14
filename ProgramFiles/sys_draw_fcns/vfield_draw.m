@@ -1,5 +1,10 @@
 function plot_info = vfield_draw(s,p,plot_info,sys,shch,resolution)
 
+    %Get the configuration file, and extract the Colorpath
+	configfile = 'sysplotter_config';
+    configfile = fullfile(fileparts(mfilename('fullpath')),'..',configfile);
+	load(configfile,'Colorset');
+
     %Vector field list
     vfield_list = {'X','Y','T','Xopt','Yopt','Topt'};
 	
@@ -263,8 +268,7 @@ function plot_info = vfield_draw(s,p,plot_info,sys,shch,resolution)
                 overlay_shape_change_2d(ax,p,plot_info.stretch,s.convert);
             end            
             if n_dim==3
-               hold on
-               plot3(p.phi_locus_full{i}.shape(:,1),p.phi_locus_full{i}.shape(:,2),p.phi_locus_full{i}.shape(:,3),'r','LineWidth',6);
+                line('XData',p.phi_locus_full{i}.shape(:,1),'YData',p.phi_locus_full{i}.shape(:,2),'ZData',p.phi_locus_full{i}.shape(:,3),'Color',Colorset.spot,'LineWidth',6,'parent',ax);
             end
             
         end

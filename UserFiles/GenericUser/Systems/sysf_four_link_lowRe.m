@@ -70,7 +70,7 @@ function output = sysf_four_link_lowRe(input_mode,pathnames)
 			s.grid_range = [-1,1,-1,1,-1,1]*2;
 
 			%densities for various operations
-			s.density.vector = [21 21 21]; %density to display vector field
+			s.density.vector = [10 10 10]; %density to display vector field
 			s.density.scalar = [21 21 21]; %density to display scalar functions
 			s.density.eval = [21 21 21];   %density for function evaluations
             s.density.metric_eval = [11 11 11]; %density for metric evaluation
