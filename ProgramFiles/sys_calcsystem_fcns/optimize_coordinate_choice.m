@@ -31,11 +31,11 @@ function s = optimize_coordinate_choice(s)
 	% optimization
 	if isfield(s,'coordinate_optimization_weighting_function')
 		
-		weight = s.coordinate_optimization_weighting_function(s.grid.eval{:});
+		weight = s.coordinate_optimization_weighting_function(s.grid.finite_element{:});
 		
 	elseif s.singularity
 		
-		weight = weight_away_from_singularities(s.vecfield.eval.singularities, s.grid.eval);
+		weight = weight_away_from_singularities(s.vecfield.eval.singularities, s.grid.finite_element);
 		
 	else
 		weight = ones(size(s.grid.finite_element{1}));
@@ -200,7 +200,7 @@ function s = optimize_coordinate_choice(s)
 	if s.singularity
 	
 		for i = 1:numel(s.vecfield.display.content.Avec_optimized)
-			s.vecfield.display.content.Avec_optimized{i} = s.vecfield.display.content.Avec_optimized1{i} .* (1-s.vecfield.display.singularities{i});
+			s.vecfield.display.content.Avec_optimized{i} = s.vecfield.display.content.Avec_optimized{i} .* (1-s.vecfield.display.singularities{i});
 		end
 		
 	end

@@ -67,8 +67,8 @@ function output = sysf_three_link_kinematic(input_mode,pathnames)
 			%densities for various operations
 			s.density.vector = [10 10]; %density to display vector field
 			s.density.scalar = [30 30]; %density to display scalar functions
-			s.density.eval = [20 20];   %density for function evaluations
-            s.density.finite_element=31;
+			s.density.eval = [30 30];   %density for function evaluations
+            s.density.finite_element=30;
 
 			%%%
 			%Display parameters

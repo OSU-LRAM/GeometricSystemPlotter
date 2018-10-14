@@ -15,7 +15,7 @@ end
 % the components of the grid are in a column cell array to avoid any
 % row/column problems below
 paramgrid = visual.grid(:);
-n_dim=size(visual.grid,1);
+n_dim=numel(visual.grid);
 test2=cell(1,n_dim-1);
 test3=cell(1,n_dim-2);
 test2{1}=1;
