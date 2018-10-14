@@ -52,7 +52,7 @@ function plot_info = CCF_draw(s,p,plot_info,sys,shch,resolution)
 			H = cat(1,s.(['DA' CCF_addendum])...
 				,s.(['DA_optimized' CCF_addendum]));
 			
-			if n_dim == 2
+            if n_dim == 2
 				
 				h1name = 'DA';
 				h2name = 'DA_optimized';
@@ -60,7 +60,7 @@ function plot_info = CCF_draw(s,p,plot_info,sys,shch,resolution)
 				h1 = cell(n_g,1);
 				h2 = cell(n_g,1);
 				
-				if ~strcmp(shch,'null')
+                if ~strcmp(shch,'null')
 				
 					for i = 1:numel(p.phi_locus)
 
@@ -75,8 +75,9 @@ function plot_info = CCF_draw(s,p,plot_info,sys,shch,resolution)
 					end
 
 					zdata = cat(1,h1,h2);
-				end
-				
+                end
+                
+                
             end
 			
 		case 'dA'
@@ -195,7 +196,7 @@ function plot_info = CCF_draw(s,p,plot_info,sys,shch,resolution)
 % 					H{function_number}(singularity_location) = NaN;
 % 					
 % 				end
-				if n_dim==2
+                if n_dim==2
 				%Plot the constraint curvature function
                     meshhandle = surf(ax,grid{:},H{function_number});
                 end
@@ -264,14 +265,14 @@ function plot_info = CCF_draw(s,p,plot_info,sys,shch,resolution)
                         end
                     end
                     
-                    meshhandle=pcolor(xgrid,ygrid,-curvatureproj);
+                    meshhandle=pcolor(xgrid,ygrid,-curvatureproj,'Parent',ax);
                     meshhandle.ZData=zgrid;
                     
                     hold on
                     
                     colormap(Colorset.colormap); 
-                    shading interp
-                    view(3)
+                    shading(ax,'interp')
+                    view(ax,3)
                     
                     
                 end
@@ -284,7 +285,7 @@ function plot_info = CCF_draw(s,p,plot_info,sys,shch,resolution)
                     end
                     if n_dim==3
                         meshhandle.FaceAlpha=0.9;
-                        plot3(p.phi_locus_full{i}.shape(:,1),p.phi_locus_full{i}.shape(:,2),p.phi_locus_full{i}.shape(:,3),'b','LineWidth',6);
+                        line('XData',p.phi_locus_full{i}.shape(:,1),'YData',p.phi_locus_full{i}.shape(:,2),'ZData',p.phi_locus_full{i}.shape(:,3),'Color',Colorset.spot,'LineWidth',6,'parent',ax);
                     end
 				end
 
@@ -377,8 +378,8 @@ function plot_info = CCF_draw(s,p,plot_info,sys,shch,resolution)
                     end
                                
 
-                   meshhandle=contourslice(grid{2,1},grid{1,1},grid{3,1},curvatureproj,xgrid,ygrid,zgrid);
-                    view(3)
+                   meshhandle=contourslice(grid{2,1},grid{1,1},grid{3,1},curvatureproj,xgrid,ygrid,zgrid,'parent',ax);
+                    view(ax,3)
 
                     
                 end
@@ -390,8 +391,7 @@ function plot_info = CCF_draw(s,p,plot_info,sys,shch,resolution)
 					overlay_shape_change_2d(ax,p,plot_info.stretch,s.convert);
                     end
                     if n_dim==3
-                        hold on
-                        plot3(p.phi_locus_full{i}.shape(:,1),p.phi_locus_full{i}.shape(:,2),p.phi_locus_full{i}.shape(:,3),'r','LineWidth',6);
+                        line('XData',p.phi_locus_full{i}.shape(:,1),'YData',p.phi_locus_full{i}.shape(:,2),'ZData',p.phi_locus_full{i}.shape(:,3),'Color',Colorset.spot,'LineWidth',6,'parent',ax);
                     end
     
 				end
