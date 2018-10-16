@@ -44,10 +44,32 @@ function [nodes,cubes] = hypercube_mesh(grid)
 			cubes(:,6) = reshape(node_nums(2:l(1),1:l(2)-1,2:l(3)),n_cubes,1);
 			cubes(:,7) = reshape(node_nums(2:l(1),2:l(2),2:l(3)),n_cubes,1);
 			cubes(:,8) = reshape(node_nums(1:l(1)-1,2:l(2),2:l(3)),n_cubes,1);
+            
+        case 4
+            
+ 			cubes(:,1) = reshape(node_nums(1:l(1)-1,1:l(2)-1,1:l(3)-1,1:l(4)-1),n_cubes,1);
+			cubes(:,2) = reshape(node_nums(2:l(1),1:l(2)-1,1:l(3)-1,1:l(4)-1),n_cubes,1);
+			cubes(:,3) = reshape(node_nums(2:l(1),2:l(2),1:l(3)-1,1:l(4)-1),n_cubes,1);
+			cubes(:,4) = reshape(node_nums(1:l(1)-1,2:l(2),1:l(3)-1,1:l(4)-1),n_cubes,1);
+			
+			cubes(:,5) = reshape(node_nums(1:l(1)-1,1:l(2)-1,2:l(3),1:l(4)-1),n_cubes,1);
+			cubes(:,6) = reshape(node_nums(2:l(1),1:l(2)-1,2:l(3),1:l(4)-1),n_cubes,1);
+			cubes(:,7) = reshape(node_nums(2:l(1),2:l(2),2:l(3),1:l(4)-1),n_cubes,1);
+			cubes(:,8) = reshape(node_nums(1:l(1)-1,2:l(2),2:l(3),1:l(4)-1),n_cubes,1);           
+
+			cubes(:,9) = reshape(node_nums(1:l(1)-1,1:l(2)-1,1:l(3)-1,2:l(4)),n_cubes,1);
+			cubes(:,10) = reshape(node_nums(2:l(1),1:l(2)-1,1:l(3)-1,2:l(4)),n_cubes,1);
+			cubes(:,11) = reshape(node_nums(2:l(1),2:l(2),1:l(3)-1,2:l(4)),n_cubes,1);
+			cubes(:,12) = reshape(node_nums(1:l(1)-1,2:l(2),1:l(3)-1,2:l(4)),n_cubes,1);
+			
+			cubes(:,13) = reshape(node_nums(1:l(1)-1,1:l(2)-1,2:l(3),2:l(4)),n_cubes,1);
+			cubes(:,14) = reshape(node_nums(2:l(1),1:l(2)-1,2:l(3),2:l(4)),n_cubes,1);
+			cubes(:,15) = reshape(node_nums(2:l(1),2:l(2),2:l(3),2:l(4)),n_cubes,1);
+			cubes(:,16) = reshape(node_nums(1:l(1)-1,2:l(2),2:l(3),2:l(4)),n_cubes,1);
 			
 		otherwise
 			
-			error('hypercube_mesh not yet implemented for N>3 dimensions');
+			error('hypercube_mesh not yet implemented for N>4 dimensions');
 			
 	end			
 			

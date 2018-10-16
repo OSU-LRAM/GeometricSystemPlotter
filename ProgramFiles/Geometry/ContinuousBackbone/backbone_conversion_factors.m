@@ -165,7 +165,7 @@ switch baseframe
             %%%
             % First, strip off sysf_ if it was included by the user
 
-            if startsWith(baseframe,'sysf_')
+            if strncmp(baseframe,'sysf_',5)
                 baseframe1 = baseframe(6:end);
             else
                 baseframe1 = baseframe;

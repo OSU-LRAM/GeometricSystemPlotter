@@ -244,7 +244,7 @@ function plot_info = dbeta_draw(s,p,plot_info,sys,shch,resolution)
         label_shapespace_axes(ax,[],plot_info.stretch);
 		
         %Set the tic marks
-        set_tics_shapespace(ax,s,s.convert);
+        set_tics_shapespace(ax,s)%,s.convert);
         
         %If there's a shape change involved, plot it
         if ~strcmp(shch,'null')

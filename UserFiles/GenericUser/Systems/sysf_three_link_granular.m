@@ -66,6 +66,7 @@ function output = sysf_three_link_granular(input_mode,pathnames)
 			s.density.scalar = [21 21]; %density to display scalar functions
 			s.density.eval = [11 11];   %density for function evaluations
             s.density.metric_eval = [11 11]; %density for metric evaluation
+            s.density.finite_element=31;
 
 			% power metric
 			%s.metric = eye(2); %@(x,y) Granular_metric_calc(x,y,Metric_Tensor_raw,alpha1,alpha2);

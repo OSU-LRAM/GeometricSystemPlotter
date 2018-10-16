@@ -2,7 +2,7 @@
 function s = create_grids(s)
 
     %list of grids that will be made
-    grid_list = {'vector','scalar','eval','metric_eval','metric_display'};
+    grid_list = {'vector','scalar','eval','metric_eval','metric_display','finite_element'};
         
     % Create a cell array to hold the grid primitives
 	gridprim = cell(length(s.grid_range)/2,1);
