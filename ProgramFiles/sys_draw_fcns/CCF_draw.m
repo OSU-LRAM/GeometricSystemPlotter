@@ -201,7 +201,7 @@ function plot_info = CCF_draw(s,p,plot_info,sys,shch,resolution)
                     meshhandle = surf(ax,grid{:},H{function_number});
                 end
                 
-                 if n_dim==3
+                 if n_dim>2
 %                     curvinterest=H{function_number,:};
 %                     for j=1:length(curvinterest(:,1,1))
 %                         for k=1:length(curvinterest(1,:,1))
@@ -219,17 +219,19 @@ function plot_info = CCF_draw(s,p,plot_info,sys,shch,resolution)
 % 
 %                     y=[grid{1}(ind1(1,ind2(1,1,ind3),ind3),ind2(1,1,ind3),ind3),grid{2}(ind1(1,ind2(1,1,ind3),ind3),ind2(1,1,ind3),ind3),grid{3}(ind1(1,ind2(1,1,ind3),ind3),ind2(1,1,ind3),ind3)];
 %                     
-                    y=[0 0 0];
-                    
+                    y=cell(1,n_dim);
+                    y(:)={0};
+                    idxt=cell(1,n_dim-2);
+                    idxt(1,:)={1};
                     for j=1:1:n_dim
                         interpstatecurvature{j}=grid{j,1};
                     end
 
                     for j=1:n_dim*(n_dim-1)/2
-                        curvature(:,j)=interpn(interpstatecurvature{:},H{function_number,j},y(1),y(2),y(3),'cubic');
+                        curvature(:,j)=interpn(interpstatecurvature{:},H{function_number,j},y{:},'cubic');
                     end
                     
-                    B=[0,curvature(1),curvature(2);-curvature(1),0,curvature(3);-curvature(2),-curvature(3),0];
+                    B=[0,curvature(1),curvature(2);-curvature(1),0,curvature(n_dim);-curvature(2),-curvature(n_dim),0];
 
                     [V,D]=eig(B);
                     [d,ind] = sort(diag(D));
@@ -243,24 +245,27 @@ function plot_info = CCF_draw(s,p,plot_info,sys,shch,resolution)
                     Xnorm=X/(norm(X));
                     Ynorm=Y/(norm(Y));
 
-                    normal=cross(Xnorm,Ynorm);
-                    projnorm=y*normal;
+%                     normal=cross(Xnorm,Ynorm);
+%                     y=zeros(1,n_dim)
+%                     projnorm=y*normal;
                     
-                    pointonplane=y'-(y'-projnorm*normal);
+                    pointonplane=zeros(1,n_dim);%y'-(y'-projnorm*normal);
                     
-                    Xtemp=grid{1,1}(:,:,1);
-                    Ytemp=grid{2,1}(:,:,1);
+                    Xtemp=grid{1,1}(:,:,idxt{:});
+                    Ytemp=grid{2,1}(:,:,idxt{:});
 
-                    arsize=size(grid{j,1}(:,1));
-
+                    arsize=length(grid{1,1}(:,1));
+                    idxt2=cell(1,n_dim-3);
+                    idxt2(1,:)={0};
                     for m=1:1:arsize
                         for j=1:1:arsize
                                 xgrid(m,j)=Xtemp(m,j)*Xnorm(1)+Ytemp(m,j)*Ynorm(1)+pointonplane(1);
                                 ygrid(m,j)=Xtemp(m,j)*Xnorm(2)+Ytemp(m,j)*Ynorm(2)+pointonplane(2);
                                 zgrid(m,j)=Xtemp(m,j)*Xnorm(3)+Ytemp(m,j)*Ynorm(3)+pointonplane(3);
-                                for k=1:n_dim*(n_dim-1)/2
-                                    curvaturetemp(:,k)=interpn(interpstatecurvature{:},H{function_number,k},xgrid(m,j),ygrid(m,j),zgrid(m,j),'spline');
+                                for k=1:2
+                                    curvaturetemp(:,k)=interpn(interpstatecurvature{:},H{function_number,k},xgrid(m,j),ygrid(m,j),zgrid(m,j),idxt2{:},'spline');
                                 end
+                                curvaturetemp(:,3)=interpn(interpstatecurvature{:},H{function_number,n_dim},xgrid(m,j),ygrid(m,j),zgrid(m,j),idxt2{:},'spline');
                                 curvatureproj(m,j)=curvaturetemp(1)*(Xnorm(1)*Ynorm(2)-Ynorm(1)*Xnorm(2))+curvaturetemp(2)*(Xnorm(1)*Ynorm(3)-Ynorm(1)*Xnorm(3))+curvaturetemp(3)*(Xnorm(2)*Ynorm(3)-Ynorm(2)*Xnorm(3));
                         end
                     end
@@ -283,9 +288,9 @@ function plot_info = CCF_draw(s,p,plot_info,sys,shch,resolution)
                     if n_dim==2
 					overlay_shape_change_3d_surf(ax,p,zdata{function_number,:},plot_info.stretch,s.convert,true);
                     end
-                    if n_dim==3
+                    if n_dim>2
                         meshhandle.FaceAlpha=0.9;
-                        line('XData',p.phi_locus_full{i}.shape(:,1),'YData',p.phi_locus_full{i}.shape(:,2),'ZData',p.phi_locus_full{i}.shape(:,3),'Color',Colorset.spot,'LineWidth',6,'parent',ax);
+                        line('Parent',ax,'XData',p.phi_locus_full{i}.shape(:,1),'YData',p.phi_locus_full{i}.shape(:,2),'ZData',p.phi_locus_full{i}.shape(:,3),'Color',Colorset.spot,'LineWidth',6,'parent',ax);
                     end
 				end
 
@@ -309,7 +314,7 @@ function plot_info = CCF_draw(s,p,plot_info,sys,shch,resolution)
                     [junk, meshhandle] = contour(ax,grid{:},H{function_number},7,'linewidth',2);				
                 end
                 
-                if n_dim==3
+                if n_dim>2
 %                     
 %                     curvinterest=H{function_number,:};
 % 
@@ -329,16 +334,19 @@ function plot_info = CCF_draw(s,p,plot_info,sys,shch,resolution)
 % 
 %                     y=[grid{1}(ind1(1,ind2(1,1,ind3),ind3),ind2(1,1,ind3),ind3),grid{2}(ind1(1,ind2(1,1,ind3),ind3),ind2(1,1,ind3),ind3),grid{3}(ind1(1,ind2(1,1,ind3),ind3),ind2(1,1,ind3),ind3)];
 %                     
-                    y=[0 0 0];
+                     y=cell(1,n_dim);
+                    y(:)={0};
+                    idxt=cell(1,n_dim-2);
+                    idxt(1,:)={1};
                     for j=1:1:n_dim
                         interpstatecurvature{j}=grid{j,1};
                     end
 
                     for j=1:n_dim*(n_dim-1)/2
-                        curvature(:,j)=interpn(interpstatecurvature{:},H{function_number,j},y(1),y(2),y(3),'cubic');
+                        curvature(:,j)=interpn(interpstatecurvature{:},H{function_number,j},y{:},'cubic');
                     end
                     
-                   B=[0,curvature(1),curvature(2);-curvature(1),0,curvature(3);-curvature(2),-curvature(3),0];
+                    B=[0,curvature(1),curvature(2);-curvature(1),0,curvature(n_dim);-curvature(2),-curvature(n_dim),0];
 
                     [V,D]=eig(B);
                     [d,ind] = sort(diag(D));
@@ -352,11 +360,14 @@ function plot_info = CCF_draw(s,p,plot_info,sys,shch,resolution)
                     Xnorm=X/(norm(X));
                     Ynorm=Y/(norm(Y));
 
-                    Xtemp=grid{1,1}(:,:,1);
-                    Ytemp=grid{2,1}(:,:,1);
+                    Xtemp=grid{1,1}(:,:,idxt{:});
+                    Ytemp=grid{2,1}(:,:,idxt{:});
 
-                    arsize=size(grid{j,1}(:,1));
-
+                    arsize=length(grid{1,1}(:,1));
+                    idxt2=cell(1,n_dim-3);
+                    idxt2(1,:)={ceil(arsize/2)};
+                    idxt3=cell(1,n_dim-3);
+                    idxt3(1,:)={0};
                     for m=1:1:arsize
                         for j=1:1:arsize
                                 xgrid(m,j)=Xtemp(m,j)*Xnorm(1)+Ytemp(m,j)*Ynorm(1);
@@ -370,16 +381,16 @@ function plot_info = CCF_draw(s,p,plot_info,sys,shch,resolution)
                         for idx2=1:length(grid{2,1}(:,1))
                             for idx3=1:length(grid{3,1}(:,1))
                                 for k=1:n_dim*(n_dim-1)/2
-                                    curvaturetemp(:,k)=interpn(interpstatecurvature{:},H{function_number,k},grid{2,1}(idx1,idx2,idx3),grid{1,1}(idx1,idx2,idx3),grid{3,1}(idx1,idx2,idx3),'cubic');
-                                end
-                                curvatureproj(idx1,idx2,idx3)=curvaturetemp(1)*(Xnorm(1)*Ynorm(2)-Ynorm(1)*Xnorm(2))+curvaturetemp(2)*(Xnorm(1)*Ynorm(3)-Ynorm(1)*Xnorm(3))+curvaturetemp(3)*(Xnorm(2)*Ynorm(3)-Ynorm(2)*Xnorm(3));
+                                    curvaturetemp(:,k)=interpn(interpstatecurvature{:},H{function_number,k},grid{2,1}(idx1,idx2,idx3,idxt2{:}),grid{1,1}(idx1,idx2,idx3,idxt2{:}),grid{3,1}(idx1,idx2,idx3,idxt2{:}),idxt3{:},'cubic');
+                                end                                
+                                curvatureproj(idx1,idx2,idx3)=curvaturetemp(1)*(Xnorm(1)*Ynorm(2)-Ynorm(1)*Xnorm(2))+curvaturetemp(2)*(Xnorm(1)*Ynorm(3)-Ynorm(1)*Xnorm(3))+curvaturetemp(n_dim)*(Xnorm(2)*Ynorm(3)-Ynorm(2)*Xnorm(3));
                             end
                         end
                     end
                                
 
-                   meshhandle=contourslice(grid{2,1},grid{1,1},grid{3,1},curvatureproj,xgrid,ygrid,zgrid,'parent',ax);
-                    view(ax,3)
+                   meshhandle=contourslice(grid{2,1}(:,:,:,idxt2{:}),grid{1,1}(:,:,:,idxt2{:}),grid{3,1}(:,:,:,idxt2{:}),curvatureproj,xgrid,ygrid,zgrid,'parent',ax);
+                   view(ax,3)
 
                     
                 end
@@ -390,8 +401,8 @@ function plot_info = CCF_draw(s,p,plot_info,sys,shch,resolution)
                     if n_dim==2
 					overlay_shape_change_2d(ax,p,plot_info.stretch,s.convert);
                     end
-                    if n_dim==3
-                        line('XData',p.phi_locus_full{i}.shape(:,1),'YData',p.phi_locus_full{i}.shape(:,2),'ZData',p.phi_locus_full{i}.shape(:,3),'Color',Colorset.spot,'LineWidth',6,'parent',ax);
+                    if n_dim>2
+                        line('Parent',ax,'XData',p.phi_locus_full{i}.shape(:,1),'YData',p.phi_locus_full{i}.shape(:,2),'ZData',p.phi_locus_full{i}.shape(:,3),'Color',Colorset.spot,'LineWidth',6,'parent',ax);
                     end
     
 				end
