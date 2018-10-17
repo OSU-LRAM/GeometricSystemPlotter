@@ -58,7 +58,7 @@ function plot_info = beta_draw(s,p,plot_info,sys,shch,resolution)
 	% No need to change the value of the beta function for stretching,
 	% because it is a zero-form, not a 2-form
 		
-	if plot_info.stretch
+	if plot_info.stretch && (numel(s.grid.eval) == 2)
 			
 		% Convert the grid points to their new locations
 		[grid{:}] = s.convert.old_to_new_points(grid{:});
@@ -81,7 +81,9 @@ function plot_info = beta_draw(s,p,plot_info,sys,shch,resolution)
 			case 'surface'
 		
 				%Plot the height function
-				meshhandle = surf(ax,grid{:},B{function_number});
+                if n_dim==2
+                    meshhandle = surf(ax,grid{:},B{function_number});
+                end
 				
 				%If there's a shape change involved, plot it
 				if ~strcmp(shch,'null')
@@ -117,7 +119,7 @@ function plot_info = beta_draw(s,p,plot_info,sys,shch,resolution)
 				
 				
 				% Make edges if coordinates have changed
-				if plot_info.stretch
+				if plot_info.stretch && (numel(s.grid.eval) == 2)
 					
 					edgeres = 30;
 					

@@ -161,7 +161,7 @@ function plot_info = CCF_draw(s,p,plot_info,sys,shch,resolution)
 	% (multiply the constraint curvature function by the inverse of the jacobian's
 	% determinant)
 	
-	if plot_info.stretch
+	if plot_info.stretch && (numel(s.grid.eval) == 2)
 			
 		% Get the value by which to scale the constraint curvature function
 		ascale = arrayfun(@(x,y) 1/det(s.convert.jacobian(x,y)),grid{:});
@@ -409,7 +409,7 @@ function plot_info = CCF_draw(s,p,plot_info,sys,shch,resolution)
 				
 				
 				% Make edges if coordinates have changed
-				if plot_info.stretch
+				if plot_info.stretch && (numel(s.grid.eval) == 2)
 					
 					edgeres = 30;
 					
@@ -430,7 +430,7 @@ function plot_info = CCF_draw(s,p,plot_info,sys,shch,resolution)
 				%equal axes sized to match grid or new dimensions if
 				%stretched
 				
-				if plot_info.stretch
+				if plot_info.stretch && (numel(s.grid.eval) == 2)
 					axis(ax,'equal');
 					axis(ax,[min(grid{1}(:)) max(grid{1}(:)) min(grid{2}(:)) max(grid{2}(:))]);
 				else
