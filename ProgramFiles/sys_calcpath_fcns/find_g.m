@@ -3,7 +3,7 @@ function p = find_g(s,p)
 % change in p over the system in s
 
 	% Set the initial values of the integrals
-	n_dim = size(s.dA,1);
+	n_dim = size(s.vecfield.eval.content.Avec_optimized,1);
 	
 	% Iterate over the paths
 	n_paths = length(p.phi_fun);

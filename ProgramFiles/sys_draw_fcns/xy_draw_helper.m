@@ -172,6 +172,7 @@ function plot_info = xy_draw_helper(s,p,plot_info,sys,shch,optselect);
 	%%%%%%%
 	% Turn on the outline box
 	box(ax,'on')
+    
 	
 	%%%%%
 	% Insert a legend
@@ -210,7 +211,7 @@ function plot_info = xy_draw_helper(s,p,plot_info,sys,shch,optselect);
 			udata.plottype = 'xyopt';
 		end
 		
-		set(plot_info.figure,'UserData',udata);
+		set(plot_info.figure,'UserData',udata,'Renderer','painters');
 
 	end
 end

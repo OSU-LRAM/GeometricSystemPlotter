@@ -37,7 +37,7 @@ function output = shchf_LowRe_MaxEfficiency(input_mode,pathnames)
 			%time to run path
 			p.time_def = [0 2*pi];
 
-			%p.cBVI_method = 'simple';
+			p.cBVI_method = 'simple';
 
 			%path resolution
 			p.phi_res = 100;

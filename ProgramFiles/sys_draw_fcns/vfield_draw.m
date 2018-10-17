@@ -1,5 +1,10 @@
 function plot_info = vfield_draw(s,p,plot_info,sys,shch,resolution)
 
+    %Get the configuration file, and extract the Colorpath
+	configfile = 'sysplotter_config';
+    configfile = fullfile(fileparts(mfilename('fullpath')),'..',configfile);
+	load(configfile,'Colorset');
+
     %Vector field list
     vfield_list = {'X','Y','T','Xopt','Yopt','Topt'};
 	
@@ -254,12 +259,17 @@ function plot_info = vfield_draw(s,p,plot_info,sys,shch,resolution)
         label_shapespace_axes(ax,[],plot_info.stretch);
 		
         %Set the tic marks
-        set_tics_shapespace(ax,s,s.convert);
+        set_tics_shapespace(ax,s);
         
         %If there's a shape change involved, plot it
         if ~strcmp(shch,'null')
-						
-            overlay_shape_change_2d(ax,p,plot_info.stretch,s.convert);
+			n_dim=length(s.grid_range)/2;
+            if n_dim==2
+                overlay_shape_change_2d(ax,p,plot_info.stretch,s.convert);
+            end            
+            if n_dim==3
+                line('XData',p.phi_locus_full{i}.shape(:,1),'YData',p.phi_locus_full{i}.shape(:,2),'ZData',p.phi_locus_full{i}.shape(:,3),'Color',Colorset.spot,'LineWidth',6,'parent',ax);
+            end
             
         end
         

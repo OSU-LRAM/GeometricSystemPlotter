@@ -37,7 +37,7 @@ function output = shchf_LowRe_MaxDisplacement(input_mode,pathnames)
 			p.time_def = [0 2*pi];
 			
 			% use simple polygon integration for the cBVI
-			%p.cBVI_method = 'simple';
+			p.cBVI_method = 'simple';
 
 
 			%path resolution
