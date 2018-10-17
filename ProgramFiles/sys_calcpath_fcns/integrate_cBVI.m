@@ -1,4 +1,4 @@
-function [cBVI cBVI_opt] = integrate_cBVI(s,p)
+function [cBVI, cBVI_opt] = integrate_cBVI(s,p)
 % Integrate up the corrected body velocity integral
 
 	% number of dimensions for the cBVI

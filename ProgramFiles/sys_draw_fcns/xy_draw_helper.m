@@ -109,8 +109,8 @@ function plot_info = xy_draw_helper(s,p,plot_info,sys,shch,optselect);
 				lstring = ['cBVI ' num2str(i)];
 			end
 			
-			if ~(isfield(p,['cBVI' optselect]) && ~isempty(p.(['cBVI' optselect])))
-				lstring = [lstring '(not calculated)'];
+			if (~(isfield(p,['cBVI' optselect]) && ~isempty(p.(['cBVI' optselect])))) || (numel(s.grid.vector) > 2)
+				lstring = [lstring ' (not calculated)'];
 			end
 			
 			cBVI_l = [cBVI_l;lstring];
