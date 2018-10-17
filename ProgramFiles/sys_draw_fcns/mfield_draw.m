@@ -21,48 +21,41 @@ plot_info = ensure_figure_axes(plot_info);
 %%%%%%%
 % Get the vector field and interpolate into the specified grid
 
-% Extract the display vector field
-E = s.grid.metric_display;
-
 % Extract the plotting grid
-grid = s.grid.vector;
+grid = s.grid.metric_eval;
 
 
 % metric for evaluating ellipse field
-Mtemp = s.metricfield.metric_display.content.metric;
-if ~plot_info.stretch
-    tr = 2:10;
-else
-    tr = 3:9;
-end
-
-for i = 1:4
-    
-    Mtemp{i} = Mtemp{i}(tr,tr);
-    
-end
-M = celltensorconvert(Mtemp);
+M = s.metricfield.metric_display.content.metric;
+%if ~plot_info.stretch
+    tr = 2:(size(M{1},1)-1);
+%else
+%    tr = 3:(size(M{1},1)-2);
+%end
+% 
+% for i = 1:4
+%     
+%     Mtemp{i} = Mtemp{i}(tr,tr);
+%     
+% end
+%M = celltensorconvert(Mtemp);
 
 %%
 % for trimming  vectors that would be on the outside of the metric
 % stretch
 % Convert the ellipse field to the plotting grid specified in the gui
-[E,grid] = plotting_interp(E,grid,resolution,'vector');
+resolution.metric = size(s.grid.metric_display{1});
+resolution.metric_range = [s.grid.metric_display{1}(1) s.grid.metric_display{1}(end) s.grid.metric_display{2}(1) s.grid.metric_display{2}(end)];
+[M,grid] = plotting_interp(M,grid,resolution,'metric');
 
-% trim outer columns and rows
 
 
-E{1} = E{1}(tr,tr);
-E{2} = E{2}(tr,tr);
-
-grid{1} = grid{1}(tr,tr);
-grid{2} = grid{2}(tr,tr);
-
+    
 % Create a set of vector fields along coordinate directions
-E_coord = repmat({zeros(size(E{1}))},numel(grid));
+E_coord = repmat({zeros(size(M{1}))},numel(grid));
 for i = 1:numel(grid)
     
-    E_coord{i,i} = ones(size(E{1}));
+    E_coord{i,i} = ones(size(M{1}));
     
 end
 
@@ -71,6 +64,8 @@ end
 % (multiply the vectors by the inverse jacobian)
 
 if plot_info.stretch
+    
+    M = celltensorconvert(M);
     
     % Calculate the jacobians at the plotting points
     Jac = arrayfun(s.convert.jacobian,grid{:},'UniformOutput',false);
@@ -88,22 +83,22 @@ if plot_info.stretch
     % Use the jacobians to convert the coordinate vectors in accordance
     % with the stretch transformation
     
-    for i = 1:size(E{1},1)
+    for i = 1:size(M{1},1)
         
         % Iterate over all vectors present
-        for j = 1:size(E{1},1)
+        for j = 1:size(M{1},1)
             
             % Extract all components of the relevant vector
             % 				tempEin = cellfun(@(x) x(j),E_coord(i,:));
-            tempEin = [E{1}(i,j);E{2}(i,j)];
+            tempMin = [M{1}(i,j);M{2}(i,j)];
             
             % Multiply by the Jacobian (because V_coord is a flow)
-            tempEout = Jac{i,j}*tempEin;
+            tempMout = Jac{i,j}*tempMin;
             
             % Replace vector components
             
-            E{1}(i,j) = tempEout(1);
-            E{2}(i,j) = tempEout(2);
+            M{1}(i,j) = tempMout(1);
+            M{2}(i,j) = tempMout(2);
             
         end
         
@@ -114,6 +109,8 @@ if plot_info.stretch
     % Convert the grid points to their new locations
     [grid{:}] = s.convert.old_to_new_points(grid{:});
     
+    M = celltensorconvert(M);
+    
 end
 
 %%%
@@ -121,12 +118,20 @@ end
 %vector field
 if s.singularity
     
-    E = arctan_scale_vector_fields(E);
+    M = arctan_scale_vector_fields(M);
     
 end
 
 
+% trim outer columns and rows
 
+for idx = 1:numel(M)
+    M{idx} = M{idx}(tr,tr);
+end
+
+for idx = 1:numel(grid)
+    grid{idx} = grid{idx}(tr,tr);
+end
 
 for i = 1:length(plot_info.axes)
     
@@ -140,7 +145,7 @@ for i = 1:length(plot_info.axes)
     
     % metricellipsefield(s.grid.metric_display{:},celltensorconvert(s.metricfield.metric_display.content.metric),'tissot',{'edgecolor','k’})
     
-    metricellipsefield(E{:},M,'tissot',{'edgecolor','k','parent',ax});
+    metricellipsefield(grid{:},celltensorconvert(M),'tissot',{'edgecolor','k','parent',ax});
     box(ax,'on');
     
     % Make edges if coordinates have changed
@@ -176,7 +181,7 @@ for i = 1:length(plot_info.axes)
     label_shapespace_axes(ax,[],plot_info.stretch);
     
     %Set the tic marks
-    set_tics_shapespace(ax,s,s.convert);
+    set_tics_shapespace(ax,s);%,s.convert);
     
     %If there's a shape change involved, plot it
     if ~strcmp(shch,'null')
