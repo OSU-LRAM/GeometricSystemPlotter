@@ -34,7 +34,7 @@ elseif exist(g2,'file') == 2
     n_dim=length(s.vecfield.eval.content.Avec_optimized(1,:));
     if numel(p.phi_fun_full) == 1
         t = p.time_full{1,1};
-        a12 = p.phi_fun_full{1,1}(t);
+        a12 = p.phi_locus_full{1,1}.shape;
         if n_dim>=2
             alpha1 = a12(:,1);
             alpha2 = a12(:,2);
