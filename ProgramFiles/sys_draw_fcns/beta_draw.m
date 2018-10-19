@@ -235,7 +235,13 @@ function plot_info = beta_draw(s,p,plot_info,sys,shch,resolution)
 
         end
     else
-        text(0.1,0.5,'Illustration of Beta not implemented for >2 shape variables')
+        for i = 1:length(plot_info.axes)
+
+            %call up the relevant axis
+            ax =plot_info.axes(i);
+            
+            text(0.1,0.5,'Illustration of Beta not implemented for >2 shape variables','Parent',ax)
+        end
     end
 
 end

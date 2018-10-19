@@ -6,10 +6,12 @@ function plot_info = dbeta_draw(s,p,plot_info,sys,shch,resolution)
 	% Get the number of dimensions
 	n_dim = numel(s.grid.eval);
     
+    %Ensure that there are figure axes to plot into, and create new windows
+    %for those axes if necessary
+    plot_info = ensure_figure_axes(plot_info);        
+
+    
     if n_dim==2 
-        %Ensure that there are figure axes to plot into, and create new windows
-        %for those axes if necessary
-        plot_info = ensure_figure_axes(plot_info);        
         %%%
         %put vector field commands here
 
@@ -285,6 +287,12 @@ function plot_info = dbeta_draw(s,p,plot_info,sys,shch,resolution)
 
         end
     else
-        text(0.1,0.5,'Illustration of dBeta not implemented for >2 shape variables')
+        for i = 1:length(plot_info.axes)
+
+            %call up the relevant axis
+            ax =plot_info.axes(i);
+            
+            text(0.1,0.5,'Illustration of dBeta not implemented for >2 shape variables','Parent',ax)
+        end
     end
 end
