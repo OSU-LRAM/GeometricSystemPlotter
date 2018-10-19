@@ -224,7 +224,9 @@ function plot_info = vfield_draw(s,p,plot_info,sys,shch,resolution)
         if n_dim == 2
 			quiver(ax,grid{:},V{field_number,1},V{field_number,2},'k','LineWidth',2)
         else
-			quiver3(ax,grid{1:3},V{field_number,:},'k','LineWidth',2)
+            idxt=cell(1,n_dim-3);
+            idxt(1,:)={1};
+			quiver3(ax,grid{1}(:,:,:,idxt{:}),grid{2}(:,:,:,idxt{:}),grid{3}(:,:,:,idxt{:}),V{field_number,1}(:,:,:,idxt{:}),V{field_number,2}(:,:,:,idxt{:}),V{field_number,3}(:,:,:,idxt{:}),'k','LineWidth',2)
         end
 			
 		% Make edges if coordinates have changed
@@ -267,8 +269,8 @@ function plot_info = vfield_draw(s,p,plot_info,sys,shch,resolution)
             if n_dim==2
                 overlay_shape_change_2d(ax,p,plot_info.stretch,s.convert);
             end            
-            if n_dim==3
-                line('XData',p.phi_locus_full{i}.shape(:,1),'YData',p.phi_locus_full{i}.shape(:,2),'ZData',p.phi_locus_full{i}.shape(:,3),'Color',Colorset.spot,'LineWidth',6,'parent',ax);
+            if n_dim>2
+                line('Parent',ax,'XData',p.phi_locus_full{i}.shape(:,1),'YData',p.phi_locus_full{i}.shape(:,2),'ZData',p.phi_locus_full{i}.shape(:,3),'Color',Colorset.spot,'LineWidth',6,'parent',ax);
             end
             
         end
