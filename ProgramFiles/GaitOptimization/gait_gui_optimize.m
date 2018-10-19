@@ -20,16 +20,7 @@ current_shch = shch_names{shch_index};
 
 g1 = fullfile(shchpath,strcat(current_shch(7:end),'.mat'));
 g2 = fullfile(datapath,strcat(current_system,'__',current_shch,'.mat'));
-if exist(g1,'file') == 2
-    load(g1);
-    if exist('alpha4')==1
-        n_dim=4;
-    elseif exist('alpha3')==1
-        n_dim=3;
-    else
-        n_dim=2;
-    end
-elseif exist(g2,'file') == 2
+if exist(g2,'file') == 2
     load(g2);
     n_dim=length(s.vecfield.eval.content.Avec_optimized(1,:));
     if numel(p.phi_fun_full) == 1
@@ -45,6 +36,15 @@ elseif exist(g2,'file') == 2
         if n_dim>=4
             alpha4 = a12(:,4);
         end       
+elseif exist(g1,'file') == 2
+    load(g1);
+    if exist('alpha4')==1
+        n_dim=4;
+    elseif exist('alpha3')==1
+        n_dim=3;
+    else
+        n_dim=2;
+    end
     else
         error('Selected gait file has more than one cycle. Optimizer only works on single cycles.')
     end

@@ -81,7 +81,11 @@ function p = find_loci(s,p)
             if test1<n_dim
                 p.phi_locus{i}{j}.shape=[p.phi_locus{i}{j}.shape,zeros(test2,n_dim-test1)];
             end
-
+            
+            if test1>n_dim
+                p.phi_locus{i}{j}.shape=p.phi_locus{i}{j}.shape(:,1:n_dim);
+            end
+            
 			%fill in phi_marker
 			p.phi_locus{i}{j}.marker.shape = p.phi_marker{i}{j};
 
@@ -156,7 +160,10 @@ function p = find_loci(s,p)
         if test1<n_dim
             p.phi_locus_full{i}.shape=[p.phi_locus_full{i}.shape,zeros(test2,n_dim-test1)];
         end
-		p.phi_locus_full{i}.marker.shape = cat(1,ptemp{:});
+        if test1>n_dim
+            p.phi_locus_full{i}.shape=p.phi_locus_full{i}.shape(:,1:n_dim);
+        end        
+		p.phi_locus_full{i}.marker.shape = cat(1,ptemp{:});              
 
 		if n_dim == 2;
 			
