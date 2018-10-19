@@ -145,7 +145,7 @@ if ~isempty(hAxChildren)
    end
 end
 
-gaitline = line('Parent',hAx,'XData',alpha12,'YData',alpha22,'ZData',maxZ*ones(size(alpha1)),'Color',Colorset.spot,'LineWidth',5);
+gaitline = line('Parent',hAx,'XData',alpha12,'YData',alpha22,'ZData',maxZ*ones(size(alpha12)),'Color',Colorset.spot,'LineWidth',5);
 
 %%%% Ask the user for a filename
 current_dir = pwd; % Remember where we started
