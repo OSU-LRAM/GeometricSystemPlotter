@@ -8,3 +8,5 @@ show_downloads: false
 
 github:
   zip_url: https://github.com/OSU-LRAM/GeometricSystemPlotter/releases/latest
+
+logo: SysplotterLogo.png
