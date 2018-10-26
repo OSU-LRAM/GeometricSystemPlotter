@@ -1,3 +1,3 @@
 # GeometricSystemPlotter
 
-This is a test of the GitHub pages system
+Latest release: https://github.com/OSU-LRAM/GeometricSystemPlotter/releases/latest
