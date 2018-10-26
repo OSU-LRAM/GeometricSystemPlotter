@@ -4,7 +4,7 @@ title: Geometric System Plotter
 
 description: Geometric System Plotter is a set of Matlab functions for geometrically analyzing the dynamics of locomoting systems.
 
-show_downloads: true
+show_downloads: false
 
 github:
   zip_url: https://github.com/OSU-LRAM/GeometricSystemPlotter/releases/latest
