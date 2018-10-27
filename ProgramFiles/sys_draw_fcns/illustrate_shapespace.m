@@ -75,11 +75,12 @@ function illustrate_shapespace(system,target)
 
     % define a color list
     colorlist = {Colorset.spot, Colorset.secondary, 'k'};
-
+    
+    % In 4-dimensional systems, we need to select colors based on the value
+    % of the 4th shape variable.  
     if n_dim==4
         maxp=max(max(max(max(paramgrid{1}))));
         minp=min(min(min(min(paramgrid{1}))));
-        increment=1/(maxp-minp);
     end
 
 
@@ -90,7 +91,10 @@ function illustrate_shapespace(system,target)
         for idx2 = 1:numel(paramgrid)
             p(idx2) = paramgrid{idx2}(idx);
         end
-
+        
+        % Code to make sure that for systems with 4 shape variables, the
+        % swimmer with 4th shape variable zero is plotted in black and
+        % plotted last for a given spot on alpha1-alpha2-alpha3 space.
         if n_dim==4
             value1=(length(paramgrid{4}(:,1)))^3;
             p(4)=paramgrid{4}(mod(idx+2*value1-1,numel(paramgrid{1}))+1);
@@ -116,10 +120,12 @@ function illustrate_shapespace(system,target)
             B{idx2} = B{idx2}(:);
 
             for idx3 = 1:numel(B{idx2})
+                % Taking the coordinates of the swimmer in R^2 and embedding it in the shape space 
                 if n_dim==3
                     B{idx2}{idx3}(3,:)=zeros(1,length(B{idx2}{idx3}(1,:)));
                 end
                 if n_dim==4
+                    B{idx2}{idx3}(3,:)=zeros(1,length(B{idx2}{idx3}(1,:)));
                     B{idx2}{idx3}(4,:)=zeros(1,length(B{idx2}{idx3}(1,:)));
                 end
                 % transform the body elements to their position on the grid
