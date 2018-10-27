@@ -344,7 +344,8 @@ switch baseframe
                         end
 
                     end
-
+                    frame_mp(1)=sum(linklengths)*frame_mp(1);
+                    frame_mp(2)=sum(linklengths)*frame_mp(2);
                     % Convert the transforms that were just found into an
                     % SE(2) matrix and a body-velocity Jacobian
                     frame_mp = vec_to_mat_SE2(frame_mp);
