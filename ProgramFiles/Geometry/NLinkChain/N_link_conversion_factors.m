@@ -45,6 +45,9 @@ M_joints = N_links-1;
 % Decide if there is an even or odd number of joints
 N_odd = mod(N_links,2);
 
+% Total length for use in taking weighted averages
+L = sum(linklengths);
+
 %%%%%%%%%%%%%%%%%%%
 
     
@@ -165,9 +168,6 @@ switch baseframe
     % Places the reference frame at center of mass and average orientation
     % of the links, using link-lengths as weighting terms
     case 'com-mean'
-        
-        % Total length for use in taking weighted averages
-        L = sum(linklengths);
         
         % Convert link positions to row form
         chain = mat_to_vec_SE2(chain_m);
@@ -329,7 +329,13 @@ switch baseframe
                         frame_mp(idx) = interpn(s.grid.eval{:},...                  % system evaluation grid
                                                 s.B_optimized.eval.Beta{idx},...    % Components of the transfomation to m-p coordinates
                                                 jointangles_cell{:});               % Current shape
-
+                        
+                        % Scale the x and y components of the frame
+                        % location 
+                        if any(idx==[1 2])
+                            frame_mp(idx) = L*frame_mp(idx)/s.geometry.length;
+                        end
+                        
                         % Iterate over shape components for Jacobian
                         for idx2 = 1:numel(jointangles)
 
@@ -341,11 +347,19 @@ switch baseframe
                                                     s.B_optimized.eval.gradBeta{idx,idx2},...    % Components of the transfomation to m-p coordinates
                                                     jointangles_cell{:});               % Current shape
 
+                            % Scale the x and y components of the frame
+                            % Jacobian
+                            if any(idx==[1 2])
+                                J_mp(idx,idx2) = L*J_mp(idx,idx2)/s.geometry.length;
+                            end
                         end
+                        
+
 
                     end
-                    frame_mp(1)=sum(linklengths)*frame_mp(1);
-                    frame_mp(2)=sum(linklengths)*frame_mp(2);
+                    
+                                            
+
                     % Convert the transforms that were just found into an
                     % SE(2) matrix and a body-velocity Jacobian
                     frame_mp = vec_to_mat_SE2(frame_mp);

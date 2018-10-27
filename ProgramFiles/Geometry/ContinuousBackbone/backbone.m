@@ -28,10 +28,10 @@ function [h, J, J_full,frame_zero,J_zero] = backbone(geometry,shapeparams)
 %                                       sysf_ file. Argument should be the name of
 %                                       a system in the current UserFiles folder
 %
-%   length (optional): Total length of the chain. If specified, the elements of
-%       will be scaled such that their sum is equal to L. If this field
-%       is not provided or is entered as an empty matrix, then the links
-%       will not be scaled.
+%       length (optional): Total length of the backbone. If specified, the elements of
+%           will be scaled such that their sum is equal to L. If this field
+%           is not provided or is entered as an empty matrix, then the
+%           backbone will not be scaled.
 %
 %   shapeparams: A vector of the  input parameters taken by the curvature
 %       function
@@ -132,14 +132,11 @@ end
 %%%%%%
 % Calculate the transformation from the original base frame to the new base
 % frame
+
 if calc_J
-    [frame_zero,J_zero] = backbone_conversion_factors(h,J,shapeparams,baseframe);   
+    [frame_zero,J_zero] = backbone_conversion_factors(h,J,shapeparams,baseframe,geometry.length);   
 else
-    frame_zero = backbone_conversion_factors(h,[],shapeparams,baseframe);
-    if strncmp(baseframe,'sysf_',5)
-        frame_zero(1,3)=geometry.length*frame_zero(1,3);
-        frame_zero(2,3)=geometry.length*frame_zero(2,3);
-    end
+    frame_zero = backbone_conversion_factors(h,[],shapeparams,baseframe,geometry.length);
 end
 
 %%%%%%

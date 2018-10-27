@@ -19,10 +19,10 @@ function [A, h, J,Omega] = LowRE_connection_continuous(geometry,physics,shapepar
 [h,J] = backbone(geometry,shapeparams);
 
 % Itegrate from one halflength before the midpoint to one halflength after it
-int_limit = geometry.length*[-0.5 0.5];
+int_limit = [-0.5 0.5];
 
 % Now integrate to get the pfaffian
-Omega_sol = ode45( @(s,Omega) LowRE_Pfaffian_infinitesimal(s,h(s),J(s),physics.drag_coefficient,physics.drag_ratio),int_limit,zeros(3,3+length(shapeparams)));
+Omega_sol = ode45( @(s,Omega) LowRE_Pfaffian_infinitesimal(s,h(s),J(s),geometry.length,physics.drag_coefficient,physics.drag_ratio),int_limit,zeros(3,3+length(shapeparams)));
 
 % Reshape the terms of the Pfaffian into a matrix of the correct dimension
 Omega = reshape(deval(Omega_sol,int_limit(end)),3,[]);
@@ -35,7 +35,7 @@ A = Omega(:,1:3)\Omega(:,4:end);
 end
 
 
-function dOmega = LowRE_Pfaffian_infinitesimal(s,h,J,c,drag_ratio) %#ok<INUSL>
+function dOmega = LowRE_Pfaffian_infinitesimal(s,h,J,lambda,c,drag_ratio) %#ok<INUSL>
 % Calculate the derivative of the local connection as it's built up along
 % the backbone
 
@@ -43,11 +43,12 @@ function dOmega = LowRE_Pfaffian_infinitesimal(s,h,J,c,drag_ratio) %#ok<INUSL>
 	gdot_to_gcirc_local = TgLginv(h);
 		
 	% Local drag, based on unit longitudinal drag, lateral according to the ratio, no local
-	% torsional drag, multiplied by drag coefficient
+	% torsional drag, multiplied by drag coefficient and local scaled
+	% differential length
 	gcirc_local_to_F_local = ...
         [-1     0       0;
         0   -drag_ratio 0;
-        0       0       0]*c;
+        0       0       0]*c*lambda;
 	
     % Transfer force to midpoint-tangent frame by transpose of the
     % adjoint-inverse action

@@ -31,13 +31,11 @@ function output = sysf_triangle_lowRe_two_waves(input_mode,pathnames)
 		case 'dependency'
 
             % Dependent on the functions for generating the backbone,
-            % connection, and metric from the curvature, and on the curvdef
-            % file generated during initialization.
-			output.dependency = [fullfile(pathnames.sysplotterpath,...
-                {'Utilities/curvature_mode_toolbox/backbone_from_general_curvature.m';...
-				'Utilities/LowRE_toolbox/LowRE_dissipation_metric.m';...
-				'Utilities/LowRE_toolbox/LowRE_local_connection.m'});
-                fullfile(pathnames.syspath,curvdef_name,'.mat')];
+            % connection, and metric from the curvature
+            output.dependency = fullfile(pathnames.sysplotterpath,...
+                {'Geometry/ContinuousBackbone/',...
+                'Physics/LowReynoldsRFT/'});
+
 
 		case 'initialize'
             
@@ -128,7 +126,7 @@ function output = sysf_triangle_lowRe_two_waves(input_mode,pathnames)
 			%densities for various operations
 			s.density.vector = [1 1]*11; %density to display vector field
 			s.density.scalar = [1 1]*21; %density to display scalar functions
-			s.density.eval = [1 1]*21;   %density for function evaluations
+			s.density.eval = [1 1]*31;   %density for function evaluations
             s.density.metric_eval = [1 1]*11;
             s.density.finite_element=31;
 

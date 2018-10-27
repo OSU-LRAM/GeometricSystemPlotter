@@ -59,7 +59,7 @@ if nargout > 1
     jacobian_sol = ode_multistart(@ode45,@(s,J) J_helper(s,J,dcurvdef,h_norm(s)),all_limits,0,zeros(2*length(dcurvdef(0)),1));
 
     % Concatenate xy and theta jacobians.
-    J = @(s) cat(1,reshape(L*jacobian_sol(toz(s/L)),2,[],length(s)),permute(J_theta_fun(s/L),[3,2,1]));
+    J = @(s) cat(1,reshape(L*jacobian_sol(toz(s)),2,[],length(s)),permute(J_theta_fun(s),[3,2,1]));
 
 end
 
