@@ -56,8 +56,8 @@ function output = sysf_diffdrive(input_mode,pathnames)
 			%non-carlike systems)
 			s.xy_no_opt = 1;
             
-            % Flag system type as inertial
-            s.system_type = 'inertial';
+            % Set system type variable for gait optimization
+            s.system_type = 'inertia';
 
 			%%%%
             

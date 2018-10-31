@@ -80,6 +80,8 @@ function output = sysf_five_link_lowRe(input_mode,pathnames)
 			s.tic_locs.x = [-1 0 1]*1;
 			s.tic_locs.y = [-1 0 1]*1;
 
+            % Set system type variable for gait optimization
+            s.system_type = 'drag';
 
 			%%%%
 			%Save the system properties

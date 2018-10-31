@@ -103,6 +103,8 @@ function output = sysf_serpenoid4_lowRe(input_mode,pathnames)
             s.tic_locs.y = [-1 0 1]*6;
             %%%%
     
+            % Set system type variable for gait optimization
+            s.system_type = 'drag';
     
 			%Save the system properties
 			output = s;

@@ -101,7 +101,7 @@ function output = sysf_serpenoid_lowRe(input_mode,pathnames)
             s.tic_locs.x = [-1 0 1]*6;
             s.tic_locs.y = [-1 0 1]*6;
             
-            % Flag system type as drag-dominated
+            % Set system type variable for gait optimization
             s.system_type = 'drag';
             
             %%%%
