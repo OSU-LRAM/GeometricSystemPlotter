@@ -76,7 +76,16 @@ function p = find_loci(s,p)
 
 			%generate path through shape space
 			p.phi_locus{i}{j}.shape = p.phi_def{i}{j}(p.time_def{i}{j});
-
+            test1=length(p.phi_locus{i}{j}.shape(1,:));
+            test2=length(p.phi_locus{i}{j}.shape(:,1));
+            if test1<n_dim
+                p.phi_locus{i}{j}.shape=[p.phi_locus{i}{j}.shape,zeros(test2,n_dim-test1)];
+            end
+            
+            if test1>n_dim
+                p.phi_locus{i}{j}.shape=p.phi_locus{i}{j}.shape(:,1:n_dim);
+            end
+            
 			%fill in phi_marker
 			p.phi_locus{i}{j}.marker.shape = p.phi_marker{i}{j};
 
@@ -142,10 +151,19 @@ function p = find_loci(s,p)
 		% Insert a full locus for this shape change into the locus
 		% structure
 		p.phi_locus_full{i}.shape = p.phi_fun_full{i}(p.time_full{1});
+        
 		
 		% pull out the appropriate data and concatenate it
 		ptemp = cellfun(@(x) x.marker.shape,p.phi_locus{i},'UniformOutput',false);
-		p.phi_locus_full{i}.marker.shape = cat(1,ptemp{:});
+        test1=length(p.phi_locus_full{i}.shape(1,:));
+        test2=length(p.phi_locus_full{i}.shape(:,1));
+        if test1<n_dim
+            p.phi_locus_full{i}.shape=[p.phi_locus_full{i}.shape,zeros(test2,n_dim-test1)];
+        end
+        if test1>n_dim
+            p.phi_locus_full{i}.shape=p.phi_locus_full{i}.shape(:,1:n_dim);
+        end        
+		p.phi_locus_full{i}.marker.shape = cat(1,ptemp{:});              
 
 		if n_dim == 2;
 			

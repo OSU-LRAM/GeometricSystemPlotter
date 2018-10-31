@@ -18,11 +18,10 @@ function output = sysf_four_link_lowRe(input_mode,pathnames)
 		case 'dependency'
 
 			output.dependency = fullfile(pathnames.sysplotterpath,...
-                {'Utilities/curvature_mode_toolbox/N_link_chain.m';...
-				'Utilities/LowRE_toolbox/LowRE_dissipation_metric_discrete.m';...
-				'Utilities/LowRE_toolbox/LowRE_local_connection_discrete.m'});
-
-		case 'initialize'
+                {'Geometry/NLinkChain/',...
+                'Physics/LowReynoldsRFT/'});
+        
+        case 'initialize'
 
             %%%%%%
             % Define system geometry

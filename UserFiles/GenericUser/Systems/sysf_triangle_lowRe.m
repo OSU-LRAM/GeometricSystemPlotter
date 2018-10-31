@@ -31,13 +31,10 @@ function output = sysf_triangle_lowRe(input_mode,pathnames)
 		case 'dependency'
 
             % Dependent on the functions for generating the backbone,
-            % connection, and metric from the curvature, and on the curvdef
-            % file generated during initialization.
-			output.dependency = [fullfile(pathnames.sysplotterpath,...
-                {'Utilities/curvature_mode_toolbox/backbone_from_general_curvature.m';...
-				'Utilities/LowRE_toolbox/LowRE_dissipation_metric.m';...
-				'Utilities/LowRE_toolbox/LowRE_local_connection.m'});
-                fullfile(pathnames.syspath,curvdef_name,'.mat')];
+            % connection, and metric from the curvature
+			output.dependency = fullfile(pathnames.sysplotterpath,...
+                {'Geometry/ContinuousBackbone/',...
+                'Physics/LowReynoldsRFT/'});
 
 		case 'initialize'
             

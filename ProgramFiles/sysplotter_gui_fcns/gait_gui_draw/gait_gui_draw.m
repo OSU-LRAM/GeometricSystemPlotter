@@ -128,7 +128,7 @@ if ~usercancel
     shchfile = fullfile(shchpath,['shchf_' paramfilenamebare]);
     if ~exist([shchfile '.m'],'file') || ~isfunction(shchfile)
         
-        gait_gui_draw_make_shchf(paramfilenamebare, paramfilenamebare)
+        gait_gui_draw_make_shchf(paramfilenamebare, paramfilenamebare,2)
         
     end
     

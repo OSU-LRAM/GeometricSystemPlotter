@@ -66,7 +66,7 @@ function output = AA_SHCHFILENAME(input_mode,pathnames)
             
             % The gait path is now defined by evaluating the two splines at
             % specified times
-			p.phi_def = @(t) [ppval(spline_alpha1,t(:)),ppval(spline_alpha2,t(:)),ppval(spline_alpha3,t(:))];
+			p.phi_def = @(t) [ppval(spline_alpha1,t(:)),ppval(spline_alpha2,t(:)),ppval(spline_alpha3,t(:)),ppval(spline_alpha4,t(:))];
             
             
             % Speed up execution by defining the gait velocity as well (so
@@ -74,7 +74,8 @@ function output = AA_SHCHFILENAME(input_mode,pathnames)
             % at every time
             spline_dalpha1 = ppdiff(spline_alpha1);
             spline_dalpha2 = ppdiff(spline_alpha2);
-	    spline_dalpha3 = ppdiff(spline_alpha3);		
+	    spline_dalpha3 = ppdiff(spline_alpha3);
+	    spline_dalpha4 = ppdiff(spline_alpha4);			
             
             % The gait path is now defined by evaluating the two splin
             % derivatives at specified times

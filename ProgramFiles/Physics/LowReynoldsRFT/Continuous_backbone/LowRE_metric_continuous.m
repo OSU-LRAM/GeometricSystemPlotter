@@ -11,7 +11,7 @@ function Mp = LowRE_metric_continuous(geometry,physics,shapeparams)
 	[A, h, J] = LowRE_local_connection(geometry,physics,shapeparams);
 
 	% Integrate along the body for the power metric
-	Mp_sol = ode45(@(s,Mp) dMetric(s,Mp,A,h(s),J(s),drag_matrix),int_limit,zeros(length(shapeparams)));%zeros(length(shapeparams)^2,1));
+	Mp_sol = ode45(@(s,Mp) dMetric(s,Mp,A,h(s/geometry.length),J(s/geometry.length),drag_matrix),int_limit,zeros(length(shapeparams)));%zeros(length(shapeparams)^2,1));
 
     % Form the components of the metric into the standard NxN symmetric matrix form
 	Mp = reshape(deval(Mp_sol,int_limit(end)),length(shapeparams),[]);
