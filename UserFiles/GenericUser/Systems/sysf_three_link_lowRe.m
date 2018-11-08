@@ -77,7 +77,7 @@ function output = sysf_three_link_lowRe(input_mode,pathnames)
 			s.tic_locs.y = [-1 0 1]*1;
 
             % Set system type variable for gait optimization
-            s.system_type = 'inertia';
+            s.system_type = 'drag';
             
 			%%%%
 			%Save the system properties

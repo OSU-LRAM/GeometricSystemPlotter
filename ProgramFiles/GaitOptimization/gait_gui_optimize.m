@@ -102,12 +102,15 @@ if n_dim==2
     if strcmpi(s.system_type,'drag')
         y=optimalgaitgenerator(s,2,n_plot,alpha1_plot,alpha2_plot,lb,ub);
     elseif strcmpi(s.system_type,'inertia')
-        y = inertial_optimalgaitgenerator(s,2,n_plot,alpha1_plot,alpha2_plot,lb,ub);
+        % Need to take a subset of the space since the optimizer is too
+        % slow for now; interpolate gait at n_interp points
+        n_interp = 23;
+        y = inertial_optimalgaitgenerator(s,2,n_plot,alpha1_plot,alpha2_plot,lb,ub,n_interp);
     else
         error('Unexpected system_type field in struct s.')
     end
-    alpha1 = [y(1:100)',y(1)]';
-    alpha2 = [y(101:200)',y(101)]';
+    alpha1 = [y(1:n_plot)',y(1)]';
+    alpha2 = [y(n_plot+1:2*n_plot)',y(n_plot+1)]';
     t=t_plot;
     tnew=t(1):(t(2)-t(1))/4:t(end);
     alpha12=interp1(t,alpha1,tnew,'spline');
@@ -117,9 +120,9 @@ elseif n_dim==3
     lb=0.95*[s.grid_range(1)*ones(n_plot+1,1);s.grid_range(3)*ones(n_plot+1,1);s.grid_range(5)*ones(n_plot+1,1)];%0.9 was points value
     ub=0.95*[s.grid_range(2)*ones(n_plot+1,1);s.grid_range(4)*ones(n_plot+1,1);s.grid_range(6)*ones(n_plot+1,1)];
     y=optimalgaitgenerator3(s,3,n_plot,alpha1_plot,alpha2_plot,alpha3_plot,lb,ub);
-    alpha1 = [y(1:100)',y(1)]';
-    alpha2 = [y(101:200)',y(101)]';
-    alpha3 = [y(201:300)',y(201)]';
+    alpha1 = [y(1:n_plot)',y(1)]';
+    alpha2 = [y(n_plot+1:2*n_plot)',y(n_plot+1)]';
+    alpha3 = [y(2*n_plot:3*n_plot)',y(2*n_plot+1)]';
     t=t_plot;
     tnew=t(1):(t(2)-t(1))/4:t(end);
     alpha12=interp1(t,alpha1,tnew,'spline');
@@ -129,10 +132,10 @@ elseif n_dim==4
     lb=0.95*[s.grid_range(1)*ones(n_plot+1,1);s.grid_range(3)*ones(n_plot+1,1);s.grid_range(5)*ones(n_plot+1,1);s.grid_range(7)*ones(n_plot+1,1)];%0.9 was points value
     ub=0.95*[s.grid_range(2)*ones(n_plot+1,1);s.grid_range(4)*ones(n_plot+1,1);s.grid_range(6)*ones(n_plot+1,1);s.grid_range(8)*ones(n_plot+1,1)];
     y=optimalgaitgenerator4(s,4,n_plot,alpha1_plot,alpha2_plot,alpha3_plot,alpha4_plot,lb,ub);
-    alpha1 = [y(1:100)',y(1)]';
-    alpha2 = [y(101:200)',y(101)]';
-    alpha3 = [y(201:300)',y(201)]';
-    alpha4 = [y(301:400)',y(301)]';
+    alpha1 = [y(1:n_plot)',y(1)]';
+    alpha2 = [y(n_plot+1:2*n_plot)',y(n_plot+1)]';
+    alpha3 = [y(2*n_plot+1:3*n_plot)',y(2*n_plot+1)]';
+    alpha4 = [y(3*n_plot+1:4*n_plot)',y(3*n_plot+1)]';
     t=t_plot;
     tnew=t(1):(t(2)-t(1))/4:t(end);
     alpha12=interp1(t,alpha1,tnew,'spline');

@@ -1,4 +1,4 @@
-function y=inertial_optimalgaitgenerator(s,dimension,npoints,a1,a2,lb,ub)
+function y=inertial_optimalgaitgenerator(s,dimension,npoints,a1,a2,lb,ub,n_interp)
 
 addpath('Tools')
 
@@ -34,26 +34,25 @@ P.dt = P.T/P.N;
 
 %coordinates of the points
 
-for i=1:1:P.N
-    P1(i,1)= 0.9*cos((i-1)*2*pi/P.N);
-    P1(i,2)= 0.9*sin((i-1)*2*pi/P.N);
-end
-P1 = flip(P1);
+% for i=1:1:P.N
+%     P1(i,1)= 0.9*cos((i-1)*2*pi/P.N);
+%     P1(i,2)= 0.9*sin((i-1)*2*pi/P.N);
+% end
+% P1 = flip(P1);
 
 %-----Substituting the format from optimalgaitgenerator.m-----%
-% P1(:,1)=a1(1,2:P.N-1)';
-% P1(:,2)=a2(1,2:P.N-1)';
-% n_interp = 23;
-% t1 = linspace(0,1,P.N-2);
-% t2 = linspace(0,1,n_interp);
-% P1_new = interp1(t1,P1(:,1),t2,'linear');
-% P2_new = interp1(t1,P1(:,2),t2,'linear');
+P1(:,1)=a1(1,2:P.N-1)';
+P1(:,2)=a2(1,2:P.N-1)';
+t1 = linspace(0,1,P.N-2);
+t2 = linspace(0,1,n_interp);
+P1_new = interp1(t1,P1(:,1),t2,'linear');
+P2_new = interp1(t1,P1(:,2),t2,'linear');
 
 % Setting up fmincon
 
 P0=[P1(:,1);P1(:,2)];
-% P0_new = [P1_new';P2_new'];
-% P.N = n_interp;
+P0_new = [P1_new';P2_new'];
+P.N = n_interp;
 %-----Commenting out because it says it's unused-----%
 % time_limit = 1400;
 % t0 = [0 time_limit];
@@ -83,19 +82,20 @@ beq=[];
 % ub= 1.7*ones(size(P0));
 nonlcon=[];
 
-options = optimoptions('fmincon','Display','iter','Algorithm','interior-point','GradObj','on','TolX',1*10^-7,'TolFun',1*10^-7,'MaxIter',2000,'MaxFunEvals',20000);
-
-[y fval exitflag output] = fmincon(@(Y) inertial_optimizer_calc(Y,s,P),P0,A,b,Aeq,beq,lb,ub,nonlcon,options);
-
+options = optimoptions('fmincon','Display','iter','Algorithm','active-set','GradObj','on','TolX',1*10^-5,'TolFun',1*10^-5,'MaxIter',2000,'MaxFunEvals',20000);
+tic;
+[y fval exitflag output] = fmincon(@(Y) inertial_optimizer_calc(Y,s,P),P0_new,A,b,Aeq,beq,lb,ub,nonlcon,options);
+toc
+% Interpolate back to the expected number of points
 t1 = linspace(0,1,npoints);
-% t2 = linspace(0,1,n_interp);
-% y1 = interp1(t2,y(1:n_interp),t1);
-% y2 = interp1(t2,y(n_interp+1:end),t1);
-% y = [y1 y2]';
+t2 = linspace(0,1,n_interp);
+y1 = interp1(t2,y(1:n_interp),t1);
+y2 = interp1(t2,y(n_interp+1:end),t1);
+y = [y1 y2]';
 %-----Commenting out the plotting stuff-----%
-% figure(12)
+% figure(15)
 % hold 'on'
-% plot(y(1:n),y(n+1:2*n),'k--');
+% plot(y(1:n_interp),y(n_interp+1:2*n_interp),'g--');
 % axis equal
 % 
 % pause(0.1)

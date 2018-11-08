@@ -57,7 +57,7 @@ for i=1:1:n
     height(i,2) = 0;
 
 end
-
+%---- This is the cost function gradient ----%
 % Calculate PathLength cost or Delta-V cos
 %----- Pretty sure Hossein said that this switch isn't needed and to only
 %use the Delta-v case-----%
@@ -111,6 +111,8 @@ end
         
         cost = totaldelta_v;
         grad = grad_delta_v;
+        
+%---- end cost function gradient ----%
         jacobianeqi = zeros(n,2);
 %         [~,jacobianeqi] = pathlengthcost(y,M,dM,P);
 
@@ -139,27 +141,27 @@ f = -lineint/cost;
 g1 = -[totaljacobian(:)];
 
 %-----Commenting out what looks like a bunch of plotting stuff-----%
-% for i=1:n
-%     G(i) = y(i,1);
-%     H(i) = y(i,2);
-%     W(i) = -totaljacobian(i,2);
-%     V(i) = -totaljacobian(i,1);
-% end
-% 
-% scale1=1;
-% 
-% clf(figure(2)) %%jacobianstroke
-% figure(2)
-% scale=0;
-% quiver(G,H,V,W,'AutoScale','on')
-% hold on
-% plot(G,H,'-ro')
-% hold on
-% 
-% axis equal
-% hold off
-% % pause(0.01)
-% drawnow
+for i=1:n
+    G(i) = y(i,1);
+    H(i) = y(i,2);
+    W(i) = -totaljacobian(i,2);
+    V(i) = -totaljacobian(i,1);
+end
+
+scale1=1;
+
+clf(figure(2)) %%jacobianstroke
+figure(2)
+scale=0;
+quiver(G,H,V,W,'AutoScale','on')
+hold on
+plot(G,H,'-ro')
+hold on
+
+axis equal
+hold off
+% pause(0.01)
+drawnow
 
 
 end
