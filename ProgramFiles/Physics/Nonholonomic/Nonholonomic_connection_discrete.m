@@ -97,9 +97,17 @@ function [A_out, h, J, J_full, omega] = Nonholonomic_connection_discrete(geometr
     
     % Prevent Matlab from playing tricks with imaginary numbers on symbolic
     % inputs and from complaining about assumptions on constants
-    if isa(jointangles,'sym')
+    if or( isa(jointangles,'sym'), isa(geometry.linklengths,'sym') )
         omega = sym(omega);
-        assume(symvar(jointangles),'real')
+        symjointangles = symvar(jointangles);
+        if ~isempty(symjointangles)
+            assume(symjointangles,'real')
+        end
+        symlinklengths = symvar(geometry.linklengths);
+        if ~isempty(symlinklengths)
+            assume(symlinklengths,'real')
+        end
+
         warning('off','symbolic:sym:sym:AssumptionsOnConstantsIgnored')
     end
     

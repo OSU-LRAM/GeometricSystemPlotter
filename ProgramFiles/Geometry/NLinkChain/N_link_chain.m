@@ -151,7 +151,7 @@ chain_m = repmat(eye(3),1,1,N_links);
 % the array symbolic, because matlab tries to cast items being inserted
 % into an array into the array class, rather than converting the array to
 % accomodate the class of the items being inserted 
-if isa(jointangles,'sym')
+if or( isa(jointangles,'sym'), isa(linklengths,'sym') )
     chain_m = sym(chain_m);
 end
 
@@ -185,7 +185,7 @@ jointchain_m = repmat(eye(3),1,1,numel(jointangles));
 % the array symbolic, because matlab tries to cast items being inserted
 % into an array into the array class, rather than converting the array to
 % accomodate the class of the items being inserted 
-if isa(jointangles,'sym')
+if or( isa(jointangles,'sym'), isa(linklengths,'sym') )
     jointchain_m = sym(jointchain_m);
 end
 
@@ -225,7 +225,7 @@ J_pattern = zeros(3,M_joints);
 % the array symbolic, because matlab tries to cast items being inserted
 % into an array into the array class, rather than converting the array to
 % accomodate the class of the items being inserted 
-if isa(jointangles,'sym')
+if or( isa(jointangles,'sym'),isa(linklengths,'sym') )
     J_pattern = sym(J_pattern);
 end
 
