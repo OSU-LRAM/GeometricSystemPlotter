@@ -209,6 +209,12 @@ for idx = 2:numel(jointangles)
         joints_m(:,:,idx-1) * ...      % Rotate by the angle of the previous joint
         links_m(:,:,idx)^2;           % Move along the link twice (because our transforms are half-links)
 
+    % Simplify trigonometric expressions if this is being calculated
+    % symbolically
+    if isa(chain_m,'sym')
+        jointchain_m(:,:,idx) = simplify(jointchain_m(:,:,idx),'steps',10);
+    end
+    
 end
 
 
