@@ -168,6 +168,12 @@ for idx = 2:N_links
         links_m(:,:,idx-1)*...                  % Transform along the proximal link
         joints_m(:,:,idx-1)*...                 % Rotate by the intermediate joint angle
         links_m(:,:,idx);                       % Transform along the distal link 
+    
+    % Simplify trigonometric expressions if this is being calculated
+    % symbolically
+    if isa(chain_m,'sym')
+        chain_m(:,:,idx) = simplify(chain_m(:,:,idx),'steps',10);
+    end
 
 end
 
