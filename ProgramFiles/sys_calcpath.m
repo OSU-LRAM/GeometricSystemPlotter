@@ -45,7 +45,7 @@ function [output] = sys_calcpath(input_mode,systemfilename,shchfilename)
 				
 				%Vectorize the shape change equation if it's an inline function
 				p = vectorize_shch(p); %#ok<NODEF>
-                save(infile2,'p')
+                
 				
 				%get shape change loci
 				p = find_loci(s,p);

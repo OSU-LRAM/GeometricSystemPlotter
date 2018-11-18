@@ -1,7 +1,8 @@
 function [frame_zero,J_zero] = backbone_conversion_factors(h,...
                                                            J,...
                                                            shapeparams,...
-                                                           baseframe)
+                                                           baseframe,...
+                                                           L)
 %%%%%%%
 % This is a helper-function for backbone. 
 %
@@ -234,6 +235,12 @@ switch baseframe
                         frame_mp(idx) = interpn(s.grid.eval{:},...                  % system evaluation grid
                                                 s.B_optimized.eval.Beta{idx},...    % Components of the transfomation to m-p coordinates
                                                 shapeparams_cell{:});               % Current shape
+                                            
+                        % Scale the x and y components of the frame
+                        % location
+                        if any(idx==[1 2])
+                            frame_mp(idx) = L*frame_mp(idx)/s.geometry.length;
+                        end
 
                         if calc_J
                             % Iterate over shape components for Jacobian
@@ -246,6 +253,14 @@ switch baseframe
                                 J_mp(idx,idx2) = interpn(s.grid.eval{:},...                  % system evaluation grid
                                                         s.B_optimized.eval.gradBeta{idx,idx2},...    % Components of the transfomation to m-p coordinates
                                                         shapeparams_cell{:});               % Current shape
+
+                                % Scale the x and y components of the frame
+                                % Jacobian
+                                if any(idx==[1 2])
+                                    J_mp(idx,idx2) = L*J_mp(idx,idx2)/s.geometry.length;
+                                end
+
+                        
                             end
                         end
 
@@ -278,10 +293,10 @@ switch baseframe
                     % Get conversion factors for the original baseframe
                     if calc_J
                         [frame_original,J_original] =...
-                            backbone_conversion_factors(h,J,shapeparams,baseframe_original);
+                            backbone_conversion_factors(h,J,shapeparams,baseframe_original,L);
                     else
                         frame_original =...
-                            backbone_conversion_factors(h,J,shapeparams,baseframe_original);                        
+                            backbone_conversion_factors(h,J,shapeparams,baseframe_original,L);                        
                     end
                                              
                     % Combine original conversion with minimum-perturbation
