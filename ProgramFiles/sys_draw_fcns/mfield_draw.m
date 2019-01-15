@@ -11,6 +11,11 @@ function plot_info = mfield_draw(s,p,plot_info,sys,shch,resolution)
 % Get the number of dimensions
 n_dim = numel(s.grid.eval);
 
+%Ensure that there are figure axes to plot into, and create new windows
+%for those axes if necessary
+plot_info = ensure_figure_axes(plot_info);
+
+
 if n_dim==2
     
     %Vector field list
@@ -19,9 +24,6 @@ if n_dim==2
     % Get the number of dimensions
     % 	n_dim = numel(s.grid.eval);
 
-    %Ensure that there are figure axes to plot into, and create new windows
-    %for those axes if necessary
-    plot_info = ensure_figure_axes(plot_info);
 
     %%%%%%%
     % Get the vector field and interpolate into the specified grid
@@ -226,7 +228,13 @@ if n_dim==2
 
     end
 else
-     text(0.1,0.5,'Illustration of metric field not implemented for >2 shape variables')
+        for i = 1:length(plot_info.axes)
+
+            %call up the relevant axis
+            ax = plot_info.axes(i);
+            text(0.1,0.5,'Illustration of metric field not implemented for >2 shape variables','Parent',ax)
+            
+        end
 end
 
 end
