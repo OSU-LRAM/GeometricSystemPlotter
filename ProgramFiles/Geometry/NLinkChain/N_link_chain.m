@@ -153,7 +153,7 @@ chain_m = repmat(eye(3),1,1,N_links);
 % the array symbolic, because matlab tries to cast items being inserted
 % into an array into the array class, rather than converting the array to
 % accomodate the class of the items being inserted 
-if isa(jointangles,'sym')
+if or( isa(jointangles,'sym'), isa(linklengths,'sym') )
     chain_m = sym(chain_m);
 end
 
@@ -170,6 +170,12 @@ for idx = 2:N_links
         links_m(:,:,idx-1)*...                  % Transform along the proximal link
         joints_m(:,:,idx-1)*...                 % Rotate by the intermediate joint angle
         links_m(:,:,idx);                       % Transform along the distal link 
+    
+    % Simplify trigonometric expressions if this is being calculated
+    % symbolically
+    if isa(chain_m,'sym')
+        chain_m(:,:,idx) = simplify(chain_m(:,:,idx),'steps',10);
+    end
 
 end
 
@@ -187,7 +193,7 @@ jointchain_m = repmat(eye(3),1,1,numel(jointangles));
 % the array symbolic, because matlab tries to cast items being inserted
 % into an array into the array class, rather than converting the array to
 % accomodate the class of the items being inserted 
-if isa(jointangles,'sym')
+if or( isa(jointangles,'sym'), isa(linklengths,'sym') )
     jointchain_m = sym(jointchain_m);
 end
 
@@ -205,6 +211,12 @@ for idx = 2:numel(jointangles)
         joints_m(:,:,idx-1) * ...      % Rotate by the angle of the previous joint
         links_m(:,:,idx)^2;           % Move along the link twice (because our transforms are half-links)
 
+    % Simplify trigonometric expressions if this is being calculated
+    % symbolically
+    if isa(chain_m,'sym')
+        jointchain_m(:,:,idx) = simplify(jointchain_m(:,:,idx),'steps',10);
+    end
+    
 end
 
 
@@ -227,7 +239,7 @@ J_pattern = zeros(3,M_joints);
 % the array symbolic, because matlab tries to cast items being inserted
 % into an array into the array class, rather than converting the array to
 % accomodate the class of the items being inserted 
-if isa(jointangles,'sym')
+if or( isa(jointangles,'sym'),isa(linklengths,'sym') )
     J_pattern = sym(J_pattern);
 end
 

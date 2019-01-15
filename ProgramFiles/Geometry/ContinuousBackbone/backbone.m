@@ -132,14 +132,11 @@ end
 %%%%%%
 % Calculate the transformation from the original base frame to the new base
 % frame
+
 if calc_J
-    [frame_zero,J_zero] = backbone_conversion_factors(h,J,shapeparams,baseframe);   
+    [frame_zero,J_zero] = backbone_conversion_factors(h,J,shapeparams,baseframe,geometry.length);   
 else
-    frame_zero = backbone_conversion_factors(h,[],shapeparams,baseframe);
-    if strncmp(baseframe,'sysf_',5)
-        frame_zero(1,3)=geometry.length*frame_zero(1,3);
-        frame_zero(2,3)=geometry.length*frame_zero(2,3);
-    end
+    frame_zero = backbone_conversion_factors(h,[],shapeparams,baseframe,geometry.length);
 end
 
 %%%%%%

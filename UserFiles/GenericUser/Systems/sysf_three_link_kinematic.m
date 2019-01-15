@@ -18,7 +18,9 @@ function output = sysf_three_link_kinematic(input_mode,pathnames)
 
 		case 'dependency'
 
-			output.dependency = {};
+			output.dependency = fullfile(pathnames.sysplotterpath,...
+                {'Geometry/NLinkChain/',...
+                'Physics/Nonholonomic/'});
 
 		case 'initialize'
 
