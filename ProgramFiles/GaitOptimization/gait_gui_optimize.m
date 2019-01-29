@@ -161,7 +161,7 @@ cd(current_dir)    % Go back to original directory
 sysf_func = str2func(current_system);
 shch_func = str2func(current_shch);
 paramfiledisplaytext = ['Opt: [',sysf_func('name'),'] [',shch_func('name'),'] Xeff'];
-paramfiletext = ['opt_',current_system(6:end),'_',current_shch(7:end),'_Xeff'];
+paramfiletext = hash(['opt_',current_system(6:end),'_',current_shch(7:end),'_Xeff'],'md5');
 
 % If the user didn't hit cancel, save the data and create a shchf file that
 % reads the data and interprets it as a gait.
