@@ -36,6 +36,11 @@ function [h_m,J,J_full] = N_link_conversion(chain_m,J_temp,frame_zero,J_zero)
     % central transformation
     for idx = 1:size(h_m,3)
         h_m(:,:,idx) = frame_zero \ chain_m(:,:,idx);
+        
+        if isa(chain_m,'sym')
+            h_m(:,:,idx) = simplify(h_m(:,:,idx),'steps',10);
+        end
+        
     end
 
 

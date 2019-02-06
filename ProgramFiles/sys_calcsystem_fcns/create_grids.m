@@ -1,6 +1,19 @@
 %Create grids for evaluating the connection functions
 function s = create_grids(s)
 
+
+    % Backwards-compatibility code for old way of specifying finite element
+    % density
+    if isfield(s,'finite_element_density')
+        if isfield(s.density,'finite_element')
+            warning('Sysf_ file has both an s.density.finite_element specification and a (deprecated) s.finite_element_density specification. The latter will be ignored, and should be removed from the sysf_ file')
+        else
+            warning('Sysf_ file has a (deprecated) s.finite_element_density specification. This should be replaced by an s.density.finite_element specification')
+            s.density.finite_element = s.finite_element_density;
+        end
+    end
+
+            
     %list of grids that will be made
     grid_list = {'vector','scalar','eval','metric_eval','metric_display','finite_element'};
         

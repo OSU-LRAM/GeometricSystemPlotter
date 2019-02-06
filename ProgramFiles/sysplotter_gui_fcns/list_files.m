@@ -16,7 +16,9 @@ function [displaynames, filenames] = list_files(dirname,prefix)
 	
 	for i = 1:length(D)
 		
-		displaynames{i} = feval(D(i).name(1:end-2),'name'); % Get system files to declare their names
+        filefunction = str2func(D(i).name(1:end-2)); % filename into a function
+        
+		displaynames{i} = filefunction('name'); % Get system files to declare their names
 		
 		filenames{i} = D(i).name(1:end-2); % Record the filename of the system file
 		

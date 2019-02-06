@@ -68,7 +68,25 @@ function output = sysf_three_link_granular(input_mode,pathnames)
             s.density.metric_eval = [11 11]; %density for metric evaluation
             s.density.finite_element=31;
 
-			% power metric
+            %%%%%%
+            % Define system geometry
+            s.geometry.type = 'n-link chain';
+            s.geometry.linklengths = [1 1 1];
+            s.geometry.baseframe = 'center';
+            s.geometry.length = 1;
+            
+            % Define properties for visualizing the system
+            
+            % Make a grid of values at which to visualize the system in
+            % illustrate_shapespace. The code below uses properties of cell
+            % arrays to automatically match the dimensionality of the grid
+            % with the number of shape basis functions in use
+            s.visual.grid = cell(numel(s.geometry.linklengths)-1,1);
+            [s.visual.grid{:}] = ndgrid([-1  0  1]);
+
+
+
+            % power metric
 			%s.metric = eye(2); %@(x,y) Granular_metric_calc(x,y,Metric_Tensor_raw,alpha1,alpha2);
 
 			%%%

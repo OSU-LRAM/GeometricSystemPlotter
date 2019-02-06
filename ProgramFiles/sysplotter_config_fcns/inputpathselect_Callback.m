@@ -5,7 +5,15 @@ function inputpathselect_Callback(hObject, eventdata, handles)
 % handles    structure with handles and user data (see GUIDATA)
 
     % Set the directory string to a user-selected path
-    targetdir = uigetdir(get(handles.inputpathconfig,'String'),'Select directory of configuration files');
+    oldtargetdir = get(handles.inputpathconfig,'String');
+    newtargetdir = uigetdir(get(handles.inputpathconfig,'String'),'Select directory of configuration files');
+    
+    if ~isnumeric(newtargetdir)
+        targetdir = newtargetdir;
+    else
+        targetdir = oldtargetdir;
+    end
+    
     set(handles.inputpathconfig,'String',targetdir);
     
     % Verify that the target directory has the necessary subdirectories

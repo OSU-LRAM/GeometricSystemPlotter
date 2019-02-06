@@ -8,4 +8,8 @@ end
 
 Adjoint_inverse_action = TgLginv(g)*TeRg(g);
 
+if isa(Adjoint_inverse_action,'sym')
+    Adjoint_inverse_action = simplify(Adjoint_inverse_action,'steps',50);
+end
+
 end

@@ -14,7 +14,8 @@ current_dir = pwd;
 cd(t_path);
 
 try % if this doesn't go through, will cause error below and drop back one level in the program
-	[varargout{:}] = feval(t_name,varargin{:});
+    filefunction = str2func(t_name);
+	[varargout{:}] = filefunction(varargin{:});
 catch ME
 	cd(current_dir)
 	rethrow(ME) % treat the error from feval as if it had happened, but first return to previous working directory
