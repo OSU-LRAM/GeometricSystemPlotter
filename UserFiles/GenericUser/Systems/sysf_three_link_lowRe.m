@@ -29,8 +29,9 @@ function output = sysf_three_link_lowRe(input_mode,pathnames)
             s.geometry.linklengths = [1 1 1];
             s.geometry.baseframe = 'center';
             s.geometry.length = 1;
-            
-            
+            s.geometry.shape={'' 'sphere' ''};%OW %Specify link shape
+            s.geometry.spherediameter = [0 1 0];%OW %For sphere, ratio of diameter to link length  D=2*radius/L
+
             %%%
             % Define properties for visualizing the system
             
@@ -47,7 +48,7 @@ function output = sysf_three_link_lowRe(input_mode,pathnames)
             % Define system physics
             s.physics.drag_ratio = 2;
             s.physics.drag_coefficient = 1;
-           
+            s.physics.sphere_drag_coefficient=1; %OW %This is normally 2*pi*mu (mu=fluid viscosity)
  
             %Functional Local connection and dissipation metric
 
@@ -66,7 +67,7 @@ function output = sysf_three_link_lowRe(input_mode,pathnames)
 			%Processing details
 
 			%Range over which to evaluate connection
-			s.grid_range = [-1,1,-1,1]*2.5;
+			s.grid_range = [-1,1,-1,1]*2*pi;
 
 			%densities for various operations
 			s.density.vector = [21 21 ]; %density to display vector field
