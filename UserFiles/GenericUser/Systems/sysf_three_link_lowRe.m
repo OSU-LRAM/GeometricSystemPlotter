@@ -29,8 +29,8 @@ function output = sysf_three_link_lowRe(input_mode,pathnames)
             s.geometry.linklengths = [1 1 1];
             s.geometry.baseframe = 'center';
             s.geometry.length = 1;
-            s.geometry.shape={'' 'sphere' ''};%OW %Specify link shape
-            s.geometry.spherediameter = [0 1 0];%OW %For sphere, ratio of diameter to link length  D=2*radius/L
+            s.geometry.link_shape={'' 'sphere' ''};%OW %Specify link shape
+            s.geometry.spherediameter = [0 0.5 0];%OW %For sphere, ratio of diameter to link length  D=2*radius/L
 
             %%%
             % Define properties for visualizing the system
@@ -67,7 +67,7 @@ function output = sysf_three_link_lowRe(input_mode,pathnames)
 			%Processing details
 
 			%Range over which to evaluate connection
-			s.grid_range = [-1,1,-1,1]*2*pi;
+			s.grid_range = [-1,1,-1,1]*2.5;
 
 			%densities for various operations
 			s.density.vector = [21 21 ]; %density to display vector field
