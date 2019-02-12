@@ -95,7 +95,7 @@ function [A, h, J, J_full, omega] = LowRE_connection_discrete(geometry,physics,j
                                                     physics.drag_ratio,...      % Ratio of lateral to longitudinal drag
                                                     physics.drag_coefficient,...  % Bulk drag coefficient
                                                     physics.sphere_drag_coefficient,...%OW %Sphere drag coefficient
-                                                    geometry.shape{idx},...%OW %Link shape
+                                                    geometry.link_shape{idx},...%OW %Link shape
                                                     geometry.spherediameter(idx));%OW %Ratio of diameter of sphere to link length
   
     end
@@ -144,7 +144,7 @@ function [A, h, J, J_full, omega] = LowRE_connection_discrete(geometry,physics,j
 end
 
 
-function omega = LowRE_body_drag_link(h,J_full,L,drag_ratio,c,cs,shape,D)
+function omega = LowRE_body_drag_link(h,J_full,L,drag_ratio,c,cs,link_shape,D)
 % Calculate the matrix that maps from system body and shape velocities to
 % forces acting on the base frame of the system
 
@@ -192,11 +192,11 @@ function omega = LowRE_body_drag_link(h,J_full,L,drag_ratio,c,cs,shape,D)
     % gcirc_local is the body velocity of the link
     % F_local is the body force acting on the link
     
-    if isempty(shape) || strcmp(shape,'')
-		shape = 'filament';
+    if isempty(link_shape) || strcmp(link_shape,'')
+		link_shape = 'filament';
     end
     
-    switch shape
+    switch link_shape
         case 'filament'
             gcirc_local_to_F_local = ...
                 [-L      0               0;
