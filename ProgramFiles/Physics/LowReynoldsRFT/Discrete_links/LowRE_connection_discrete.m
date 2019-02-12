@@ -93,7 +93,10 @@ function [A, h, J, J_full, omega] = LowRE_connection_discrete(geometry,physics,j
                                                     J_full{idx},...             % Jacobian from body velocity of base link and shape velocity to body velocity of this link
                                                     h.lengths(idx),...          % Length of this link
                                                     physics.drag_ratio,...      % Ratio of lateral to longitudinal drag
-                                                    physics.drag_coefficient);  % Bulk drag coefficient
+                                                    physics.drag_coefficient,...  % Bulk drag coefficient
+                                                    physics.sphere_drag_coefficient,...%OW %Sphere drag coefficient
+                                                    geometry.shape{idx},...%OW %Link shape
+                                                    geometry.spherediameter(idx));%OW %Ratio of diameter of sphere to link length
   
     end
 
@@ -141,7 +144,7 @@ function [A, h, J, J_full, omega] = LowRE_connection_discrete(geometry,physics,j
 end
 
 
-function omega = LowRE_body_drag_link(h,J_full,L,drag_ratio,c)
+function omega = LowRE_body_drag_link(h,J_full,L,drag_ratio,c,cs,shape,D)
 % Calculate the matrix that maps from system body and shape velocities to
 % forces acting on the base frame of the system
 
@@ -188,12 +191,29 @@ function omega = LowRE_body_drag_link(h,J_full,L,drag_ratio,c)
     % Drag matrix with terms as describe above.
     % gcirc_local is the body velocity of the link
     % F_local is the body force acting on the link
-    gcirc_local_to_F_local = ...
-        [-L      0               0;
-        0    -drag_ratio*L       0;
-        0        0           -drag_ratio/12*L^3]*c;
-	
     
+    if isempty(shape) || strcmp(shape,'')
+		shape = 'filament';
+    end
+    
+    switch shape
+        case 'filament'
+            gcirc_local_to_F_local = ...
+                [-L      0               0;
+                0    -drag_ratio*L       0;
+                0        0           -drag_ratio/12*L^3]*c;
+            
+        case 'sphere'
+            radius=D*L/2;
+            l=max([L/2-radius 0]);
+            gcirc_local_to_F_local = ...
+                -cs*radius*[ 3   0   0;
+                            0   3    0;
+                            0   0    4*radius^2]+...%OW %Resistance for sphere
+                            2*[-l      0                   0;
+                                0 -drag_ratio*l            0;
+                                0      0          -drag_ratio/12*l^3]*c;%OW %Resistance for the rest of the link
+    end %OW
     
     %%%%%%%%%%
     % Mapping from system body and shape velocity to body velocity of the
