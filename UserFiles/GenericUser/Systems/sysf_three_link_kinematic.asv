@@ -5,12 +5,6 @@ function output = sysf_three_link_kinematic(input_mode,pathnames)
     [path,~,~] = fileparts(mfilename('fullpath'));
     matFilePath = fullfile(path,'SysfSaved',[mfilename '.mat']);
     
-    %%%%%
-    % Check if there is already a saved file
-    if ~exist(matFilePath,'file')
-        resetDefaultMat(matFilePath);
-    end
-    
 	% Default argument
 	if ~exist('input_mode','var')
 		
@@ -26,7 +20,7 @@ function output = sysf_three_link_kinematic(input_mode,pathnames)
             
         case 'savepath'
             
-            output = matFilePath;
+            output = [matFilePath;
 
 		case 'dependency'
 
@@ -35,6 +29,13 @@ function output = sysf_three_link_kinematic(input_mode,pathnames)
                 'Physics/Nonholonomic/'});
 
 		case 'initialize'
+            
+            %%%%%
+            % Check if there is already a saved file
+            %if exists
+            if ~exist(matFilePath,'file')
+                resetDefaultMat(matFilePath);
+            end
             
             %%%%%
             % Load data from mat file

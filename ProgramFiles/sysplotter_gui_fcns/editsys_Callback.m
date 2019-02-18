@@ -12,7 +12,12 @@ function editsys_Callback(hObject, eventdata, handles)
     
 	if strncmp('sysf_',current_system,5)
 		
-		edit([current_system '.m']);
+        %Launch the Configuration GUI
+        config_func = str2func(current_system); %Get config function for current system
+        [matFilePath] = config_func('savepath'); %Get the config savefile path
+		sysf_config_gui(current_system,matFilePath);%Call thegui
+        
+
 		
 	end
 

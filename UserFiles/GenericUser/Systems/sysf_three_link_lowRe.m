@@ -39,7 +39,7 @@ function output = sysf_three_link_lowRe(input_mode,pathnames)
             % arrays to automatically match the dimensionality of the grid
             % with the number of shape basis functions in use
             s.visual.grid = cell(numel(s.geometry.linklengths)-1,1);
-            [s.visual.grid{:}] = ndgrid([-1  0  1]);
+            [s.visual.grid{:}] = ndgrid([-1 0 1]);
 
             
             %%%

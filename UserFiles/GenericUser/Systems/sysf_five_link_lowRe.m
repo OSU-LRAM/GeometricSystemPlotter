@@ -1,4 +1,4 @@
-function output = sysf_five_link_lowRe(input_mode,pathnames)
+    function output = sysf_five_link_lowRe(input_mode,pathnames)
 
 	% Default arguments
 	if ~exist('input_mode','var')
