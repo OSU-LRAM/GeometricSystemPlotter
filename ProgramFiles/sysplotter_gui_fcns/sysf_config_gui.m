@@ -22,7 +22,7 @@ function varargout = sysf_config_gui(varargin)
 
 % Edit the above text to modify the response to help sysf_config_gui
 
-% Last Modified by GUIDE v2.5 17-Feb-2019 22:50:33
+% Last Modified by GUIDE v2.5 18-Feb-2019 11:00:40
 
 % Begin initialization code - DO NOT EDIT
 gui_Singleton = 1;
@@ -55,11 +55,20 @@ function sysf_config_gui_OpeningFcn(hObject, eventdata, handles, varargin)
 % Choose default command line output for sysf_config_gui
 handles.output = hObject;
 
+%Save the input arguments to be used later
+handles.varargin = varargin;
+
 % Update handles structure
 guidata(hObject, handles);
 
 %Initialize all of the gui elements
-sysf_config_gui_initvals(hObject,varargin)
+sysf_config_gui_initvals(hObject)
+
+handles.edit_default_button.Callback = @(src, evnt) edit([varargin{1} '.m']);
+
+handles.restore_defaults_button.Callback = @(src, evnt) sysf_config_gui_set_default(hObject);
+
+handles.save_button.Callback = @(src, evnt) sysf_config_gui_savevals(hObject);
 
 
 
@@ -78,19 +87,19 @@ function varargout = sysf_config_gui_OutputFcn(hObject, eventdata, handles)
 varargout{1} = handles.output;
 
 
-% --- Executes on selection change in geometry_type.
-function geometry_type_Callback(hObject, eventdata, handles)
-% hObject    handle to geometry_type (see GCBO)
+% --- Executes on selection change in geometry_type_popup.
+function geometry_type_popup_Callback(hObject, eventdata, handles)
+% hObject    handle to geometry_type_popup (see GCBO)
 % eventdata  reserved - to be defined in a future version of MATLAB
 % handles    structure with handles and user data (see GUIDATA)
 
-% Hints: contents = cellstr(get(hObject,'String')) returns geometry_type contents as cell array
-%        contents{get(hObject,'Value')} returns selected item from geometry_type
+% Hints: contents = cellstr(get(hObject,'String')) returns geometry_type_popup contents as cell array
+%        contents{get(hObject,'Value')} returns selected item from geometry_type_popup
 
 
 % --- Executes during object creation, after setting all properties.
-function geometry_type_CreateFcn(hObject, eventdata, handles)
-% hObject    handle to geometry_type (see GCBO)
+function geometry_type_popup_CreateFcn(hObject, eventdata, handles)
+% hObject    handle to geometry_type_popup (see GCBO)
 % eventdata  reserved - to be defined in a future version of MATLAB
 % handles    empty - handles not created until after all CreateFcns called
 
@@ -108,19 +117,19 @@ function geo_type_q_Callback(hObject, eventdata, handles)
 % handles    structure with handles and user data (see GUIDATA)
 
 
-% --- Executes on selection change in geometry_baseframe.
-function geometry_baseframe_Callback(hObject, eventdata, handles)
-% hObject    handle to geometry_baseframe (see GCBO)
+% --- Executes on selection change in geometry_baseframe_popup.
+function geometry_baseframe_popup_Callback(hObject, eventdata, handles)
+% hObject    handle to geometry_baseframe_popup (see GCBO)
 % eventdata  reserved - to be defined in a future version of MATLAB
 % handles    structure with handles and user data (see GUIDATA)
 
-% Hints: contents = cellstr(get(hObject,'String')) returns geometry_baseframe contents as cell array
-%        contents{get(hObject,'Value')} returns selected item from geometry_baseframe
+% Hints: contents = cellstr(get(hObject,'String')) returns geometry_baseframe_popup contents as cell array
+%        contents{get(hObject,'Value')} returns selected item from geometry_baseframe_popup
 
 
 % --- Executes during object creation, after setting all properties.
-function geometry_baseframe_CreateFcn(hObject, eventdata, handles)
-% hObject    handle to geometry_baseframe (see GCBO)
+function geometry_baseframe_popup_CreateFcn(hObject, eventdata, handles)
+% hObject    handle to geometry_baseframe_popup (see GCBO)
 % eventdata  reserved - to be defined in a future version of MATLAB
 % handles    empty - handles not created until after all CreateFcns called
 
@@ -499,18 +508,18 @@ function pushbutton25_Callback(hObject, eventdata, handles)
 
 
 
-function desnity_metric_eval_Callback(hObject, eventdata, handles)
-% hObject    handle to desnity_metric_eval (see GCBO)
+function density_metric_eval_Callback(hObject, eventdata, handles)
+% hObject    handle to density_metric_eval (see GCBO)
 % eventdata  reserved - to be defined in a future version of MATLAB
 % handles    structure with handles and user data (see GUIDATA)
 
-% Hints: get(hObject,'String') returns contents of desnity_metric_eval as text
-%        str2double(get(hObject,'String')) returns contents of desnity_metric_eval as a double
+% Hints: get(hObject,'String') returns contents of density_metric_eval as text
+%        str2double(get(hObject,'String')) returns contents of density_metric_eval as a double
 
 
 % --- Executes during object creation, after setting all properties.
-function desnity_metric_eval_CreateFcn(hObject, eventdata, handles)
-% hObject    handle to desnity_metric_eval (see GCBO)
+function density_metric_eval_CreateFcn(hObject, eventdata, handles)
+% hObject    handle to density_metric_eval (see GCBO)
 % eventdata  reserved - to be defined in a future version of MATLAB
 % handles    empty - handles not created until after all CreateFcns called
 
@@ -566,18 +575,18 @@ end
 
 
 
-function physics_drag_coeff_Callback(hObject, eventdata, handles)
-% hObject    handle to physics_drag_coeff (see GCBO)
+function physics_drag_coefficient_Callback(hObject, eventdata, handles)
+% hObject    handle to physics_drag_coefficient (see GCBO)
 % eventdata  reserved - to be defined in a future version of MATLAB
 % handles    structure with handles and user data (see GUIDATA)
 
-% Hints: get(hObject,'String') returns contents of physics_drag_coeff as text
-%        str2double(get(hObject,'String')) returns contents of physics_drag_coeff as a double
+% Hints: get(hObject,'String') returns contents of physics_drag_coefficient as text
+%        str2double(get(hObject,'String')) returns contents of physics_drag_coefficient as a double
 
 
 % --- Executes during object creation, after setting all properties.
-function physics_drag_coeff_CreateFcn(hObject, eventdata, handles)
-% hObject    handle to physics_drag_coeff (see GCBO)
+function physics_drag_coefficient_CreateFcn(hObject, eventdata, handles)
+% hObject    handle to physics_drag_coefficient (see GCBO)
 % eventdata  reserved - to be defined in a future version of MATLAB
 % handles    empty - handles not created until after all CreateFcns called
 
@@ -630,3 +639,49 @@ function restore_defaults_button_Callback(hObject, eventdata, handles)
 % hObject    handle to restore_defaults_button (see GCBO)
 % eventdata  reserved - to be defined in a future version of MATLAB
 % handles    structure with handles and user data (see GUIDATA)
+
+
+
+function physics_drag_ratio_Callback(hObject, eventdata, handles)
+% hObject    handle to physics_drag_ratio (see GCBO)
+% eventdata  reserved - to be defined in a future version of MATLAB
+% handles    structure with handles and user data (see GUIDATA)
+
+% Hints: get(hObject,'String') returns contents of physics_drag_ratio as text
+%        str2double(get(hObject,'String')) returns contents of physics_drag_ratio as a double
+
+
+% --- Executes during object creation, after setting all properties.
+function physics_drag_ratio_CreateFcn(hObject, eventdata, handles)
+% hObject    handle to physics_drag_ratio (see GCBO)
+% eventdata  reserved - to be defined in a future version of MATLAB
+% handles    empty - handles not created until after all CreateFcns called
+
+% Hint: edit controls usually have a white background on Windows.
+%       See ISPC and COMPUTER.
+if ispc && isequal(get(hObject,'BackgroundColor'), get(0,'defaultUicontrolBackgroundColor'))
+    set(hObject,'BackgroundColor','white');
+end
+
+
+
+function geometry_baseframe_Callback(hObject, eventdata, handles)
+% hObject    handle to geometry_baseframe (see GCBO)
+% eventdata  reserved - to be defined in a future version of MATLAB
+% handles    structure with handles and user data (see GUIDATA)
+
+% Hints: get(hObject,'String') returns contents of geometry_baseframe as text
+%        str2double(get(hObject,'String')) returns contents of geometry_baseframe as a double
+
+
+% --- Executes during object creation, after setting all properties.
+function geometry_baseframe_CreateFcn(hObject, eventdata, handles)
+% hObject    handle to geometry_baseframe (see GCBO)
+% eventdata  reserved - to be defined in a future version of MATLAB
+% handles    empty - handles not created until after all CreateFcns called
+
+% Hint: edit controls usually have a white background on Windows.
+%       See ISPC and COMPUTER.
+if ispc && isequal(get(hObject,'BackgroundColor'), get(0,'defaultUicontrolBackgroundColor'))
+    set(hObject,'BackgroundColor','white');
+end

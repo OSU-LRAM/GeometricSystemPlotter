@@ -11,11 +11,11 @@ function output = sysf_three_link_kinematic(input_mode,pathnames)
         resetDefaultMat(matFilePath);
     end
     
-	% Default argument
-	if ~exist('input_mode','var')
-		
-		input_mode = 'initialize';
-		
+    % Default argument
+    if ~exist('input_mode','var')
+        
+        input_mode = 'initialize';
+        
     end
 	
 	switch input_mode
@@ -46,6 +46,7 @@ function output = sysf_three_link_kinematic(input_mode,pathnames)
         
         case 'reset'
             resetDefaultMat(matFilePath);
+            output = [];
 	end
 
 end
