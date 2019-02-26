@@ -57,22 +57,22 @@ for k = 1:size(dropdownfields,2)
     end
 end
 
-if ~strcmpi(handles.visual_grid,'None') && isfieldnested(s,{'geometry','linklengths'})
+if ~strcmpi(handles.visual_grid,'None') && isfieldnested(s,{'visual','grid'})
     ndgridnum = s.visual.grid;
-    s.visual.grid = cell(numel(s.geometry.linklengths)-1,1);
+    s.visual.grid = cell(s.visual.cellsize);
     [s.visual.grid{:}] = ndgrid(ndgridnum);
 else
     s = rmfieldnested(s,{'visual','grid'});
 end
 
-if ~strcmpi(handles.geometry_link_number,'None')
+if ~strcmpi(handles.geometry_link_number.String,'None')
     temparray = num2cell(eval(handles.geometry_link_number.String));
     [s.geometry.constraint_list.link_number] = temparray{:};
 else
     s = rmfieldnested(s,{'geometry','constraint_list','link_number'});
 end
 
-if handles.geometry_constraint_direction ~= -1
+if handles.geometry_constraint_direction.Data ~= -1
     tempcell = num2cell(handles.geometry_constraint_direction.Data,2);
    
     

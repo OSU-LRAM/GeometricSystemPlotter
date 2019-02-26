@@ -1,5 +1,18 @@
 function output = sysf_three_link_kinematic(input_mode,pathnames)
-
+    
+    % Default argument
+    if ~exist('input_mode','var')
+        
+        input_mode = 'initialize';
+        
+    end
+    
+    if ~exist('pathnames','var')
+        
+        pathnames = load('sysplotter_config');
+        
+    end
+    
     %%%%%
     % Get the location of the mat file saved
     [path,~,~] = fileparts(mfilename('fullpath'));
@@ -8,14 +21,7 @@ function output = sysf_three_link_kinematic(input_mode,pathnames)
     %%%%%
     % Check if there is already a saved file
     if ~exist(matFilePath,'file')
-        resetDefaultMat(matFilePath);
-    end
-    
-    % Default argument
-    if ~exist('input_mode','var')
-        
-        input_mode = 'initialize';
-        
+        resetDefaultMat(matFilePath,pathnames);
     end
 	
 	switch input_mode
@@ -45,13 +51,13 @@ function output = sysf_three_link_kinematic(input_mode,pathnames)
 			output = s;
         
         case 'reset'
-            resetDefaultMat(matFilePath);
+            resetDefaultMat(matFilePath,pathnames);
             output = [];
 	end
 
 end
 
-function [] = resetDefaultMat(matFilePath)
+function [] = resetDefaultMat(matFilePath,pathnames)
     %%%%%%
     % Define system geometry
     s.geometry.type = 'n-link chain';
@@ -68,7 +74,8 @@ function [] = resetDefaultMat(matFilePath)
     % illustrate_shapespace. The code below uses properties of cell
     % arrays to automatically match the dimensionality of the grid
     % with the number of shape basis functions in use
-    s.visual.grid = cell(numel(s.geometry.linklengths)-1,1);
+    s.visual.cellsize = [numel(s.geometry.linklengths)-1,1];
+    s.visual.grid = cell(s.visual.cellsize);
     [s.visual.grid{:}] = ndgrid([-1  0  1]);
 
     % Tell sysplotter to draw this system with wheels on the links

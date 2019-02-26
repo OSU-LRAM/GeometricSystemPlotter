@@ -1,5 +1,7 @@
 function output = sysf_triangle_lowRe_two_waves(input_mode,pathnames)
 
+    
+
 	% Default arguments
 	if ~exist('input_mode','var')
 		
@@ -13,13 +15,17 @@ function output = sysf_triangle_lowRe_two_waves(input_mode,pathnames)
         
     end
     
+    %%%%%
+    % Get the location of the mat file saved
+    [path,~,~] = fileparts(mfilename('fullpath'));
+    matFilePath = fullfile(path,'SysfSaved',[mfilename '.mat']);
     
-    %%%%
-    % Name the file that will hold the curvature definition for this system
-    % (its contents are the first elements of the initialization code)
-    curvdef_name = 'triangle_wave_two_periods';
-	
-	
+    %%%%%
+    % Check if there is already a saved file
+    if ~exist(matFilePath,'file')
+        resetDefaultMat(matFilePath,pathnames);
+    end
+    
 	%%%%%%%
 	
 	switch input_mode
@@ -27,6 +33,10 @@ function output = sysf_triangle_lowRe_two_waves(input_mode,pathnames)
 		case 'name'
 
 			output = 'Viscous swimmer: Triangle two waves'; % Display name
+            
+        case 'savepath'
+            
+            output = matFilePath;
 
 		case 'dependency'
 
@@ -39,109 +49,18 @@ function output = sysf_triangle_lowRe_two_waves(input_mode,pathnames)
 
 		case 'initialize'
             
-            %%%%
-            % Make a curvdef function describing the shape of the system
+            %%%%%
+            % Load data from mat file
+            load(matFilePath,'s');
+			%%%%
             
-            % Generate a function that uses sin^power to approximate a
-            % triangle wave, using the generator function below (simpler
-            % functions could be specified by a string or 
-            % symbolic expression right here)
-            triangle_wave_curvature = triangle_wave_generator;
-            
-            % Substitute in a unit value for the frequency, and 10 for the
-            % sharpness power
-            triangle_wave_curvature = subs(triangle_wave_curvature,{'omega','n'},{2 20});
-            
-            % Use the triangle_wave expression to generate a curvdef
-            % file that numerically integrates the curvature and finds
-            % the derivative of the curvature with respect to the shape
-            % variables. (this file is used by the connection and
-            % metric calculations)
-            curvdef_parameters = {'a1' 'a2'};
-            curvdef_fun = make_curvdef(triangle_wave_curvature,curvdef_parameters,curvdef_name,[1,0,0,0],pathnames.syspath,pathnames.sysplotterpath);
-             
-            %%%%%%%%%%%
-            %%%%%%%%%%%
-
-            %%%%%%%%%
-            % System definition
-
-            %%%
-            % Define the geometry of the system
-
-            % this system's shape is defined by the general curvature
-            % function created above
-            s.geometry.type = 'general curvature';                
-            s.geometry.function = curvdef_fun;
-            s.geometry.baseframe = 'center';
-            
-            % Total length of the swimmer, in real units
-            s.geometry.length = 1;
-            
-            
-            %%%
-            % Define properties for visualizing the system
-            
-            % Make a grid of values at which to visualize the system in
-            % illustrate_shapespace. The code below uses properties of cell
-            % arrays to automatically match the dimensionality of the grid
-            % with the number of shape basis functions in use
-            s.visual.grid = cell(size(curvdef_parameters));
-            [s.visual.grid{:}] = ndgrid([-1 -0.5 0 0.5 1]*6+.001); %.001 is to avoid a singularity at zero
-
-            
-            %%%
-
-            %%%
-            % Define the physics of the system
-
-            % This system is treated as moving in a viscous fluid. Key elements we
-            % need for this model are a drag coefficient and a drag ratio
-            s.physics.drag_coefficient = 1;                   % multiplier from longitudinal velocity to drag force. Changing this scales the dissipation matrix
-            s.physics.drag_ratio = 2;                         % ratio of lateral:longitudinal drag
-
-            
-             % Locomotion model derived from viscous drag forces reacting to
-            % local velocities of elements on the body
-            s.A = @(a1,a2) LowRE_local_connection(s.geometry,s.physics,[a1;a2]);
-            
-            % Locomotion model derived from viscous drag forces reacting to
-            % local velocities of elements on the body
-            s.metric = @(a1,a2) LowRE_dissipation_metric(s.geometry,s.physics,[a1;a2]);
-            %%%
-
-                        
-			%%%
-			%Processing details
-
-            % There is a singularity at the origin (because the raw wave is
-            % divided by its amplitude when making it triangular). This
-            % field suppresses a warning message about the singularity.
-            s.ignore_singularity_warning = 1;
-            
-            
-			%Range over which to evaluate connection
-			s.grid_range = [-1,1,-1,1]*12;
-            
-			%densities for various operations
-			s.density.vector = [1 1]*11; %density to display vector field
-			s.density.scalar = [1 1]*21; %density to display scalar functions
-			s.density.eval = [1 1]*31;   %density for function evaluations
-            s.density.metric_eval = [1 1]*11;
-            s.density.finite_element=31;
-
-			%%%
-			%Display parameters
-
-			%shape space tic locations
-			s.tic_locs.x = [-1 0 1]*6;
-			s.tic_locs.y = [-1 0 1]*6;
-
-
 			%%%%
 			%Save the system properties
 			output = s;
 
+        case 'reset'
+            resetDefaultMat(matFilePath,pathnames);
+            output = [];
 
 	end
 
@@ -210,5 +129,118 @@ function triangle_wave_matched = triangle_wave_generator
     triangle_wave_matched = pinched_wave_restored * (P*[n^3;n^2;n;1]);
 
 end
+
+
+function [] = resetDefaultMat(matFilePath,pathnames)
+    %%%%
+    % Make a curvdef function describing the shape of the system
+
+    %%%%
+    % Name the file that will hold the curvature definition for this system
+    % (its contents are the first elements of the initialization code)
+    curvdef_name = 'triangle_wave_two_periods';
+    
+    % Generate a function that uses sin^power to approximate a
+    % triangle wave, using the generator function below (simpler
+    % functions could be specified by a string or 
+    % symbolic expression right here)
+    triangle_wave_curvature = triangle_wave_generator;
+
+    % Substitute in a unit value for the frequency, and 10 for the
+    % sharpness power
+    triangle_wave_curvature = subs(triangle_wave_curvature,{'omega','n'},{2 20});
+
+    % Use the triangle_wave expression to generate a curvdef
+    % file that numerically integrates the curvature and finds
+    % the derivative of the curvature with respect to the shape
+    % variables. (this file is used by the connection and
+    % metric calculations)
+    curvdef_parameters = {'a1' 'a2'};
+    curvdef_fun = make_curvdef(triangle_wave_curvature,curvdef_parameters,curvdef_name,[1,0,0,0],pathnames.syspath,pathnames.sysplotterpath);
+
+    %%%%%%%%%%%
+    %%%%%%%%%%%
+
+    %%%%%%%%%
+    % System definition
+
+    %%%
+    % Define the geometry of the system
+
+    % this system's shape is defined by the general curvature
+    % function created above
+    s.geometry.type = 'general curvature';                
+    s.geometry.function = curvdef_fun;
+    s.geometry.baseframe = 'center';
+
+    % Total length of the swimmer, in real units
+    s.geometry.length = 1;
+
+
+    %%%
+    % Define properties for visualizing the system
+
+    % Make a grid of values at which to visualize the system in
+    % illustrate_shapespace. The code below uses properties of cell
+    % arrays to automatically match the dimensionality of the grid
+    % with the number of shape basis functions in use
+    s.visual.cellsize = size(curvdef_parameters);
+    s.visual.grid = cell(s.visual.cellsize);
+    [s.visual.grid{:}] = ndgrid([-1 -0.5 0 0.5 1]*6+.001); %.001 is to avoid a singularity at zero
+
+
+    %%%
+
+    %%%
+    % Define the physics of the system
+
+    % This system is treated as moving in a viscous fluid. Key elements we
+    % need for this model are a drag coefficient and a drag ratio
+    s.physics.drag_coefficient = 1;                   % multiplier from longitudinal velocity to drag force. Changing this scales the dissipation matrix
+    s.physics.drag_ratio = 2;                         % ratio of lateral:longitudinal drag
+
+
+     % Locomotion model derived from viscous drag forces reacting to
+    % local velocities of elements on the body
+    s.A = @(a1,a2) LowRE_local_connection(s.geometry,s.physics,[a1;a2]);
+
+    % Locomotion model derived from viscous drag forces reacting to
+    % local velocities of elements on the body
+    s.metric = @(a1,a2) LowRE_dissipation_metric(s.geometry,s.physics,[a1;a2]);
+    %%%
+
+
+    %%%
+    %Processing details
+
+    % There is a singularity at the origin (because the raw wave is
+    % divided by its amplitude when making it triangular). This
+    % field suppresses a warning message about the singularity.
+    s.ignore_singularity_warning = 1;
+
+
+    %Range over which to evaluate connection
+    s.grid_range = [-1,1,-1,1]*12;
+
+    %densities for various operations
+    s.density.vector = [1 1]*11; %density to display vector field
+    s.density.scalar = [1 1]*21; %density to display scalar functions
+    s.density.eval = [1 1]*31;   %density for function evaluations
+    s.density.metric_eval = [1 1]*11;
+    s.density.finite_element=31;
+
+    %%%
+    %Display parameters
+
+    %shape space tic locations
+    s.tic_locs.x = [-1 0 1]*6;
+    s.tic_locs.y = [-1 0 1]*6;
+    
+    
+    %%%%%%
+    % Save to the SysfSaved matfile
+    save(matFilePath,'s');
+end
+
 
 

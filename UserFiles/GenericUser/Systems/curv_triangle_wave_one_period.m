@@ -1,5 +1,5 @@
-% (258094553458734611*sign((a1*cos(4*s*pi) + a2*sin(4*s*pi))/(a1^2 + a2^2)^(1/2))*abs(a1*cos(4*s*pi) + a2*sin(4*s*pi))^20*(a1^2 + a2^2)^(1/2))/(72057594037927936*abs(a1^2 + a2^2)^10)
-function output = curv_triangle_wave_two_periods(params,mode)
+% (258094553458734611*sign((a1*cos(2*s*pi) + a2*sin(2*s*pi))/(a1^2 + a2^2)^(1/2))*abs(a1*cos(2*s*pi) + a2*sin(2*s*pi))^20*(a1^2 + a2^2)^(1/2))/(72057594037927936*abs(a1^2 + a2^2)^10)
+function output = curv_triangle_wave_one_period(params,mode)
 
 % Turn params into a cell matrix
 params = num2cell(params);
@@ -17,7 +17,7 @@ switch mode
 		all_limits = [-.51 0 .51];
 		
 		%% Make dummy integration function
-		curv_fun_dummy = curv_triangle_wave_two_periods(cell2mat(params),'curvature');
+		curv_fun_dummy = curv_triangle_wave_one_period(cell2mat(params),'curvature');
 		curvature = @(s,~) curv_fun_dummy(s);
 		
 		%% Integral of the integrand function along s
@@ -43,7 +43,7 @@ switch mode
 		all_limits = [-.51 0 .51];
 		
 		%% Make dummy integration function
-		d_curv_dp_fun_dummy = curv_triangle_wave_two_periods(cell2mat(params),'dcurvature');
+		d_curv_dp_fun_dummy = curv_triangle_wave_one_period(cell2mat(params),'dcurvature');
 		dcurvature = @(s,~) d_curv_dp_fun_dummy(s)';
 		
 		%% Integral of the integrand function along s
@@ -71,7 +71,7 @@ function output = reshape_truncate_jacobian(J)
 end
 
 function out1 = curv_fun(s,a1,a2)
-	t2 = s.*pi.*4.0;
+	t2 = s.*pi.*2.0;
 	t3 = a1.^2;
 	t4 = a2.^2;
 	t5 = t3+t4;

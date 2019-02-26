@@ -6,7 +6,24 @@ function output = sysf_diffdrive(input_mode,pathnames)
 		
 		input_mode = 'name';
 		
-	end
+    end
+    
+    if ~exist('pathnames','var')
+        
+        pathnames = load('sysplotter_config');
+        
+    end
+    
+    %%%%%
+    % Get the location of the mat file saved
+    [path,~,~] = fileparts(mfilename('fullpath'));
+    matFilePath = fullfile(path,'SysfSaved',[mfilename '.mat']);
+    
+    %%%%%
+    % Check if there is already a saved file
+    if ~exist(matFilePath,'file')
+        resetDefaultMat(matFilePath,pathnames);
+    end
 		
 	%%%%%%%
 	
@@ -15,6 +32,10 @@ function output = sysf_diffdrive(input_mode,pathnames)
 		case 'name'
 
 			output = 'Diffdrive Car'; % Display name
+            
+        case 'savepath'
+            
+            output = matFilePath;
 
 		case 'dependency'
 
@@ -24,42 +45,19 @@ function output = sysf_diffdrive(input_mode,pathnames)
 			% checker
 
 		case 'initialize'
-
-			% Differential dr
             
-			%%%
-			% Local connection (functions at end of file)
-			s.A_num = @Conn_num;
-
-
-			%%%
-			%Processing details
-
-			%Range over which to evaluate connection
-			s.grid_range = [-1,1,-1,1]*2.5;
-
-			%densities for various operations
-			s.density.vector = [10 10]; %density to display vector field
-			s.density.scalar = [51 51]; %density to display scalar functions
-			s.density.eval = [21 21];   %density for function evaluations
-            s.density.finite_element=31;
-
-
-			%%%
-			%Display parameters
-
-			%shape space tic locations
-			s.tic_locs.x = [-2 0 2 4];
-			s.tic_locs.y = [-2 0 2 4];
-
-
-			%Don't optimize the reference point (turn this off for
-			%non-carlike systems)
-			s.xy_no_opt = 1;
-
+            %%%%%
+            % Load data from mat file
+            load(matFilePath,'s');
 			%%%%
-			%Output the system properties
+            
+			%Save the system properties
 			output = s;
+
+            
+        case 'reset'
+            resetDefaultMat(matFilePath,pathnames);
+            output = [];
 		
 	end
     
@@ -78,4 +76,41 @@ function A_num = Conn_num(a1,a2)
 		zeros(size(a1)) zeros(size(a1));
 		ones(size(a1)) -ones(size(a1))];
 	
+end
+
+function [] = resetDefaultMat(matFilePath,pathnames)
+
+    %%%
+    % Local connection (functions at end of file)
+    s.A_num = @Conn_num;
+
+
+    %%%
+    %Processing details
+
+    %Range over which to evaluate connection
+    s.grid_range = [-1,1,-1,1]*2.5;
+
+    %densities for various operations
+    s.density.vector = [10 10]; %density to display vector field
+    s.density.scalar = [51 51]; %density to display scalar functions
+    s.density.eval = [21 21];   %density for function evaluations
+    s.density.finite_element=31;
+
+
+    %%%
+    %Display parameters
+
+    %shape space tic locations
+    s.tic_locs.x = [-2 0 2 4];
+    s.tic_locs.y = [-2 0 2 4];
+
+
+    %Don't optimize the reference point (turn this off for
+    %non-carlike systems)
+	s.xy_no_opt = 1;
+            
+    %%%%%%
+    % Save to the SysfSaved matfile
+    save(matFilePath,'s');
 end

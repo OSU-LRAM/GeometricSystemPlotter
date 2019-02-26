@@ -73,17 +73,19 @@ end
 
 % Loop through all of the array fields
 for k = 1:size(dropdownfields,2)
-   dropdownguielements{k}.String = dropdownoptions{k};
-   %Find where the loaded value is in popup menu
-   position = find(strcmp(dropdownoptions{k}, getfield(s,dropdownfields{k}{:})));
-   if isempty(position)
-        if isnumeric(getfield(s,dropdownfields{k}{:}))
-            dropdownguielements{k}.Value = 2;
+    dropdownguielements{k}.String = dropdownoptions{k};
+    %Find where the loaded value is in popup menu
+    if isfieldnested(s,dropdownfields{k})
+        position = find(strcmp(dropdownoptions{k}, getfield(s,dropdownfields{k}{:})));
+        if isempty(position)
+            if isnumeric(getfield(s,dropdownfields{k}{:}))
+                dropdownguielements{k}.Value = 2;
+            else
+                dropdownguielements{k}.Value = 1;
+            end
         else
-            dropdownguielements{k}.Value = 1;
+            dropdownguielements{k}.Value = position;
         end
-   else
-       dropdownguielements{k}.Value = position;
    end
 end
 
