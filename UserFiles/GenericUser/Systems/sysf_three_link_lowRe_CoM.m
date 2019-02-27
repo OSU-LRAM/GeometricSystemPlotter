@@ -20,7 +20,7 @@ function output = sysf_three_link_lowRe_CoM(input_mode,pathnames)
     
     %%%%%
     % Check if the savedfile directory exists
-    if ~exist('SysfSaved','dir')
+    if ~exist([path '\SysfSaved'],'dir')
         mkdir([path '\SysfSaved'])
     end
     

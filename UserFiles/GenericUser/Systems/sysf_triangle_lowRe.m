@@ -20,13 +20,13 @@ function output = sysf_triangle_lowRe(input_mode,pathnames)
     
     %%%%%
     % Check if the savedfile directory exists
-    if ~exist('SysfSaved','dir')
+    if ~exist([path '\SysfSaved'],'dir')
         mkdir([path '\SysfSaved'])
     end
     
     %%%%%
     % Check if there is already a saved file
-    if ~exist(matFilePath,'file')
+    if ~exist([path '\SysfSaved'],'dir')
        resetDefaultMat(matFilePath,pathnames);
     end
 	

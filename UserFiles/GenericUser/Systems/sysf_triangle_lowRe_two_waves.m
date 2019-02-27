@@ -22,7 +22,7 @@ function output = sysf_triangle_lowRe_two_waves(input_mode,pathnames)
     
     %%%%%
     % Check if the savedfile directory exists
-    if ~exist('SysfSaved','dir')
+    if ~exist([path '\SysfSaved'],'dir')
         mkdir([path '\SysfSaved'])
     end
     

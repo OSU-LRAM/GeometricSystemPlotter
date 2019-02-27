@@ -27,7 +27,7 @@ function output = sysf_constantcurv2_lowRe(input_mode,pathnames)
     
     %%%%%
     % Check if there is already a saved file
-    if ~exist(matFilePath,'file')
+    if ~exist([path '\SysfSaved'],'dir')
         resetDefaultMat(matFilePath,pathnames);
     end
 		
