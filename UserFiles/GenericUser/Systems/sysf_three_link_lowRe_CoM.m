@@ -12,6 +12,12 @@ function output = sysf_three_link_lowRe_CoM(input_mode,pathnames)
         pathnames = load('sysplotter_config');
         
     end
+    
+    %%%%%
+    % Check if the savedfile directory exists
+    if ~exist('SysfSaved','dir')
+        mkdir('SysfSaved')
+    end
 
     %%%%%
     % Get the location of the mat file saved

@@ -15,6 +15,12 @@ function output = sysf_diffdrive(input_mode,pathnames)
     end
     
     %%%%%
+    % Check if the savedfile directory exists
+    if ~exist('SysfSaved','dir')
+        mkdir('SysfSaved')
+    end
+    
+    %%%%%
     % Get the location of the mat file saved
     [path,~,~] = fileparts(mfilename('fullpath'));
     matFilePath = fullfile(path,'SysfSaved',[mfilename '.mat']);
