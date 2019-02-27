@@ -17,6 +17,7 @@ sysplotter_data
 #############
 UserFiles/*
 !UserFiles/GenericUser
+UserFiles/GenericUser/Systems/SysfSaved/*
 UserFiles/GenericUser/Shape_Changes/params_*
 UserFiles/GenericUser/Shape_Changes/shchf_params_*
 UserFiles/GenericUser/Shape_Changes/opt_*
