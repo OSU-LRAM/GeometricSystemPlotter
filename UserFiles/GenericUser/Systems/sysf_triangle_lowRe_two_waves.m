@@ -16,15 +16,15 @@ function output = sysf_triangle_lowRe_two_waves(input_mode,pathnames)
     end
     
     %%%%%
-    % Check if the savedfile directory exists
-    if ~exist('SysfSaved','dir')
-        mkdir('SysfSaved')
-    end
-    
-    %%%%%
     % Get the location of the mat file saved
     [path,~,~] = fileparts(mfilename('fullpath'));
     matFilePath = fullfile(path,'SysfSaved',[mfilename '.mat']);
+    
+    %%%%%
+    % Check if the savedfile directory exists
+    if ~exist('SysfSaved','dir')
+        mkdir([path '\SysfSaved'])
+    end
     
     %%%%%
     % Check if there is already a saved file
