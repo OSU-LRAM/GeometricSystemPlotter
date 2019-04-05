@@ -1,4 +1,4 @@
-function [A, h, J, J_full, omega] = Inertial_connection_discrete(geometry,physics,jointangles)
+function [A, h, J, J_full, omega, M_alpha] = Inertial_connection_discrete(geometry,physics,jointangles)
 % Calculate the local connection for for an inertial system (floating in space or
 % ideal high-Re fluid)
 %
@@ -113,6 +113,9 @@ function [A, h, J, J_full, omega] = Inertial_connection_discrete(geometry,physic
     
     % Build the local connection
     A = omega(:,1:3)\omega(:,4:end);
+    
+    % Pull M_full back to be in terms of the shape variables
+    M_alpha = [-A' eye(size(A,2))]*M_full*[-A; eye(size(A,2))];
 
 
 end
