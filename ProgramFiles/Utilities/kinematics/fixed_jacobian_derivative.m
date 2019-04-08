@@ -1,4 +1,4 @@
-function dJdalpha = jacobian_derivative(J,jointvelocities)
+function dJdalpha = fixed_jacobian_derivative(J,jointvelocities)
 % Determine how many links there are in the Jacobian
 m_links = length(J);
 % Find how many joints are in the system
