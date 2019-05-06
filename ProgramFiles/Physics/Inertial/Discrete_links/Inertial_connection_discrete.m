@@ -1,4 +1,4 @@
-function [A, h, J, J_full, omega, M_alpha] = Inertial_connection_discrete(geometry,physics,jointangles)
+function [A, h, J, J_full, omega, dMdq] = Inertial_connection_discrete(geometry,physics,jointangles)
 % Calculate the local connection for for an inertial system (floating in space or
 % ideal high-Re fluid)
 %
@@ -94,7 +94,7 @@ function [A, h, J, J_full, omega, M_alpha] = Inertial_connection_discrete(geomet
     % shape velocities to forces acting on the body
     for idx = 1:numel(link_force_maps)
         
-        link_inertias{idx} = Inertia_link(h.pos(idx,:),...            % Position of this link relative to the base frame
+        [link_inertias{idx},local_inertias{idx}] = Inertia_link(h.pos(idx,:),...            % Position of this link relative to the base frame
                                                     J_full{idx},...             % Jacobian from body velocity of base link and shape velocity to body velocity of this link
                                                     h.lengths(idx),...          % Length of this link
                                                     geometry.link_shape{idx},...         % Shape type of this link
@@ -114,14 +114,11 @@ function [A, h, J, J_full, omega, M_alpha] = Inertial_connection_discrete(geomet
     % Build the local connection
     A = omega(:,1:3)\omega(:,4:end);
     
-    % Pull M_full back to be in terms of the shape variables
-    M_alpha = [-A' eye(size(A,2))]*M_full*[-A; eye(size(A,2))];
-
-
+    dMdq = partial_mass_matrix(J_full,dJdq,local_inertias);
 end
 
 
-function Inertia_link_system = Inertia_link(h,J_full,L,link_shape,link_shape_parameters,fluid_density)
+function [Inertia_link_system,Inertia_link_local] = Inertia_link(h,J_full,L,link_shape,link_shape_parameters,fluid_density)
 % Calculate the matrix that maps from system body and shape velocities to
 % forces acting on the base frame of the system
 
@@ -144,7 +141,30 @@ function Inertia_link_system = Inertia_link(h,J_full,L,link_shape,link_shape_par
     
     Inertia_link_system = J_full' * Inertia_link_local * J_full;
 
+end
 
-
-
+function dMdq = partial_mass_matrix(J,dJdq,local_inertias)
+q_num = length(J);
+dMtemp = zeros(q_num,q_num);
+% If we're working with symbolic variables, then we need to explicitly make
+% the array symbolic, because matlab tries to cast items being inserted
+% into an array into the array class, rather than converting the array to
+% accomodate the class of the items being inserted 
+if or(isa(J{1},'sym'),isa(local_inertias{1},'sym'))
+    dMtemp = sym(dMtemp);
+    cell2func = @cell2sym;
+else
+    cell2func = @cell2mat;
+end
+dMdq = cell(q_num); dMdq(1:end) = {dMtemp};
+for q = 1:q_num
+    for link = 1:q_num
+        dJtemp = cell2func(dJdq{link}(:,q)');
+        dMdq{q} = dMdq{q} + dJtemp' * local_inertias{link} * J{link} ...
+            + J{link}' * local_inertias{link} * dJtemp;
+    end
+    if isa(dMtemp,'sym')
+        dMdq{q} = simplify(dMdq{q},'Steps',10);
+    end
+end
 end

@@ -1,23 +1,27 @@
-function dJdq = mobile_jacobian_derivative(J_full,jointvelocities)
+function dJdq = mobile_jacobian_derivative(J_full)
 % Determine how many joint angles are in the system; the first three terms
 % in the Jacobian are for the body coordinates, with any additional columns
 % corresponding to the joint space of the system
 n_joints = size(J_full{1},2) - 3;
 m_links = length(J_full);
 
-dJdq = cell(3+n_joints,3+n_joints);
-dJdq(1:end) = zeros(3,1);
+dJdq = cell(m_links,1);
+template = cell(3+n_joints,3+n_joints);
+template(1:end) = {zeros(3,1)};
+dJdq(1:end) = {template};
 % If we're working with symbolic variables, then we need to explicitly make
 % the array symbolic, because matlab tries to cast items being inserted
 % into an array into the array class, rather than converting the array to
 % accomodate the class of the items being inserted 
-if or(isa(J_full,'sym'),isa(jointvelocities,'sym'))
+if isa(J_full{1},'sym')
     dJdq = sym(dJdq);
 end
 
 for link = 1:m_links
 % The Jacobian derivative dJ/dq is of the form
-%   dJ/dq = [dJg/dRg, dJg/dalpha; dJalpha/dRg, dJalpha/dalpha]
+%
+%       dJ/dq = [dJg/dRg, dJg/dalpha; dJalpha/dRg, dJalpha/dalpha]
+%
 % where dJg/dRg is a 3x3 augmented matrix of three-element zero vectors,
 % dJg/dalpha is a 3xm augmented matrix with each element i,j as the lie 
 % bracket [Jg_i,Jalpha_j] for each body coordinate i and joint j,
@@ -31,14 +35,14 @@ for link = 1:m_links
     % Calculating dJg/dalpha
     for idx = 1:3
         for idx2 = 1:n_joints
-            dJdq(idx,3+idx2) = lie_bracket_SE2(J_full{link}(idx,3+idx2));
+            dJdq{link}{idx,3+idx2} = lie_bracket_SE2(J_full{link}(:,idx),J_full{link}(:,3+idx2));
         end
     end
 
     % Calculating dJalpha/dalpha
     for idx = 1:n_joints
         for idx2 = idx+1:n_joints
-            dJdq(3+idx,3+idx2) = lie_bracket_SE2(J_full{link}(3+idx,3+idx2));
+            dJdq{link}{3+idx,3+idx2} = lie_bracket_SE2(J_full{link}(:,3+idx),J_full{link}(3+idx2));
         end
     end
 end
