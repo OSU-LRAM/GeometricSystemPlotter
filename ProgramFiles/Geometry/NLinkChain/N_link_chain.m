@@ -24,6 +24,13 @@ function [h, J, J_full,frame_zero,J_zero] = N_link_chain(geometry,jointangles)
 %                                       sysf_ file. Argument should be the name of
 %                                       a system in the current UserFiles folder
 %
+%       modes (optional): Option to map input "jointangles" across
+%           multiple links in a chain (which can have more joints than the
+%           provided number of "jointangles". Should be a matrix in which
+%           each column is the set of joint angles on the full chain associated
+%           with a unit value of the corresponding "jointangle" input.
+%
+%
 %   length (optional): Total length of the chain. If specified, the elements of
 %       will be scaled such that their sum is equal to L. If this field
 %       is not provided or is entered as an empty matrix, then the links
@@ -83,10 +90,22 @@ else
     baseframe = geometry.baseframe;
 end
 
+% If no modes are specified, use an identity mapping for the modes
+if ~isfield(geometry,'modes') || isempty(geometry.modes)
+    modes = eye(numel(jointangles));
+else
+    modes = geometry.modes;
+end
+
 % Force linklength and jointangle vectors to be columns, and normalize link
 % lengths for a total length of 1.
 linklengths = geometry.linklengths(:)/sum(geometry.linklengths)*L;
 jointangles = jointangles(:);
+
+
+% Expand jointangles from specified shape variables to actual joint angles
+% by multiplying in the modal function
+jointangles = modes*jointangles(:);
 
 %%%%%%%%%%%%
 
@@ -317,6 +336,13 @@ end
 % Use frame_zero and J_zero to convert the link transformations and
 % Jacobian so that they are refefenced off of the new base frame
 [h_m,J,J_full] = N_link_conversion(chain_m,J_temp,frame_zero,J_zero); 
+
+%%%%%%%
+% Multiply the Jacobians by the modal matrices to produce Jacobians that
+% act from the modal coefficients rather than the full joint space
+J = cellfun(@(j) j*modes,J,'UniformOutput',false);
+full_mode_conversion = [eye(size(J{1},1)), zeros(size(J{1},1),size(modes,2)); zeros(size(modes,2),size(J{1},1)),modes];
+J_full = cellfun(@(j) j*full_mode_conversion,J_full,'UniformOutput',false);
 
 % For output, convert h into row form. Save this into a structure, with
 % link lengths included

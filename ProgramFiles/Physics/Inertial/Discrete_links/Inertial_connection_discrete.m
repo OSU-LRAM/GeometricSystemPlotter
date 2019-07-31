@@ -88,11 +88,11 @@ function [A, h, J, J_full, omega] = Inertial_connection_discrete(geometry,physic
     % x,y,theta motion, and one column per joint), and there is one
     % contribution per link. This structure is of the same dimensions as
     % J_full, so we use it as a template.
-    link_force_maps = J_full;
+    link_inertias = J_full;
     
     % Now iterate over each link, calculating the map from system body and
     % shape velocities to forces acting on the body
-    for idx = 1:numel(link_force_maps)
+    for idx = 1:numel(link_inertias)
         
         link_inertias{idx} = Inertia_link(h.pos(idx,:),...            % Position of this link relative to the base frame
                                                     J_full{idx},...             % Jacobian from body velocity of base link and shape velocity to body velocity of this link
