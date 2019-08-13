@@ -302,8 +302,8 @@ for idx = 1:N_links
 
     end
     
-%     % Convert joint-angle Jacobian into shape-mode coordinates
-%     J_temp{idx} = J_temp{idx} * modes;
+    % Convert joint-angle Jacobian into shape-mode coordinates
+    J_temp{idx} = J_temp{idx} * modes;
     
 end
 
@@ -333,6 +333,7 @@ end
                                                 jointangles,...
                                                 linklengths,...
                                                 shapeparams,...
+                                                modes,...
                                                 J_temp,...
                                                 baseframe);        
 
@@ -344,13 +345,13 @@ end
 
 
 
-%%%%%%%
-% Multiply the Jacobians by the modal matrices to produce Jacobians that
-% act from the modal coefficients rather than the full joint space
-J = cellfun(@(j) j*modes,J,'UniformOutput',false);
-full_mode_conversion = [eye(size(J{1},1)), zeros(size(J{1},1),size(modes,2));
-                        zeros(size(modes,1),size(J{1},1)),modes];
-J_full = cellfun(@(j) j*full_mode_conversion,J_full,'UniformOutput',false);
+% %%%%%%%
+% % Multiply the Jacobians by the modal matrices to produce Jacobians that
+% % act from the modal coefficients rather than the full joint space
+% J = cellfun(@(j) j*modes,J,'UniformOutput',false);
+% full_mode_conversion = [eye(size(J{1},1)), zeros(size(J{1},1),size(modes,2));
+%                         zeros(size(modes,1),size(J{1},1)),modes];
+% J_full = cellfun(@(j) j*full_mode_conversion,J_full,'UniformOutput',false);
 
 % For output, convert h into row form. Save this into a structure, with
 % link lengths included
