@@ -6,6 +6,7 @@ function [frame_zero,J_zero] = N_link_conversion_factors(chain_m,...
                                                          joints_v,...
                                                          jointangles,...
                                                          linklengths,...
+                                                         shapeparams,...
                                                          J_temp,...
                                                          baseframe)
 %%%%%%%
@@ -316,9 +317,9 @@ switch baseframe
                     % of this transform
 
                     frame_mp = zeros(3,1);              % x y theta values of transformation
-                    J_mp = zeros(3,numel(jointangles)); % x y theta rows and joint angle columns of Jacobian
+                    J_mp = zeros(3,numel(shapeparams)); % x y theta rows and joint angle columns of Jacobian
 
-                    jointangles_cell = num2cell(jointangles); % put joint angles into a cell array
+                    shapeparams_cell = num2cell(shapeparams); % put joint angles into a cell array
 
                     % Iterate over x y theta components
                     for idx = 1:numel(frame_mp)
@@ -328,7 +329,7 @@ switch baseframe
                         % transformation to m-p coordinates
                         frame_mp(idx) = interpn(s.grid.eval{:},...                  % system evaluation grid
                                                 s.B_optimized.eval.Beta{idx},...    % Components of the transfomation to m-p coordinates
-                                                jointangles_cell{:});               % Current shape
+                                                shapeparams_cell{:});               % Current shape
                         
                         % Scale the x and y components of the frame
                         % location 
@@ -337,7 +338,7 @@ switch baseframe
                         end
                         
                         % Iterate over shape components for Jacobian
-                        for idx2 = 1:numel(jointangles)
+                        for idx2 = 1:numel(shapeparams)
 
 
                             % Interpolate the shape angles into the grid
@@ -345,7 +346,7 @@ switch baseframe
                             % the transformation to m-p coordinates
                             J_mp(idx,idx2) = interpn(s.grid.eval{:},...                  % system evaluation grid
                                                     s.B_optimized.eval.gradBeta{idx,idx2},...    % Components of the transfomation to m-p coordinates
-                                                    jointangles_cell{:});               % Current shape
+                                                    shapeparams_cell{:});               % Current shape
 
                             % Scale the x and y components of the frame
                             % Jacobian
@@ -391,6 +392,7 @@ switch baseframe
                                                  joints_v,...
                                                  jointangles,...
                                                  linklengths,...
+                                                 shapeparams,...
                                                  J_temp,...
                                                  baseframe_original);
                                              
