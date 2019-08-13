@@ -1,4 +1,4 @@
-function output = sysf_three_link_lowRe(input_mode,pathnames)
+function output = sysf_three_link_HighRe(input_mode,pathnames)
 
 	% Default arguments
 	if ~exist('input_mode','var')
@@ -13,13 +13,13 @@ function output = sysf_three_link_lowRe(input_mode,pathnames)
 
 		case 'name'
 
-			output = 'Viscous Swimmer: 3-link'; % Display name
+			output = 'HighRe ideal swimmer: 3-link ellipses'; % Display name
 
 		case 'dependency'
 
 			output.dependency = fullfile(pathnames.sysplotterpath,...
                 {'Geometry/NLinkChain/',...
-                'Physics/LowReynoldsRFT/'});
+                'Physics/Inertial/'});
             
 		case 'initialize'
 
@@ -29,6 +29,9 @@ function output = sysf_three_link_lowRe(input_mode,pathnames)
             s.geometry.linklengths = [1 1 1];
             s.geometry.baseframe = 'center';
             s.geometry.length = 1;
+            s.geometry.link_shape = {'ellipse','ellipse','ellipse'};
+                st = struct('aspect_ratio',0.1);
+            s.geometry.link_shape_parameters = {st,st,st};
             
             
             %%%
@@ -42,21 +45,20 @@ function output = sysf_three_link_lowRe(input_mode,pathnames)
             %%%
             %%%%%%
             % Define system physics
-            s.physics.drag_ratio = 2;
-            s.physics.drag_coefficient = 1;
+            s.physics.fluid_density = 1;
            
  
             %Functional Local connection and dissipation metric
 
-            s.A = @(alpha1,alpha2) LowRE_local_connection( ...
+            s.A = @(alpha1,alpha2) Inertial_local_connection( ...
                         s.geometry,...                           % Geometry of body
                         s.physics,...                            % Physics properties
                         [alpha1,alpha2]);                        % Joint angles
             
-            s.metric = @(alpha1,alpha2) LowRE_dissipation_metric(...
-                        s.geometry,...                           % Geometry of body
-                        s.physics,...                            % Physics properties
-                        [alpha1,alpha2]);                        % Joint angles
+             s.metric = @(alpha1,alpha2)eye(2);%@(alpha1,alpha2) LowRE_dissipation_metric(...
+%                         s.geometry,...                           % Geometry of body
+%                         s.physics,...                            % Physics properties
+%                         [alpha1,alpha2]);                        % Joint angles
 
                     
 			%%%

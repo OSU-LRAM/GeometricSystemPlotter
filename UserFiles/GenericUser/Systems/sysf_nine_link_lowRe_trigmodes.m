@@ -1,4 +1,4 @@
-function output = sysf_three_link_lowRe(input_mode,pathnames)
+function output = sysf_nine_link_lowRe_trigmodes(input_mode,pathnames)
 
 	% Default arguments
 	if ~exist('input_mode','var')
@@ -13,7 +13,7 @@ function output = sysf_three_link_lowRe(input_mode,pathnames)
 
 		case 'name'
 
-			output = 'Viscous Swimmer: 3-link'; % Display name
+			output = 'Viscous Swimmer: 9-link Sin and Cos modes'; % Display name
 
 		case 'dependency'
 
@@ -26,8 +26,10 @@ function output = sysf_three_link_lowRe(input_mode,pathnames)
             %%%%%%
             % Define system geometry
             s.geometry.type = 'n-link chain';
-            s.geometry.linklengths = [1 1 1];
-            s.geometry.baseframe = 'center';
+            s.geometry.linklengths = ones(9,1);
+            n_waves = 1;
+            s.geometry.modes = [sin(n_waves*2*pi*(1:8)/8)', cos(n_waves*2*pi*(1:8)/8)'];
+            s.geometry.baseframe = 'tail';
             s.geometry.length = 1;
             
             
@@ -35,9 +37,11 @@ function output = sysf_three_link_lowRe(input_mode,pathnames)
             % Define properties for visualizing the system
             
             % Make a grid of values at which to visualize the system in
-            % illustrate_shapespace. (Use a cell of gridpoints along each
-            % axis to use different spacings for different axes)
-            s.visual.grid_spacing = [-1  0  1];
+            % illustrate_shapespace. The code below uses properties of cell
+            % arrays to automatically match the dimensionality of the grid
+            % with the number of shape basis functions in use
+            s.visual.grid_spacing = {[-1  0  1],[-1 0 1]};
+
             
             %%%
             %%%%%%
@@ -53,10 +57,10 @@ function output = sysf_three_link_lowRe(input_mode,pathnames)
                         s.physics,...                            % Physics properties
                         [alpha1,alpha2]);                        % Joint angles
             
-            s.metric = @(alpha1,alpha2) LowRE_dissipation_metric(...
-                        s.geometry,...                           % Geometry of body
-                        s.physics,...                            % Physics properties
-                        [alpha1,alpha2]);                        % Joint angles
+%             s.metric = @(alpha1,alpha2) LowRE_dissipation_metric(...
+%                         s.geometry,...                           % Geometry of body
+%                         s.physics,...                            % Physics properties
+%                         [alpha1,alpha2]);                        % Joint angles
 
                     
 			%%%
