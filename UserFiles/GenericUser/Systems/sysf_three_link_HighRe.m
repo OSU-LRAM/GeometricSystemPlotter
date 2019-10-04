@@ -53,6 +53,7 @@ function output = sysf_three_link_HighRe(input_mode,pathnames)
  
             %Functional Local connection and dissipation metric
 
+            %[s.A,~,s.J,s.J_full,~,s.M_full]
             s.A = @(alpha1,alpha2) Inertial_local_connection( ...
                         s.geometry,...                           % Geometry of body
                         s.physics,...                            % Physics properties
@@ -61,8 +62,14 @@ function output = sysf_three_link_HighRe(input_mode,pathnames)
              s.metric = @(alpha1,alpha2)eye(2);%@(alpha1,alpha2) LowRE_dissipation_metric(...
 %                         s.geometry,...                           % Geometry of body
 %                         s.physics,...                            % Physics properties
-%                         [alpha1,alpha2]);                        % Joint angles
-
+%                         [alpha1,alpha2]);
+            % TODO: These should probably be calculated as part of a larger
+            % wrapping function that's meant to return M and C matrices for
+            % a set of points
+            s.dJdq = @(alpha1,alpha2) mobile_jacobian_derivative(s.J_full);
+            s.dMdq = @(alpha1,alpha2) partial_mass_matrix(s.J,s.dJdq,local_inertias,'mobile');
+            s.M_alpha = @(alpha1,alpha2) mass_matrix(s.geometry,s.physics,[alpha1,alpha2]);
+            s.dM_alphadalpha = @(alpha1,alpha2,A_eval,A_grid) shape_partial_mass(s.geometry,s.physics,[alpha1,alpha2],A_eval,A_grid);
                     
 			%%%
 			%Processing details
@@ -71,10 +78,12 @@ function output = sysf_three_link_HighRe(input_mode,pathnames)
 			s.grid_range = [-1,1,-1,1]*2.5;
 
 			%densities for various operations
-			s.density.vector = [21 21 ]; %density to display vector field
-			s.density.scalar = [51 51 ]; %density to display scalar functions
-			s.density.eval = [31 31 ];   %density for function evaluations
+			s.density.vector = [21 21]; %density to display vector field
+			s.density.scalar = [51 51]; %density to display scalar functions
+			s.density.eval = [31 31];   %density for function evaluations
             s.density.metric_eval = [11 11]; %density for metric evaluation
+            s.density.mass_eval = [11 11]; % density for mass matrix evaluation
+            s.density.coriolis_eval = [11 11];
             s.density.finite_element=31;
 
 
@@ -83,6 +92,9 @@ function output = sysf_three_link_HighRe(input_mode,pathnames)
 			s.tic_locs.y = [-1 0 1]*1;
 
 
+            % System type flag
+            s.system_type = 'inertia';
+            
 			%%%%
 			%Save the system properties
 			output = s;

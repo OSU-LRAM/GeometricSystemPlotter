@@ -770,6 +770,7 @@ function [xi, dcost] = get_velocities(t,s,gait,ConnectionEval)
 	shape = gait.phi_def(t);
 	shapelist = num2cell(shape);
 	dshape = gait.dphi_def(t);
+    ddshape = gait.ddphi_def(t);
 	
 	
 	% Get the local connection and metric at the current time, in the new coordinates	
@@ -778,14 +779,17 @@ function [xi, dcost] = get_velocities(t,s,gait,ConnectionEval)
 			
 			A = s.A_num(shapelist{:})./s.A_den(shapelist{:});
 			
-			M = s.metric(shapelist{:});
+% 			M = s.metric(shapelist{:});
+            
+            M_a = s.metric_alpha(shapelist{:});
 
 		case 'interpolated'
 			
 			A = -cellfun(@(C) interpn(s.grid.eval{:},C,shapelist{:},'spline'),s.vecfield.eval.content.Avec);
 			
-			M =  cellfun(@(C) interpn(s.grid.metric_eval{:},C,shapelist{:},'spline'),s.metricfield.metric_eval.content.metric);
+% 			M =  cellfun(@(C) interpn(s.grid.metric_eval{:},C,shapelist{:},'spline'),s.metricfield.metric_eval.content.metric);
 			
+            M_a =  cellfun(@(C) interpn(s.grid.metric_eval{:},C,shapelist{:},'spline'),s.metricfield.metric_eval.content.metric_alpha);
 		otherwise
 			error('Unknown method for evaluating local connection');
 	end
@@ -795,8 +799,9 @@ function [xi, dcost] = get_velocities(t,s,gait,ConnectionEval)
     xi = - A * dshape(:);
 
 	% get the cost velocity
-	dcost = sqrt(dshape(:)' * M * dshape(:));
-	
+% 	dcost = sqrt(dshape(:)' * M * dshape(:));
+	tau = M_a * ddshape(:) + C_a * dshape(:);
+    dcost = tau'*tau;
 end
 
 

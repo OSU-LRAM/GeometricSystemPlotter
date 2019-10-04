@@ -39,7 +39,9 @@ function output = sys_calcsystem(input_mode,systemfilename)
 			%grid for vector display
 			s = evaluate_connection(s);
             s = evaluate_metric(s);
-			
+            if isfield(s,'system_type') && strcmpi(s.system_type,'inertia')
+                s = evaluate_inertial_properties(s);
+            end
 			
 			%Merge components of evaluated connection and metric
 			s = merge_connection(s);

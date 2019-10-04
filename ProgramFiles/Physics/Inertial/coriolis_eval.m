@@ -1,4 +1,4 @@
-function C = coriolis_matrix(M,dMdq,A,jointangles,jointvelocities)
+function C = coriolis_eval(M,dMdq,A,jointangles,jointvelocities)
     dmdalpha = pull_back_partial_mass(M,dMdq,A,jointangles);
     C_from_vel = zeros(size(dmdalpha));
     jointvelocities = jointvelocities(:);

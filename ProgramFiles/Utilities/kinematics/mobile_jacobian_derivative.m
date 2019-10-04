@@ -7,15 +7,18 @@ m_links = length(J_full);
 
 dJdq = cell(m_links,1);
 template = cell(3+n_joints,3+n_joints);
-template(1:end) = {zeros(3,1)};
-dJdq(1:end) = {template};
+zero_vec = zeros(3,1);
 % If we're working with symbolic variables, then we need to explicitly make
 % the array symbolic, because matlab tries to cast items being inserted
 % into an array into the array class, rather than converting the array to
 % accomodate the class of the items being inserted 
 if isa(J_full{1},'sym')
-    dJdq = sym(dJdq);
+    zero_vec = sym(zero_vec);
 end
+template(1:end) = {zero_vec};
+
+dJdq(1:end) = {template};
+
 
 for link = 1:m_links
 % The Jacobian derivative dJ/dq is of the form
@@ -42,7 +45,7 @@ for link = 1:m_links
     % Calculating dJalpha/dalpha
     for idx = 1:n_joints
         for idx2 = idx+1:n_joints
-            dJdq{link}{3+idx,3+idx2} = lie_bracket_SE2(J_full{link}(:,3+idx),J_full{link}(3+idx2));
+            dJdq{link}{3+idx,3+idx2} = lie_bracket_SE2(J_full{link}(:,3+idx),J_full{link}(:,3+idx2));
         end
     end
 end

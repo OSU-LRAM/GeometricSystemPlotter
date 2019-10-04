@@ -36,15 +36,15 @@ if exist(g2,'file') == 2
         if n_dim>=4
             alpha4 = a12(:,4);
         end       
-elseif exist(g1,'file') == 2
-    load(g1);
-    if exist('alpha4')==1
-        n_dim=4;
-    elseif exist('alpha3')==1
-        n_dim=3;
-    else
-        n_dim=2;
-    end
+    elseif exist(g1,'file') == 2
+        load(g1);
+        if exist('alpha4')==1
+            n_dim=4;
+        elseif exist('alpha3')==1
+            n_dim=3;
+        else
+            n_dim=2;
+        end
     else
         error('Selected gait file has more than one cycle. Optimizer only works on single cycles.')
     end
@@ -99,16 +99,16 @@ if n_dim==2
     % Calling the optimizer
     lb=0.95*[s.grid_range(1)*ones(n_plot+1,1);s.grid_range(3)*ones(n_plot+1,1)];%0.9 was points value
     ub=0.95*[s.grid_range(2)*ones(n_plot+1,1);s.grid_range(4)*ones(n_plot+1,1)];
-    if strcmpi(s.system_type,'drag')
-        y=optimalgaitgenerator(s,2,n_plot,alpha1_plot,alpha2_plot,lb,ub);
-    elseif strcmpi(s.system_type,'inertia')
-        % Need to take a subset of the space since the optimizer is too
-        % slow for now; interpolate gait at n_interp points
-        n_interp = 23;
-        y = inertial_optimalgaitgenerator(s,2,n_plot,alpha1_plot,alpha2_plot,lb,ub,n_interp);
-    else
-        error('Unexpected system_type field in struct s.')
-    end
+%     if strcmpi(s.system_type,'drag')
+    y=optimalgaitgenerator(s,2,n_plot,alpha1_plot,alpha2_plot,lb,ub);
+%     elseif strcmpi(s.system_type,'inertia')
+%         % Need to take a subset of the space since the optimizer is too
+%         % slow for now; interpolate gait at n_interp points
+%         n_interp = 23;
+%         y = inertial_optimalgaitgenerator(s,2,n_plot,alpha1_plot,alpha2_plot,lb,ub,n_interp);
+%     else
+%         error('Unexpected system_type field in struct s.')
+%     end
     alpha1 = [y(1:n_plot)',y(1)]';
     alpha2 = [y(n_plot+1:2*n_plot)',y(n_plot+1)]';
     t=t_plot;

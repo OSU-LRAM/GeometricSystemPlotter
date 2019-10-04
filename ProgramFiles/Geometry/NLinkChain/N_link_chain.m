@@ -1,4 +1,4 @@
-function [h, J, J_full,frame_zero,J_zero,dJdq] = N_link_chain(geometry,jointangles)
+function [h, J, J_full,frame_zero,J_zero] = N_link_chain(geometry,jointangles)
 % Build a backbone for a chain of links, specified as a vector of link
 % lengths and the joint angles between them.
 %
