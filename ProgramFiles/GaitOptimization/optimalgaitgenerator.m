@@ -68,7 +68,7 @@ for i=1:dimension
     end
 end
 
- options = optimoptions('fmincon','SpecifyObjectiveGradient',true,'Display','iter','Algorithm','sqp','SpecifyObjectiveGradient',true,'CheckGradients',false,'FiniteDifferenceType','central','MaxIter',4000,'MaxFunEvals',20000,'TolCon',10^-2,'OutputFcn', @outfun);
+ options = optimoptions('fmincon','SpecifyObjectiveGradient',false,'Display','iter','Algorithm','sqp','CheckGradients',false,'FiniteDifferenceType','central','MaxIter',4000,'MaxFunEvals',20000,'TolCon',10^-2,'OutputFcn', @outfun);
  [yf fval exitflag output]=fmincon(@(y) solvedifffmincon(y,s,n,dimension,lb,ub),y0,A,b,Aeq,beq,lb1,ub1,@(y) nonlcon(y,s,n,dimension,lb,ub),options);
 
 
@@ -103,7 +103,7 @@ y=y1(:);
 
 end
 
-function [f,g]=solvedifffmincon(y,s,n,dimension,lb,ub)
+function [f]=solvedifffmincon(y,s,n,dimension,lb,ub)
 %%%%%%%%%%%%%
 % This function calculates efficiency (or displacement, if
 % that is the objective function) and its gradient with respect to the coefficients obtained
@@ -146,39 +146,75 @@ end
 % y=y1;
 
 %% Calculating cost and displacement per gait
-velocityvalues=zeros(n,dimension);
 g=2*pi; %assign a time period for executing the gait
-p.phi_def = @(t) [y(1,1)+y(2,1)*cos((n*t/g)*y(end,1))+y(3,1)*sin((n*t/g)*y(end,1))+y(4,1)*cos(2*(n*t/g)*y(end,1))+...
-            +y(5,1)*sin(2*(n*t/g)*y(end,1))+y(6,1)*cos(3*(n*t/g)*y(end,1))+y(7,1)*sin(3*(n*t/g)*y(end,1))+...
-            +y(8,1)*cos(4*(n*t/g)*y(end,1))+y(9,1)*sin(4*(n*t/g)*y(end,1)),y(1,2)+y(2,2)*cos((n*t/g)*y(end,2))+y(3,2)*sin((n*t/g)*y(end,2))+y(4,2)*cos(2*(n*t/g)*y(end,2))+...
-            +y(5,2)*sin(2*(n*t/g)*y(end,2))+y(6,2)*cos(3*(n*t/g)*y(end,2))+y(7,2)*sin(3*(n*t/g)*y(end,2))+...
-            +y(8,2)*cos(4*(n*t/g)*y(end,2))+y(9,2)*sin(4*(n*t/g)*y(end,2))]; % function parametrizing the gait as a function of time
+w1 = n*y(end,1)/g; % Frequency of Fourier transform
+w2 = n*y(end,2)/g;
+velocityvalues=zeros(n,dimension);
+
+p.phi_def = @(t) [y(1,1)+y(2,1)*cos(w1*t)+y(3,1)*sin(w1*t)+y(4,1)*cos(2*w1*t)+...
+            +y(5,1)*sin(2*w1*t)+y(6,1)*cos(3*w1*t)+y(7,1)*sin(3*w1*t)+...
+            +y(8,1)*cos(4*w1*t)+y(9,1)*sin(4*w1*t),y(1,2)+y(2,2)*cos(w2*t)+y(3,2)*sin(w2*t)+y(4,2)*cos(2*w2*t)+...
+            +y(5,2)*sin(2*w2*t)+y(6,2)*cos(3*w2*t)+y(7,2)*sin(3*w2*t)+...
+            +y(8,2)*cos(4*w2*t)+y(9,2)*sin(4*w2*t)]; % function parametrizing the gait as a function of time
 
 % for i=1:1:n-1
 %     velocityvalues(i,:)=n*(y(i+1,:)-y(i,:))/g; 
 % end
 % velocityvalues(n,:)=n*(y(1,:)-y(n,:))/g;
+
+p.dphi_def = @(t) [-(w1)*y(2,1)*sin(w1*t)+(w1)*y(3,1)*cos(w1*t)-2*(w1)*y(4,1)*sin(2*w1*t)+...
+            +2*(w1)*y(5,1)*cos(2*w1*t)-3*(w1)*y(6,1)*sin(3*w1*t)+3*(w1)*y(7,1)*cos(3*w1*t)+...
+            -4*(w1)*y(8,1)*sin(4*w1*t)+4*(w1)*y(9,1)*cos(4*w1*t),-(w2)*y(2,2)*sin(w2*t)+...
+            (w2)*y(3,2)*cos(w2*t)-2*(w2)*y(4,2)*sin(2*w2*t)+...
+            +2*(w2)*y(5,2)*cos(2*w2*t)-3*(w2)*y(6,2)*sin(3*w2*t)+3*(w2)*y(7,2)*cos(3*w2*t)+...
+            -4*(w2)*y(8,2)*sin(4*w2*t)+4*(w2)*y(9,2)*cos(4*w2*t)]; % Shape space velocity as a function of time
+        
+p.ddphi_def = @(t) [-(w1)^2*y(2,1)*cos(w1*t)-(w1)^2*y(3,1)*sin(w1*t)-4*(w1)^2*y(4,1)*cos(2*w1*t)+...
+            -4*(w1)^2*y(5,1)*sin(2*w1*t)-9*(w1)^2*y(6,1)*cos(3*w1*t)-9*(w1)^2*y(7,1)*sin(3*w1*t)+...
+            -16*(w1)^2*y(8,1)*cos(4*w1*t)-16*(w1)^2*y(9,1)*sin(4*w1*t),-(w2)^2*y(2,2)*cos(w2*t)+...
+            -(w2)^2*y(3,2)*sin(w2*t)-4*(w2)^2*y(4,2)*cos(2*w2*t)+...
+            -4*(w2)^2*y(5,2)*sin(2*w2*t)-9*(w2)^2*y(6,2)*cos(3*w2*t)-9*(w2)^2*y(7,2)*sin(3*w2*t)+...
+            -16*(w2)^2*y(8,2)*cos(4*w2*t)-16*(w2)^2*y(9,2)*sin(4*w2*t)]; % Shape space velocity as a function of time
+        
+% for i=1:1:n-1
+%     velocityvalues(i,:)=n*(y(i+1,:)-y(i,:))/g; 
+% end
+% velocityvalues(n,:)=n*(y(1,:)-y(n,:))/g;
+%% Debugging gradient of cost
+%---------------------------%
+fourier_test = 2;
+fourier_delta = 0.01;
+alpha_test = 1;
+y(fourier_test,alpha_test) = y(fourier_test,alpha_test) + fourier_delta;
+p2.phi_def = @(t) [y(1,1)+y(2,1)*cos(w1*t)+y(3,1)*sin(w1*t)+y(4,1)*cos(2*w1*t)+...
+            +y(5,1)*sin(2*w1*t)+y(6,1)*cos(3*w1*t)+y(7,1)*sin(3*w1*t)+...
+            +y(8,1)*cos(4*w1*t)+y(9,1)*sin(4*w1*t),y(1,2)+y(2,2)*cos(w2*t)+y(3,2)*sin(w2*t)+y(4,2)*cos(2*w2*t)+...
+            +y(5,2)*sin(2*w2*t)+y(6,2)*cos(3*w2*t)+y(7,2)*sin(3*w2*t)+...
+            +y(8,2)*cos(4*w2*t)+y(9,2)*sin(4*w2*t)]; % function parametrizing the gait as a function of time
 w1 = n*y(end,1)/g; % Frequency of Fourier transform
 w2 = n*y(end,2)/g;
-p.dphi_def = @(t) [-(w1)*y(2,1)*sin((n*t/g)*y(end,1))+(w1)*y(3,1)*cos((n*t/g)*y(end,1))-2*(w1)*y(4,1)*sin(2*(n*t/g)*y(end,1))+...
-            +2*(w1)*y(5,1)*cos(2*(n*t/g)*y(end,1))-3*(w1)*y(6,1)*sin(3*(n*t/g)*y(end,1))+3*(w1)*y(7,1)*cos(3*(n*t/g)*y(end,1))+...
-            -4*(w1)*y(8,1)*sin(4*(n*t/g)*y(end,1))+4*(w1)*y(9,1)*cos(4*(n*t/g)*y(end,1)),-(w2)*y(2,2)*sin((n*t/g)*y(end,2))+...
-            (w2)*y(3,2)*cos((n*t/g)*y(end,2))-2*(w2)*y(4,2)*sin(2*(n*t/g)*y(end,2))+...
-            +2*(w2)*y(5,2)*cos(2*(n*t/g)*y(end,2))-3*(w2)*y(6,2)*sin(3*(n*t/g)*y(end,2))+3*(w2)*y(7,2)*cos(3*(n*t/g)*y(end,2))+...
-            -4*(w2)*y(8,2)*sin(4*(n*t/g)*y(end,2))+4*(w2)*y(9,2)*cos(4*(n*t/g)*y(end,2))]; % Shape space velocity as a function of time
+p2.dphi_def = @(t) [-(w1)*y(2,1)*sin(w1*t)+(w1)*y(3,1)*cos(w1*t)-2*(w1)*y(4,1)*sin(2*w1*t)+...
+            +2*(w1)*y(5,1)*cos(2*w1*t)-3*(w1)*y(6,1)*sin(3*w1*t)+3*(w1)*y(7,1)*cos(3*w1*t)+...
+            -4*(w1)*y(8,1)*sin(4*w1*t)+4*(w1)*y(9,1)*cos(4*w1*t),-(w2)*y(2,2)*sin(w2*t)+...
+            (w2)*y(3,2)*cos(w2*t)-2*(w2)*y(4,2)*sin(2*w2*t)+...
+            +2*(w2)*y(5,2)*cos(2*w2*t)-3*(w2)*y(6,2)*sin(3*w2*t)+3*(w2)*y(7,2)*cos(3*w2*t)+...
+            -4*(w2)*y(8,2)*sin(4*w2*t)+4*(w2)*y(9,2)*cos(4*w2*t)]; % Shape space velocity as a function of time
         
-p.ddphi_def = @(t) [-(w1)^2*y(2,1)*cos((n*t/g)*y(end,1))-(w1)^2*y(3,1)*sin((n*t/g)*y(end,1))-4*(w1)^2*y(4,1)*cos(2*(n*t/g)*y(end,1))+...
-            -4*(w1)^2*y(5,1)*sin(2*(n*t/g)*y(end,1))-9*(w1)^2*y(6,1)*cos(3*(n*t/g)*y(end,1))-9*(w1)^2*y(7,1)*sin(3*(n*t/g)*y(end,1))+...
-            -16*(w1)^2*y(8,1)*cos(4*(n*t/g)*y(end,1))-16*(w1)^2*y(9,1)*sin(4*(n*t/g)*y(end,1)),-(w2)^2*y(2,2)*cos((n*t/g)*y(end,2))+...
-            -(w2)^2*y(3,2)*sin((n*t/g)*y(end,2))-4*(w2)^2*y(4,2)*cos(2*(n*t/g)*y(end,2))+...
-            -4*(w2)^2*y(5,2)*sin(2*(n*t/g)*y(end,2))-9*(w2)^2*y(6,2)*cos(3*(n*t/g)*y(end,2))-9*(w2)^2*y(7,2)*sin(3*(n*t/g)*y(end,2))+...
-            -16*(w2)^2*y(8,2)*cos(4*(n*t/g)*y(end,2))-16*(w2)^2*y(9,2)*sin(4*(n*t/g)*y(end,2))]; % Shape space velocity as a function of time
+p2.ddphi_def = @(t) [-(w1)^2*y(2,1)*cos(w1*t)-(w1)^2*y(3,1)*sin(w1*t)-4*(w1)^2*y(4,1)*cos(2*w1*t)+...
+            -4*(w1)^2*y(5,1)*sin(2*w1*t)-9*(w1)^2*y(6,1)*cos(3*w1*t)-9*(w1)^2*y(7,1)*sin(3*w1*t)+...
+            -16*(w1)^2*y(8,1)*cos(4*w1*t)-16*(w1)^2*y(9,1)*sin(4*w1*t),-(w2)^2*y(2,2)*cos(w2*t)+...
+            -(w2)^2*y(3,2)*sin(w2*t)-4*(w2)^2*y(4,2)*cos(2*w2*t)+...
+            -4*(w2)^2*y(5,2)*sin(2*w2*t)-9*(w2)^2*y(6,2)*cos(3*w2*t)-9*(w2)^2*y(7,2)*sin(3*w2*t)+...
+            -16*(w2)^2*y(8,2)*cos(4*w2*t)-16*(w2)^2*y(9,2)*sin(4*w2*t)]; % Shape space velocity as a function of time
+% inertia_gradient_validation(s,n,y,g,p,p2,fourier_test,fourier_delta,alpha_test)
+[net_disp_orig, net_disp_opt, cost2] = evaluate_displacement_and_cost1(s,p2,[0, g],'interpolated','ODE'); % Call to the function that obtains displacement, cost and efficiency of a gait
+%---------------------------%
 clear y
 y=y1;
 
 [net_disp_orig, net_disp_opt, cost] = evaluate_displacement_and_cost1(s,p,[0, g],'interpolated','ODE'); % Call to the function that obtains displacement, cost and efficiency of a gait
 lineint=net_disp_opt(1); % displacement produced in the x-direction produced on executing the gait measured in the optimal coordinates 
-totalstroke=cost*10e5; % Cost of executing the gait ones
+totalstroke=cost*10e4; % Cost of executing the gait ones
 
 % If efficiency is negative, reversing the order of points so that
 % efficiency is positive
@@ -307,7 +343,12 @@ switch s.system_type
         jacobianstroke(n,:)=(-(((metric{n}+metric{1})/2)*delp{n}')'-(delp{n}*((metric{n}+metric{1})/2)))/(2*l(n))+...
             +((((metric{n}+metric{n-1})/2)*delp{n-1}')'+(delp{n-1}*((metric{n}+metric{n-1})/2)))/(2*l(n-1))+contrigrad(n,:);
     case 'inertia'
-        inertia_cost_grad = inertia_cost_gradient(s,n,coeff,g,p,'discrete')*10e5;
+        grad_stepped = (cost2 - cost)*10e4/fourier_delta
+        inertia_cost_grad = inertia_cost_gradient(s,n,coeff,g,p,'discrete')*10e4;
+%         
+        grad_calc = inertia_cost_grad(fourier_test,alpha_test)
+        grad_error = grad_calc - grad_stepped
+        grad_error_pct = grad_error/grad_calc
     otherwise
         error('Unexpected system type at cost gradient calculation!')
 end
@@ -416,8 +457,13 @@ for i=1:1:dimension
 end
 if strcmpi(s.system_type,'inertia')
     jacobianstrokefourier = inertia_cost_grad;
+    totaljacobianfourier = jacobiandispfourier/totalstroke-lineint*jacobianstrokefourier/totalstroke^2+jacobianeqifourier;
+%     totaljacobianfourier = jacobianstrokefourier;
+else
+    totaljacobianfourier = jacobiandispfourier/totalstroke-lineint*jacobianstrokefourier/totalstroke^2+jacobianeqifourier;
+%     totaljacobianfourier = -jacobianstrokefourier;
 end
-totaljacobianfourier = jacobiandispfourier/totalstroke-lineint*jacobianstrokefourier/totalstroke^2+jacobianeqifourier;
+
 
 %% Variables useful while debugging for flaws in gradient calculations
 
@@ -438,34 +484,35 @@ totaljacobianfourier = jacobiandispfourier/totalstroke-lineint*jacobianstrokefou
 % end
 
 %% minimizing negative of efficiency(or displacement)
- f=-lineint/(totalstroke);
+ f=-lineint/(totalstroke)
  lineint
  totalstroke
 % f=-lineint;
-if nargout>1
-%     g=-totaljacobian(:);
-    g=[-totaljacobianfourier;zeros(1,dimension)];
-end
+% f = totalstroke*10e4;
+% if nargout>1
+% %     g=-totaljacobian(:);
+% %     g=[-totaljacobianfourier;zeros(1,dimension)]
+% end
 
 %% Debugging and plotting
 % This section was written up for the sole purpose of helping with
 % debugging flaws in the optimizer. Appropriate sections can be uncommented
 % to plot how the different gradients look during the optimization process.
 
-% for i=1:n
+for i=1:n
 %     G(i)=y(i,1);
 %     H(i)=y(i,2);
-%     P(i)=y(i,3);
-%     I(i)=1*jacobianstroketemp(i,1);
-%     J(i)=1*jacobianstroketemp(i,2);
-%     I(i)=1*jacobianstroke(i,1);
-%     J(i)=1*jacobianstroke(i,2);
-%     N(i)=1*jacobianstroke(i,3);
-%     K(i)=jacobiandisptemp(i,1);
+% %     P(i)=y(i,3);
+% %     I(i)=1*jacobianstroketemp(i,1);
+% %     J(i)=1*jacobianstroketemp(i,2);
+% %     I(i)=1*jacobianstroke(i,1);
+% %     J(i)=1*jacobianstroke(i,2);
+% %     N(i)=1*jacobianstroke(i,3);
+% %     K(i)=jacobiandisptemp(i,1);
 %     K(i)=jacobiandisp(i,1);
-%     K1(i) = jacobiandispc(i,1);
-%     K1(i)=jacobianforward(i,1);
-%     L(i)=jacobiandisptemp(i,2);
+% %     K1(i) = jacobiandispc(i,1);
+% %     K1(i)=jacobianforward(i,1);
+% %     L(i)=jacobiandisptemp(i,2);
 %     L(i)=jacobiandisp(i,2);
 %     L1(i)=jacobiandispc(i,2);
 %     L1(i)=jacobianforward(i,2);
@@ -482,7 +529,7 @@ end
 %     ccfy(i)=ccf(i,2); 
 %     ccfz(i)=ccf(i,3);
 %     ccfcrosscheck(i)=ccf(i,:)*jacobiandisp(i,:)';
-% end
+end
 % % % % 
 % % % % 
 % clf(figure(6)) %%jacobiandisp
@@ -491,7 +538,7 @@ end
 % scale1=1;
 % quiver(G,H,K,L,scale1)
 % hold on
-% quiver(G,H,K1,L1,scale1)
+% % quiver(G,H,K1,L1,scale1)
 % % quiver(G,H,ccfx,ccfy,scale1)
 % plot(G,H)
 % axis equal
@@ -870,6 +917,7 @@ function [xi, dcost] = get_velocities(t,s,gait,ConnectionEval)
             end
             C = C + C_temp;
             dtau = M*ddshape(:) + C;
+%             dtau = M*ddshape(:);
             dcost = dtau'*dtau;
         otherwise
             error('Unexpected system type in body/cost velocity calculator!')
@@ -1002,7 +1050,7 @@ end
 end
 
 function [grad_alphaddot,grad_alphadot,grad_alpha] = shape_grad(n,y,g)
-w = n*y(end,1)/g; % Frequency of Fourier transform
+% w = n*y(end,1)/g; % Frequency of Fourier transform
 w = n*[y(end,1),y(end,2)]/g;
 dim = size(y,2);
 num_coeffs = size(y,1)-1; % Last term is frequency
@@ -1030,7 +1078,11 @@ for i = 1:num_coeffs
         else
             trig = @sin;
         end
-        grad_alpha{i,j} = @(t) [0*(1:j-1), trig((n*t/g)*y(end,j)), 0*(j+1:dim)];
+        % mult comes from the multiplier of the natural frequency for
+        % increasing fourier coefficients
+        mult = floor(i/2);
+        
+        grad_alpha{i,j} = @(t) [0*(1:j-1), trig(mult*w(j)*t), 0*(j+1:dim)];
         % For partial alphadot, a_n is associated with sine and b_n is
         % associated with cosine; the a_n terms are every second row entry 
         % in y with the b_n terms in between
@@ -1039,10 +1091,8 @@ for i = 1:num_coeffs
         else
             trig = @cos;
         end
-        % Coefficient comes from taking the derivative of the fourier 
-        % series approximation with respect to time
-        coeff = floor(i/2);
-        grad_alphadot{i,j} = @(t) [0*(1:j-1), (-1)^(i-1)*coeff*w(j)*trig((n*t/g)*y(end,j)), 0*(j+1:dim)];
+        
+        grad_alphadot{i,j} = @(t) [0*(1:j-1), (-1)^(i-1)*mult*w(j)*trig(mult*w(j)*t), 0*(j+1:dim)];
         
         % For partial alphaddot, a_n is associated with cosine and b_n is
         % associated with sine
@@ -1051,9 +1101,8 @@ for i = 1:num_coeffs
         else
             trig = @sin;
         end
-        % coefficient comes from taking second derivative w.r.t. time
-        coeff = floor(i/2)^2;
-        grad_alphaddot{i,j} = @(t) [0*(1:j-1), -coeff*w(j)^2*trig((n*t/g)*y(end,j)), 0*(j+1:dim)];
+        
+        grad_alphaddot{i,j} = @(t) [0*(1:j-1), -mult^2*w(j)^2*trig(mult*w(j)*t), 0*(j+1:dim)];
     end
 end
 end
@@ -1062,50 +1111,169 @@ function cost_grad = inertia_cost_gradient(s,n,y,g,p,EvaluationMethod)
     % Contribution to gradient from the movement of each point due to
     % change in fourier coefficients
     [grad_alphaddot,grad_alphadot,grad_alpha] = shape_grad(n,y,g);
+%     validate_shape_gradient(n,y,g,grad_alphaddot,grad_alphadot,grad_alpha);
 
     cost_grad = zeros(size(grad_alpha));
     tspan = [0 g];
-    for i = 1:size(grad_alpha,1)
-        for j = 1:size(grad_alpha,2)
-            % Calculate the system motion over the gait
-            p_grad.phi_def = grad_alpha{i,j};
-            p_grad.dphi_def = grad_alphadot{i,j};
-            p_grad.ddphi_def = grad_alphaddot{i,j};
-            if strcmpi(EvaluationMethod,'discrete')
-                num_pts = 100;
-                t_pts = linspace(0,g,num_pts);
-                del_t = t_pts(2) - t_pts(1);
-                for k = 1:length(t_pts)
-                    del_cost = inertia_gradient_helper(t_pts(k),[],s,p,p_grad);
-                    cost_grad(i,j) = cost_grad(i,j) + del_cost*del_t;
-                end
-            elseif strcmpi(EvaluationMethod,'ode45')
-                sol = ode45(@(t,y) inertia_gradient_helper(t,y,s,p,p_grad),tspan,0);
-
-                % Extract the final motion
-                cost_grad(i,j) = deval(sol,tspan(end));
-            end
+    if strcmpi(EvaluationMethod,'discrete')
+        num_pts = 100;
+        t_pts = linspace(0,g,num_pts);
+        del_t = t_pts(2) - t_pts(1);
+        for k = 1:length(t_pts)
+            del_cost = inertia_gradient_helper(t_pts(k),[],s,p,grad_alpha,grad_alphadot,grad_alphaddot);
+            cost_grad = cost_grad + reshape(del_cost,size(cost_grad)).*del_t;
         end
+    elseif strcmpi(EvaluationMethod,'ode45')
+        sol = ode45(@(t,y) inertia_gradient_helper(t,y,s,p,grad_alpha,grad_alphadot,grad_alphaddot),tspan,cost_grad);
+
+        % Extract the final motion
+        cost_grad = reshape(deval(sol,tspan(end)),size(cost_grad));
     end
 end
 
-function del_cost = inertia_gradient_helper(t,X,s,gait,del_gait)
-	% X is the accrued displacement and cost
+function validate_shape_gradient(n,y,g,grad_alphaddot,grad_alphadot,grad_alpha)
+    % Select 10 random times at which to evaluate the gradient of shape
+    t = g*rand(1,10);
+    w1 = n*y(end,1)/g; % Frequency of Fourier transform
+    w2 = n*y(end,2)/g;
+    for i = 1:length(t)
+        grad_alpha_eval = cellfun(@(C) C(t(i)), grad_alpha, 'UniformOutput', false);
+        grad_alpha1_eval = cell2mat(grad_alpha_eval(:,1));
+        grad_alpha2_eval = cell2mat(grad_alpha_eval(:,2));
+        grad_alpha1_calc = [1,0;cos(w1*t(i)),0;sin(w1*t(i)),0;cos(2*w1*t(i)),0;sin(2*w1*t(i)),0;cos(3*w1*t(i)),0;sin(3*w1*t(i)),0;cos(4*w1*t(i)),0;sin(4*w1*t(i)),0];
+        grad_alpha2_calc = [0,1;0,cos(w2*t(i));0,sin(w2*t(i));0,cos(2*w2*t(i));0,sin(2*w2*t(i));0,cos(3*w2*t(i));0,sin(3*w2*t(i));0,cos(4*w2*t(i));0,sin(4*w2*t(i))];
+        grad_alpha1_err = grad_alpha1_eval - grad_alpha1_calc
+        grad_alpha2_err = grad_alpha2_eval - grad_alpha2_calc
+        
+        grad_alphadot_eval = cellfun(@(C) C(t(i)), grad_alphadot, 'UniformOutput', false);
+        grad_alphadot1_eval = cell2mat(grad_alphadot_eval(:,1));
+        grad_alphadot2_eval = cell2mat(grad_alphadot_eval(:,2));
+        grad_alphadot1_calc = [0,0;-w1*sin(w1*t(i)),0;w1*cos(w1*t(i)),0;-2*w1*sin(2*w1*t(i)),0;2*w1*cos(2*w1*t(i)),0;-3*w1*sin(3*w1*t(i)),0;3*w1*cos(3*w1*t(i)),0;-4*w1*sin(4*w1*t(i)),0;4*w1*cos(4*w1*t(i)),0];
+        grad_alphadot2_calc = [0,0;0,-w2*sin(w2*t(i));0,w2*cos(w2*t(i));0,-2*w2*sin(2*w2*t(i));0,2*w2*cos(2*w2*t(i));0,-3*w2*sin(3*w2*t(i));0,3*w2*cos(3*w2*t(i));0,-4*w2*sin(4*w2*t(i));0,4*w2*cos(4*w2*t(i))];
+        grad_alphadot1_err = grad_alphadot1_eval - grad_alphadot1_calc
+        grad_alphadot2_err = grad_alphadot2_eval - grad_alphadot2_calc
+        
+        grad_alphaddot_eval = cellfun(@(C) C(t(i)), grad_alphaddot, 'UniformOutput', false);
+        grad_alphaddot1_eval = cell2mat(grad_alphaddot_eval(:,1));
+        grad_alphaddot2_eval = cell2mat(grad_alphaddot_eval(:,2));
+        grad_alphaddot1_calc = [0,0;-w1^2*cos(w1*t(i)),0;-w1^2*sin(w1*t(i)),0;-4*w1^2*cos(2*w1*t(i)),0;-4*w1^2*sin(2*w1*t(i)),0;-9*w1^2*cos(3*w1*t(i)),0;-9*w1^2*sin(3*w1*t(i)),0;-16*w1^2*cos(4*w1*t(i)),0;-16*w1^2*sin(4*w1*t(i)),0];
+        grad_alphaddot2_calc = [0,0;0,-w2^2*cos(w2*t(i));0,-w2^2*sin(w2*t(i));0,-4*w2^2*cos(2*w2*t(i));0,-4*w2^2*sin(2*w2*t(i));0,-9*w2^2*cos(3*w2*t(i));0,-9*w2^2*sin(3*w2*t(i));0,-16*w2^2*cos(4*w2*t(i));0,-16*w2^2*sin(4*w2*t(i))];
+        grad_alphaddot1_err = grad_alphaddot1_eval - grad_alphaddot1_calc
+        grad_alphaddot2_err = grad_alphaddot2_eval - grad_alphaddot2_calc
+    end
+end
 
-	% Get the shape and shape derivative at the current time
+function inertia_gradient_validation(s,n,y,g,p,p_delta,fourier_test,fourier_delta,alpha_test)
+    [grad_alphaddot,grad_alphadot,grad_alpha] = shape_grad(n,y,g);
+    
+    % Get the shape and shape derivative at a random time for each gait
+    t = g*rand(1);
+	shape = p.phi_def(t);
+	shapelist = num2cell(shape);
+	dshape = p.dphi_def(t);
+    ddshape = p.ddphi_def(t);
+    shape_delta = p_delta.phi_def(t);
+	shapelist_delta = num2cell(shape_delta);
+	dshape_delta = p_delta.dphi_def(t);
+    ddshape_delta = p_delta.ddphi_def(t);
+    grad_alpha_eval = cellfun(@(C) C(t), grad_alpha, 'UniformOutput', false);
+    grad_alphadot_eval = cellfun(@(C) C(t), grad_alphadot, 'UniformOutput', false);
+    grad_alphaddot_eval = cellfun(@(C) C(t), grad_alphaddot, 'UniformOutput', false);
+    
+    %----- dMdf validation -----%
+    % Get mass matrices at both locations
+    M = cellfun(@(C) interpn(s.grid.mass_eval{:},C,...
+        shapelist{:},'spline'),s.massfield.mass_eval.content.M_alpha);
+    M_delta = cellfun(@(C) interpn(s.grid.mass_eval{:},C,...
+        shapelist_delta{:},'spline'),s.massfield.mass_eval.content.M_alpha);
+    
+    % Get partial mass at both locations
+    dM_alphadalpha = cell(size(shapelist));
+    dM_alphadalpha_delta = cell(size(shapelist));
+    for i = 1:length(shapelist)
+        dM_alphadalpha{i} = cellfun(@(C) interpn(s.grid.coriolis_eval{:},C,...
+            shapelist{:},'spline'),s.coriolisfield.coriolis_eval.content.dM_alphadalpha{i});
+        dM_alphadalpha_delta{i} = cellfun(@(C) interpn(s.grid.coriolis_eval{:},C,...
+            shapelist_delta{:},'spline'),s.coriolisfield.coriolis_eval.content.dM_alphadalpha{i});
+    end
+    
+    % Extract the partial shape derivative wrt fourier coefficient for the
+    % given fourier coefficient index fourier_test corresponding to the
+    % changed shape variable alpha_test
+    grad_alpha_delta = grad_alpha_eval{fourier_test,alpha_test};
+    dMdf = zeros(size(M));
+    for i = 1:length(dM_alphadalpha)
+        dMdf = dMdf + dM_alphadalpha{i}*grad_alpha_delta(i);
+    end
+    
+    dMdf
+    dMdf_calc = (M_delta-M)/fourier_delta
+    % NOTE: This calculation appears to be correct, or at least close
+    % enough. Accurate to two decimals or so of precision.
+    
+    % ----- d(M*alphaddot)/df validation ------ %
+    % Get M*alphaddot at both locations
+    grad_alphaddot_delta = grad_alphaddot_eval{fourier_test,alpha_test};
+    M_alphaddot = M*ddshape(:);
+    M_alphaddot_delta = M_delta*ddshape_delta(:);
+    dMalphaddot_df = dMdf*ddshape(:) + M*grad_alphaddot_delta(:);
+    
+    dMalphaddot_df
+    dMalphaddot_df_calc = (M_alphaddot_delta - M_alphaddot)/fourier_delta
+    % NOTE: This calculation also appears to be close enough. Accurate to
+    % two decimals of precision.
+    
+    % ----- d/df(dM/dq*qdot) validation ----- %
+    grad_alphadot_delta = grad_alphadot_eval{fourier_test,alpha_test};
+    % Get ddM_alphaddalpha at original location
+    ddM_alphadalpha = cell(length(shapelist));
+    for i = 1:numel(ddM_alphadalpha)
+        ddM_alphadalpha{i} = cellfun(@(C) interpn(s.grid.coriolis_eval{:},C,...
+            shapelist{:},'spline'),s.coriolisfield.coriolis_eval.content.ddM_alphadalpha{i});
+    end
+    
+    % Get dM_alphadalpha*qdot at both locations
+    C_temp = zeros(length(shapelist));
+    C_temp_delta = zeros(length(shapelist));
+    for i = 1:length(dM_alphadalpha)
+        C_temp = C_temp + dM_alphadalpha{i}*dshape(i);
+        C_temp_delta = C_temp_delta + dM_alphadalpha_delta{i}*dshape_delta(i);
+    end
+    
+    % Now see if that matches with what the gradient calculation says
+    C1_partialgrad = zeros(length(shapelist));
+    C1_shapegrad = zeros(length(shapelist));
+    C1_outergrad = zeros(length(shapelist));
+    del_dM_alphadalpha = cell(size(shapelist));
+    for j = 1:length(shapelist)
+        Cj_temp = zeros(length(shapelist));
+        for k = 1:length(shapelist)
+            Cj_temp = Cj_temp + ddM_alphadalpha{j,k}*grad_alpha_delta(k);
+        end
+        % del_dM_alphadalpha is the result of the interior summation
+        del_dM_alphadalpha{j} = Cj_temp;
+        % C1_partialgrad is the exterior summation
+        C1_partialgrad = C1_partialgrad + Cj_temp*dshape(j);
+        C1_shapegrad = C1_shapegrad + dM_alphadalpha{j}*grad_alphadot_delta(j);
+        C1_outergrad = C1_outergrad + dM_alphadalpha{j}*dshape(j);
+    end
+    C1_grad = (C1_partialgrad + C1_shapegrad)
+    C1_grad_calc = (C_temp_delta - C_temp)/fourier_delta
+
+end
+
+function del_cost = inertia_gradient_helper(t,X,s,gait,grad_alpha,grad_alphadot,grad_alphaddot)
+	% X is the accrued cost
+    grad_alpha_eval = cellfun(@(C) C(t), grad_alpha, 'UniformOutput', false);
+    grad_alphadot_eval = cellfun(@(C) C(t), grad_alphadot, 'UniformOutput', false);
+    grad_alphaddot_eval = cellfun(@(C) C(t), grad_alphaddot, 'UniformOutput', false);
+    del_cost = zeros(size(grad_alpha_eval));
+    % Get the shape and shape derivative at the current time
 	shape = gait.phi_def(t);
 	shapelist = num2cell(shape);
 	dshape = gait.dphi_def(t);
     ddshape = gait.ddphi_def(t);
-    del_shape = del_gait.phi_def(t);
-    del_dshape = del_gait.dphi_def(t);
-    del_ddshape = del_gait.ddphi_def(t);
-%     for i = 1:numel(del_gait.phi_def)
-%         del_shape(i) = del_gait.phi_def{i}(t);
-%         del_dshape(i) = del_gait.dphi_def{i}(t);
-%         del_ddshape(i) = del_gait.ddphi_def{i}(t);
-%     end
-
+    
     % Get mass and partial mass matrices
     M = cellfun(@(C) interpn(s.grid.mass_eval{:},C,...
         shapelist{:},'spline'),s.massfield.mass_eval.content.M_alpha);
@@ -1115,48 +1283,10 @@ function del_cost = inertia_gradient_helper(t,X,s,gait,del_gait)
             shapelist{:},'spline'),s.coriolisfield.coriolis_eval.content.dM_alphadalpha{i});
     end
     ddM_alphadalpha = cell(length(shapelist));
-    for i = 1:numel(shapelist)
+    for i = 1:numel(ddM_alphadalpha)
         ddM_alphadalpha{i} = cellfun(@(C) interpn(s.grid.coriolis_eval{:},C,...
             shapelist{:},'spline'),s.coriolisfield.coriolis_eval.content.ddM_alphadalpha{i});
     end
-	% Gradient of torque calculation
-    % Start with effect of gradient on M_alpha*alphaddot
-    M_temp = zeros(length(shapelist));
-    for i = 1:length(shapelist)
-        M_temp = M_temp + dM_alphadalpha{i}*del_shape(i);
-    end
-    try
-        M_grad = M_temp*ddshape(:) + M*del_ddshape(:);
-    catch
-        M_temp
-    end
-    % Effect of gradient on dM_alphadalpha*alphadot*alphadot
-    C1_partialgrad = zeros(length(shapelist));
-    C1_shapegrad = zeros(length(shapelist));
-    C1_outergrad = zeros(length(shapelist));
-    del_dM_alphadalpha = cell(size(shapelist));
-    for i = 1:length(shapelist)
-        Cj_temp = zeros(length(shapelist));
-        for j = 1:length(shapelist)
-            Cj_temp = Cj_temp + ddM_alphadalpha{j}*del_shape(j);
-        end
-        del_dM_alphadalpha{i} = Cj_temp;
-        C1_partialgrad = C1_partialgrad + Cj_temp*dshape(i);
-        C1_shapegrad = C1_shapegrad + dM_alphadalpha{i}*del_dshape(i);
-        C1_outergrad = C1_outergrad + dM_alphadalpha{i}*dshape(i);
-    end
-    C1_grad = (C1_partialgrad + C1_shapegrad)*dshape(:) + ...
-        C1_outergrad*del_dshape(:);
-
-    % Effect of gradient on -(1/2)*alphadot'*dM_alphadalpha*alphadot
-    C2_grad = zeros(size(shapelist(:)));
-    for i = 1:length(shapelist)
-        C2_grad(i) = del_dshape(:)'*dM_alphadalpha{i}*dshape(:) + ...
-            dshape(:)'*del_dM_alphadalpha{i}*dshape(:) + ...
-            dshape(:)'*dM_alphadalpha{i}*del_dshape(:);
-    end
-    % Gradient of torque
-    del_tau = M_grad + C1_grad - (1/2)*C2_grad;
     
     % Regular torque calculation
     % Start with (dM_alpha/dalpha*qdot)*qdot terms
@@ -1172,6 +1302,55 @@ function del_cost = inertia_gradient_helper(t,X,s,gait,del_gait)
     end
     C = C + C_temp;
     tau = M*ddshape(:) + C;
+%     tau = M*ddshape(:);
     
-    del_cost = del_tau(:)'*tau(:) + tau(:)'*del_tau(:);
+    for i = 1:numel(grad_alpha_eval)
+        % Partial of shape variables with respect to fourier coefficient i
+        del_shape = grad_alpha_eval{i};
+        del_dshape = grad_alphadot_eval{i};
+        del_ddshape = grad_alphaddot_eval{i};
+    
+        % Gradient of torque calculation
+        % Start with effect of gradient on M_alpha*alphaddot
+        M_temp = zeros(length(shapelist));
+        for j = 1:length(shapelist)
+            M_temp = M_temp + dM_alphadalpha{j}*del_shape(j);
+        end
+        % Catching for debugging
+        try
+            M_grad = M_temp*ddshape(:) + M*del_ddshape(:);
+        catch
+            M_temp
+        end
+        % Effect of gradient on dM_alphadalpha*alphadot*alphadot
+        C1_partialgrad = zeros(length(shapelist));
+        C1_shapegrad = zeros(length(shapelist));
+        C1_outergrad = zeros(length(shapelist));
+        del_dM_alphadalpha = cell(size(shapelist));
+        for j = 1:length(shapelist)
+            Cj_temp = zeros(length(shapelist));
+            for k = 1:length(shapelist)
+                Cj_temp = Cj_temp + ddM_alphadalpha{j,k}*del_shape(k);
+            end
+            del_dM_alphadalpha{j} = Cj_temp;
+            C1_partialgrad = C1_partialgrad + Cj_temp*dshape(j);
+            C1_shapegrad = C1_shapegrad + dM_alphadalpha{j}*del_dshape(j);
+            C1_outergrad = C1_outergrad + dM_alphadalpha{j}*dshape(j);
+        end
+        C1_grad = (C1_partialgrad + C1_shapegrad)*dshape(:) + ...
+            C1_outergrad*del_dshape(:);
+
+        % Effect of gradient on -(1/2)*alphadot'*dM_alphadalpha*alphadot
+        C2_grad = zeros(size(shapelist(:)));
+        for j = 1:length(shapelist)
+            C2_grad(j) = del_dshape(:)'*dM_alphadalpha{j}*dshape(:) + ...
+                dshape(:)'*del_dM_alphadalpha{j}*dshape(:) + ...
+                dshape(:)'*dM_alphadalpha{j}*del_dshape(:);
+        end
+        % Gradient of torque
+        del_tau = M_grad + C1_grad - (1/2)*C2_grad;
+%         del_tau = M*del_ddshape(:);
+        del_cost(i) = del_tau(:)'*tau(:) + tau(:)'*del_tau(:);
+    end
+    del_cost = del_cost(:);
 end

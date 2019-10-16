@@ -19,6 +19,24 @@ function s = evaluate_inertial_properties(s)
     % Use a numerical approach for the second partial derivative of the
     % mass matrix
     s = evaluate_mass_second_derivative_numerical(s);
+    % Validation of dM_alphadalpha using Matlab's grid function; used for
+    % debugging
+%     validate_mass_first_derivative(s);
+end
+
+function validate_mass_first_derivative(s)
+    dM_alphadalpha = s.coriolisfield.coriolis_eval.content.dM_alphadalpha;
+    M = s.massfield.mass_eval.content.M_alpha;
+    M_grid = s.grid.mass_eval;
+    [dA2, dA1] = cellfun(@(C) gradient(C,M_grid{2}(1,:),M_grid{1}(:,1)),M,'UniformOutput',false);
+    err1 = cell(size(dA1));
+    for i=1:numel(err1)
+        err1{i} = dM_alphadalpha{1}{i} - dA1{i};
+    end
+    err2 = cell(size(dA2));
+    for i=1:numel(err1)
+        err2{i} = dM_alphadalpha{2}{i} - dA2{i};
+    end
 end
 
 function s = evaluate_mass_second_derivative_numerical(s)
