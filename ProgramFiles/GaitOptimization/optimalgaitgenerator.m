@@ -68,9 +68,20 @@ for i=1:dimension
     end
 end
 
- options = optimoptions('fmincon','SpecifyObjectiveGradient',false,'Display','iter','Algorithm','sqp','CheckGradients',false,'FiniteDifferenceType','central','MaxIter',4000,'MaxFunEvals',20000,'TolCon',10^-2,'OutputFcn', @outfun);
- [yf fval exitflag output]=fmincon(@(y) solvedifffmincon(y,s,n,dimension,lb,ub),y0,A,b,Aeq,beq,lb1,ub1,@(y) nonlcon(y,s,n,dimension,lb,ub),options);
+writerObj = VideoWriter('test.mp4','MPEG-4');
+writerObj.FrameRate = 5;
+% set the seconds per image
+% open the video writer
+open(writerObj);
+figure(5);
+subplot(1,2,1)
+contour(s.grid.eval{1},s.grid.eval{2},s.DA_optimized{1},'LineWidth',1.5)
+axis square
+hold on
+ options = optimoptions('fmincon','SpecifyObjectiveGradient',true,'Display','iter','Algorithm','sqp','CheckGradients',false,'FiniteDifferenceType','central','MaxIter',4000,'MaxFunEvals',20000,'TolCon',10^-2,'OutputFcn', @outfun);
+ [yf fval exitflag output]=fmincon(@(y) solvedifffmincon(y,s,n,dimension,lb,ub,writerObj),y0,A,b,Aeq,beq,lb1,ub1,@(y) nonlcon(y,s,n,dimension,lb,ub),options);
 
+close(writerObj);
 
 %% Getting point position values from the result of fmincon
 % This section helps us go back to a direct transcription parametrization
@@ -103,7 +114,7 @@ y=y1(:);
 
 end
 
-function [f]=solvedifffmincon(y,s,n,dimension,lb,ub)
+function [f,g]=solvedifffmincon(y,s,n,dimension,lb,ub,writerObj)
 %%%%%%%%%%%%%
 % This function calculates efficiency (or displacement, if
 % that is the objective function) and its gradient with respect to the coefficients obtained
@@ -214,7 +225,7 @@ y=y1;
 
 [net_disp_orig, net_disp_opt, cost] = evaluate_displacement_and_cost1(s,p,[0, g],'interpolated','ODE'); % Call to the function that obtains displacement, cost and efficiency of a gait
 lineint=net_disp_opt(1); % displacement produced in the x-direction produced on executing the gait measured in the optimal coordinates 
-totalstroke=cost*10e4; % Cost of executing the gait ones
+totalstroke=sqrt(cost*10e6); % Cost of executing the gait ones
 
 % If efficiency is negative, reversing the order of points so that
 % efficiency is positive
@@ -343,8 +354,8 @@ switch s.system_type
         jacobianstroke(n,:)=(-(((metric{n}+metric{1})/2)*delp{n}')'-(delp{n}*((metric{n}+metric{1})/2)))/(2*l(n))+...
             +((((metric{n}+metric{n-1})/2)*delp{n-1}')'+(delp{n-1}*((metric{n}+metric{n-1})/2)))/(2*l(n-1))+contrigrad(n,:);
     case 'inertia'
-        grad_stepped = (cost2 - cost)*10e4/fourier_delta
-        inertia_cost_grad = inertia_cost_gradient(s,n,coeff,g,p,'discrete')*10e4;
+        grad_stepped = (cost2 - cost)/fourier_delta
+        inertia_cost_grad = 1/(2*totalstroke)*inertia_cost_gradient(s,n,coeff,g,p,'discrete')*10e6;
 %         
         grad_calc = inertia_cost_grad(fourier_test,alpha_test)
         grad_error = grad_calc - grad_stepped
@@ -457,8 +468,10 @@ for i=1:1:dimension
 end
 if strcmpi(s.system_type,'inertia')
     jacobianstrokefourier = inertia_cost_grad;
+%     jacobiandispfourier = jacobiandispfourier*10;
     totaljacobianfourier = jacobiandispfourier/totalstroke-lineint*jacobianstrokefourier/totalstroke^2+jacobianeqifourier;
 %     totaljacobianfourier = jacobianstrokefourier;
+%     totaljacobianfourier = jacobiandispfourier;
 else
     totaljacobianfourier = jacobiandispfourier/totalstroke-lineint*jacobianstrokefourier/totalstroke^2+jacobianeqifourier;
 %     totaljacobianfourier = -jacobianstrokefourier;
@@ -488,11 +501,12 @@ end
  lineint
  totalstroke
 % f=-lineint;
-% f = totalstroke*10e4;
-% if nargout>1
-% %     g=-totaljacobian(:);
-% %     g=[-totaljacobianfourier;zeros(1,dimension)]
-% end
+% f = totalstroke;
+if nargout>1
+%     g=-totaljacobian(:);
+    g=[-totaljacobianfourier;zeros(1,dimension)];
+%     g=[totaljacobianfourier;zeros(1,dimension)];
+end
 
 %% Debugging and plotting
 % This section was written up for the sole purpose of helping with
@@ -606,10 +620,12 @@ end
 % % end
 % 
 figure(5)
-plot(y(:,1),y(:,2))
-axis equal
+subplot(1,2,1)
+plot(y(:,1),y(:,2),'r','LineWidth',2)
 
  pause(0.1)
+ frame = getframe(gcf);
+ writeVideo(writerObj,frame);
 end
 
 function a=jacobiandispcalculator3(p1,p2,p3,ccf,dimension)
@@ -711,28 +727,28 @@ n=100;
 dimension=length(y(1,:));
 
 % The if else statement below deletes gaits 2 iterations after they have been plotted
-if optimValues.iteration>2
-    children=get(gca,'children');
-    delete(children(6:10));
-else
-end
+% if optimValues.iteration>2
+%     children=get(gca,'children');
+%     delete(children(6:10));
+% else
+% end
 
 % The if else statement below fades the gait plotted during the previous iteration
-if optimValues.iteration>1
-    children=get(gca,'children');
-    children(1).Color=[0.5 0.5 0.5];
-    children(2).Color=[0.5 0.5 0.5];
-    children(3).Color=[0.5 0.5 0.5];
-    children(4).Color=[0.5 0.5 0.5];
-    children(5).Color=[0.5 0.5 0.5];
-
-    children(1).LineWidth=4;
-    children(2).LineWidth=4;
-    children(3).LineWidth=4;
-    children(4).LineWidth=4;
-    children(5).LineWidth=4;
-else
-end
+% if optimValues.iteration>1
+%     children=get(gca,'children');
+%     children(1).Color=[0.5 0.5 0.5];
+%     children(2).Color=[0.5 0.5 0.5];
+%     children(3).Color=[0.5 0.5 0.5];
+%     children(4).Color=[0.5 0.5 0.5];
+%     children(5).Color=[0.5 0.5 0.5];
+% 
+%     children(1).LineWidth=4;
+%     children(2).LineWidth=4;
+%     children(3).LineWidth=4;
+%     children(4).LineWidth=4;
+%     children(5).LineWidth=4;
+% else
+% end
 
 % The if else statement below plots the gait after every iteration
 if optimValues.iteration>0
@@ -743,9 +759,31 @@ if optimValues.iteration>0
                 +y(8,j)*cos(4*i*y(end,j))+y(9,j)*sin(4*i*y(end,j));%+y(10,j)*cos(5*i*y(end,j))+y(11,j)*sin(5*i*y(end,j));%+y(12,j)*cos(6*i*y(end,j))+y(13,j)*sin(6*i*y(end,j));
         end    
     end
-    hold on
+    figure(5);
+    subplot(1,2,1)
+    delete(findobj(gca,'Type','Line'));
     handle1=plot(y1(:,1),y1(:,2),'k','linewidth',3);
     plot_dir_arrows(y1(:,1),y1(:,2),2,'Color',[0 0 0],'LineWidth',3);
+    xlabel('\alpha_1')
+    ylabel('\alpha_2')
+    title('Gait')
+    
+    subplot(1,2,2)
+    if optimValues.iteration > 1
+        fig = gcf;
+        axObjs = fig.Children;
+        dataObjs = axObjs(1).Children;
+        iterations = [dataObjs(1).XData, optimValues.iteration];
+        fvals = [dataObjs(1).YData, optimValues.fval];
+    else
+        iterations = optimValues.iteration;
+        fvals = optimValues.fval;
+    end
+    
+    plot(iterations,fvals,'bo-')
+    xlabel('Optimizer Iteration')
+    ylabel('Efficiency')
+    title('Efficiency per iteration')
 else
 end
 pause(0.1)
