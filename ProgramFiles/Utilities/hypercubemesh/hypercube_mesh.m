@@ -18,13 +18,18 @@ function [nodes,cubes] = hypercube_mesh(grid)
 	% Build the list of nodes in each hypercube
 	
 	% Prime cubes array (one fewer cube than node in each direction
-	cubes = zeros(prod(size(node_nums)-1),nodes_per_cube);
+	cubes = zeros(prod(max([1,1],(size(node_nums)-1))),nodes_per_cube);
 	
 	% number of cubes
 	n_cubes = size(cubes,1);
 			
 	% Expand algorithm for higher dimensions
 	switch (numel(grid))
+        
+        case 1
+            
+			cubes(:,1) = reshape(node_nums(1:l(1)-1),n_cubes,1);
+			cubes(:,2) = reshape(node_nums(2:l(1)),n_cubes,1);
 		
 		case 2
 			

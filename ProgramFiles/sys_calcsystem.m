@@ -47,7 +47,7 @@ function output = sys_calcsystem(input_mode,systemfilename)
 			s = optimize_coordinate_choice(s);
 			
 			%Calculate the constraint curvature functions from the connection
-			s = calc_constraint_curvature(s);
+			%s = calc_constraint_curvature(s);
             
             %Build a stretch function corresponding to the metric only if
             %the system is 2 dimensional

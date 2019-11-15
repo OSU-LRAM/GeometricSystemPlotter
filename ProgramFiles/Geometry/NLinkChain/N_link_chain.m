@@ -23,6 +23,7 @@ function [h, J, J_full,frame_zero,J_zero] = N_link_chain(geometry,shapeparams)
 %               sysf_           Pull minimum-perturbation coordinates from a
 %                                       sysf_ file. Argument should be the name of
 %                                       a system in the current UserFiles folder
+%               Documentation needed: there are more options.
 %
 %       modes (optional): Option to map input "jointangles" across
 %           multiple links in a chain (which can have more joints than the

@@ -345,14 +345,15 @@ function [gradE] = postprocessor(grid,E)
 
 	% Generate the vectors for mapping ndgrid functions to gradient's
 	% inputs, which expect meshgrid
-	inputorder = [2 1 3:n_dim];
+	%inputorder = [2 1 3:n_dim];
+	inputorder = [1 2:n_dim];
 
 	
 	% Prime the output
 	gradE = cell(size(grid));
 	gradbasis = cellfun(@(x) unique(x),grid,'UniformOutput',false);
 	%Get the gradient of the scalar potential
-	[gradE{inputorder}] = gradient(E,gradbasis{inputorder});
+    [gradE{inputorder}] = gradient(E,gradbasis{inputorder});
 
 end
 

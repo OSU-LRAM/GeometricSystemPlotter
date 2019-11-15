@@ -41,7 +41,11 @@ function s = calc_constraint_curvature(s)
 		
 		% Build a selection matrix for pairs of vectors to form the
 		% exterior-derivative basis
-		if n_col==2
+        if n_col==1
+            
+            basis_ordering = 1;
+            
+        elseif n_col==2
 			
 			basis_ordering = [1 2];
 			
@@ -89,13 +93,15 @@ function s = calc_constraint_curvature(s)
             for j=1:n_col
                 test{j}=1;
             end
-            testtemp=test;
-            testtemp{2}=2;
-            spacing{1}=grid{2,1}(testtemp{:})-grid{2,1}(test{:});
+            %testtemp=test;
+            %testtemp{2}=2;
+            %spacing{1}=grid{2,1}(testtemp{:})-grid{2,1}(test{:});
             testtemp=test;
             testtemp{1}=2;
-            spacing{2}=grid{1,1}(testtemp{:})-grid{1,1}(test{:});            
-            for j=3:n_col
+            %spacing{2}=grid{1,1}(testtemp{:})-grid{1,1}(test{:});  
+            spacing{1}=grid{1,1}(testtemp{:})-grid{1,1}(test{:});            
+            %for j=3:n_col         
+            for j=2:n_col
                 testtemp=test;
                 testtemp{j}=2;
                 spacing{j}=grid{j,1}(testtemp{:})-grid{j,1}(test{:});

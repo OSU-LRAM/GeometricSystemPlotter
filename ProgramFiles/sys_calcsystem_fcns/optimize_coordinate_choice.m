@@ -100,7 +100,9 @@ function s = optimize_coordinate_choice(s)
 % 		E_theta_offset = mean(centervals(:));
 % 		
 % 	end
-    n_dim = numel(size(E_theta));
+    %n_dim = numel(size(E_theta));
+    % E_theta is same size in both 1 and 2 dimensions.
+    n_dim = s.n_dim;
     centervals = num2cell(zeros(n_dim,1));
 
     for idx = 1:n_dim;

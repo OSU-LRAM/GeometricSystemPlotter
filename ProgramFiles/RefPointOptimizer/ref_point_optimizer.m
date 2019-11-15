@@ -388,7 +388,8 @@ function [gradE] = postprocessor(grid,E)
 
 	% Generate the vectors for mapping ndgrid functions to gradient's
 	% inputs, which expect meshgrid
-	inputorder = [2 1 3:n_dim];
+	%inputorder = [2 1 3:n_dim];
+	inputorder = [1 2:n_dim];
 
 	
 	% Prime the output
