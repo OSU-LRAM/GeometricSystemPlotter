@@ -1,4 +1,4 @@
-function [A, h, J, J_full, omega] = LowRE_connection_discrete(geometry,physics,jointangles)
+function [A, h, J, J_full, omega] = LowRE_connection_discrete(geometry,physics,jointangles,backwards)
 % Calculate the local connection for a set of curvature bases
 %
 % Inputs:
@@ -26,9 +26,17 @@ function [A, h, J, J_full, omega] = LowRE_connection_discrete(geometry,physics,j
 %       drag_ratio: Ratio of lateral to longitudinal drag
 %
 %       drag_coefficient: Drag per unit length for longitudinal direction
+%       
+%       drag_coefficient_asym: Drag per unit length for longitudinal
+%       direction when moving backwards; only used when optional directions
+%       input is provided TODO: this doc is not quite right; see page 95 of
+%       notebook
 %
 %   jointangles: Angles of the joints between the links, defining the
 %       chain's current shape.
+%
+%   directions (optional): The sign of the body velocity for each link, for
+%   systems where this determines the magnitude of longitudinal friction.
 %
 % Outputs:
 %
@@ -85,6 +93,13 @@ function [A, h, J, J_full, omega] = LowRE_connection_discrete(geometry,physics,j
     % J_full, so we use it as a template.
     link_force_maps = J_full;
     
+    % Determine the per-link drag_coefficient, and correct the drag ratio
+    % for the cases where the backwards drag is used, because the lateral
+    % drag should be constant.
+    if ~exist('directions', 'var')
+        directions = zeros(size(geometry.linklengths));
+    end
+    
     % Now iterate over each link, calculating the map from system body and
     % shape velocities to forces acting on the body
     for idx = 1:numel(link_force_maps)
@@ -93,7 +108,9 @@ function [A, h, J, J_full, omega] = LowRE_connection_discrete(geometry,physics,j
                                                     J_full{idx},...             % Jacobian from body velocity of base link and shape velocity to body velocity of this link
                                                     h.lengths(idx),...          % Length of this link
                                                     physics.drag_ratio,...      % Ratio of lateral to longitudinal drag
-                                                    physics.drag_coefficient);  % Bulk drag coefficient
+                                                    physics.drag_coefficient,...  % Bulk drag coefficient
+                                                    physics.drag_bw_ratio,...
+                                                    backwards(idx));
   
     end
 
@@ -141,10 +158,11 @@ function [A, h, J, J_full, omega] = LowRE_connection_discrete(geometry,physics,j
 end
 
 
-function omega = LowRE_body_drag_link(h,J_full,L,drag_ratio,c)
+function omega = LowRE_body_drag_link(h,J_full,L,drag_ratio,c,bw_ratio,dir_bw)
 % Calculate the matrix that maps from system body and shape velocities to
 % forces acting on the base frame of the system
 
+% TODO: add defaults for bw_ratio and dir_bw
 		
 	%%%%%%%
     % Forces acting on the system are applied as forces acting on the links.
@@ -189,7 +207,7 @@ function omega = LowRE_body_drag_link(h,J_full,L,drag_ratio,c)
     % gcirc_local is the body velocity of the link
     % F_local is the body force acting on the link
     gcirc_local_to_F_local = ...
-        [-L      0               0;
+        [-L * (bw_ratio*dir_bw + (1-dir_bw))      0               0;
         0    -drag_ratio*L       0;
         0        0           -drag_ratio/12*L^3]*c;
 	
