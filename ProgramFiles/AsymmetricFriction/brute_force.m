@@ -61,7 +61,7 @@ title(direction_names(dir+1));
 % would be agreeing with both
 summary = (agree{1, dir + 1} + 1)/2 + (agree{2, dir + 1} + 1);
 %summary = (agree{1, dir + 1} + 1) & (agree{2, dir + 1} + 1);
-surface(a, adot, summary);
+surface(adot, a, summary);
 end
 
 % keep track of any places where there's no solution, one, or multiple
@@ -71,4 +71,4 @@ direction_summary = zeros(size(agree{1, 1}));
 for dir = 0:3
     direction_summary = direction_summary + ((agree{1, dir + 1} + 1) & (agree{2, dir + 1} + 1));
 end
-surface(a, adot, direction_summary);
+surface(adot, a, direction_summary);

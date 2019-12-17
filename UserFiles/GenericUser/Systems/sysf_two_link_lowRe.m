@@ -47,7 +47,7 @@ function output = sysf_two_link_lowRe(input_mode,pathnames)
             % Define system physics
             s.physics.drag_ratio = 2;
             s.physics.drag_coefficient = 1;
-            s.physics.drag_bw_ratio = 1.5;
+            s.physics.drag_bw_ratio = 2;
            
  
             %Functional Local connection and dissipation metric
@@ -68,7 +68,7 @@ function output = sysf_two_link_lowRe(input_mode,pathnames)
 
 			%Range over which to evaluate connection
 			%s.grid_range = [-1,1,-1,1]*2.5;
-            s.grid_range = [-1, 1]*2.5;
+            s.grid_range = [-1, 1]*3.1;
 
 			%densities for various operations
 			s.density.vector = [21]; %density to display vector field
