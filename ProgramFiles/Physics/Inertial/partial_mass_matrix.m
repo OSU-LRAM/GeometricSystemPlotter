@@ -1,12 +1,12 @@
 function dMdq = partial_mass_matrix(J_full,dJdq,local_inertias,base_type)
 num_links = length(J_full);
 num_q = size(dJdq{1},1);
-switch base_type
-    case 'fixed'
-        num_joints = num_links;
-    case 'mobile'
-        num_joints = num_links - 1;
-end
+% switch base_type
+%     case 'fixed'
+%         num_joints = num_links;
+%     case 'mobile'
+%         num_joints = num_links - 1;
+% end
 
 dMtemp = zeros(num_q,num_q);
 % If we're working with symbolic variables, then we need to explicitly make

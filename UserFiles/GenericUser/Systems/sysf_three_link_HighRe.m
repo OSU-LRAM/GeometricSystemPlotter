@@ -82,8 +82,8 @@ function output = sysf_three_link_HighRe(input_mode,pathnames)
 			s.density.scalar = [51 51]; %density to display scalar functions
 			s.density.eval = [31 31];   %density for function evaluations
             s.density.metric_eval = [11 11]; %density for metric evaluation
-            s.density.mass_eval = [11 11]; % density for mass matrix evaluation
-            s.density.coriolis_eval = [11 11];
+            s.density.mass_eval = [31 31]; % density for mass matrix evaluation
+            s.density.coriolis_eval = [31 31];
             s.density.finite_element=31;
 
 
