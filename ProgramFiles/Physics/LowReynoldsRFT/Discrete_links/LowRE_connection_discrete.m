@@ -61,6 +61,12 @@ function [A, h, J, J_full, omega] = LowRE_connection_discrete(geometry,physics,j
 %       shape velocities to net external forces acting on the base frame,
 %       which must be zero for all achievable motions of the system
 
+    if ~exist('backwards','var')
+        backwards = zeros(size(geometry.linklengths));
+        drag_bw_ratio = 1;
+    else
+        drag_bw_ratio = physics.drag_bw_ratio;
+    end
 
     %%%%
     % First, get the positions of the links in the chain and their
@@ -96,20 +102,16 @@ function [A, h, J, J_full, omega] = LowRE_connection_discrete(geometry,physics,j
     % Determine the per-link drag_coefficient, and correct the drag ratio
     % for the cases where the backwards drag is used, because the lateral
     % drag should be constant.
-    if ~exist('directions', 'var')
-        directions = zeros(size(geometry.linklengths));
-    end
     
     % Now iterate over each link, calculating the map from system body and
     % shape velocities to forces acting on the body
     for idx = 1:numel(link_force_maps)
-        
         link_force_maps{idx} = LowRE_body_drag_link(h.pos(idx,:),...            % Position of this link relative to the base frame
                                                     J_full{idx},...             % Jacobian from body velocity of base link and shape velocity to body velocity of this link
                                                     h.lengths(idx),...          % Length of this link
                                                     physics.drag_ratio,...      % Ratio of lateral to longitudinal drag
                                                     physics.drag_coefficient,...  % Bulk drag coefficient
-                                                    physics.drag_bw_ratio,...
+                                                    drag_bw_ratio,...
                                                     backwards(idx));
   
     end
@@ -162,7 +164,8 @@ function omega = LowRE_body_drag_link(h,J_full,L,drag_ratio,c,bw_ratio,dir_bw)
 % Calculate the matrix that maps from system body and shape velocities to
 % forces acting on the base frame of the system
 
-% TODO: add defaults for bw_ratio and dir_bw
+if ~exist('bw_ratio', 'var') bw_ratio = 1; end
+if ~exist('dir_bw', 'var') dir_bw = 0; end
 		
 	%%%%%%%
     % Forces acting on the system are applied as forces acting on the links.

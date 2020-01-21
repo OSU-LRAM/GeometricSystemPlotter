@@ -31,6 +31,8 @@ function output = sysf_two_link_lowRe(input_mode,pathnames)
             s.geometry.baseframe = 'com-mean';
             s.geometry.length = 1;
             
+            s.noop = 1; % don't calculate an optimized coordinate frame
+            
             s.n_dim = 1;
             
             

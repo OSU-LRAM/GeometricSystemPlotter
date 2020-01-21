@@ -27,10 +27,15 @@ function plot_info = vfield_draw(s,p,plot_info,sys,shch,resolution)
     % appearing
     for idx = 1:size(V,1)
         
-        normV = sqrt(V{idx,1}.^2 + V{idx,2}.^2);
-        
-        V{idx,1}(normV < 1e-10) = 0;
-        V{idx,2}(normV < 1e-10) = 0;
+        if size(V,2) == 1 % special case for one dimension
+            V{idx,1}(V{idx,1} < 1e-10) = 0;
+        else
+            % TODO is this an error for over 2 dimensions?
+            normV = sqrt(V{idx,1}.^2 + V{idx,2}.^2);
+
+            V{idx,1}(normV < 1e-10) = 0;
+            V{idx,2}(normV < 1e-10) = 0;
+        end
         
     end
 	
@@ -223,6 +228,8 @@ function plot_info = vfield_draw(s,p,plot_info,sys,shch,resolution)
 		%plot the vector field arrows
         if n_dim == 2
 			quiver(ax,grid{:},V{field_number,1},V{field_number,2},'k','LineWidth',2)
+        elseif n_dim == 1
+            % pass, for now at least
         else
             idxt=cell(1,n_dim-3);
             idxt(1,:)={1};
@@ -254,7 +261,9 @@ function plot_info = vfield_draw(s,p,plot_info,sys,shch,resolution)
 		end
 		%set the display range
 		if ~plot_info.stretch
-			axis(ax,s.grid_range);
+            if n_dim ~= 1 % hack so it won't crash
+                axis(ax,s.grid_range);
+            end
 		end
         
         %Label the axes (two-dimensional)
