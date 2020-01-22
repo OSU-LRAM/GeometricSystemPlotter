@@ -57,6 +57,10 @@ function [A, h, J, J_full, omega, M_full, local_inertias] = Inertial_connection_
 %       A is calculated. This matrix is a linear map from system body and
 %       shape velocities to net external forces acting on the base frame,
 %       which must be zero for all achievable motions of the system
+%
+%   local_inertias: The inertia tensor of the link as measured in its fixed
+%       coordinate frame, which includes the added mass from the surrounding
+%       fluid.
 
 
     %%%%

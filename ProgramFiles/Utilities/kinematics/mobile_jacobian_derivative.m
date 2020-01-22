@@ -1,10 +1,31 @@
 function dJdq = mobile_jacobian_derivative(J_full)
+% Calculates the partial of the full Jacobian J_full with respect to the
+% configuration variables q = [g_circ r]', where g_circ is the system's
+% global coordinate configuration and r is the local shape-space
+% configuration.
+%
+% Inputs for a system with m links and q of size (n by 1):
+%
+%   J_full: Full Jacobian matrix for the system, including entries for all
+%       configuration variables q; (m by 1) cell array where each cell contains
+%       a (3 by n) matrix representing the Jacobian of link m.
+%
+% Output:
+%
+%   dJdq: Partial of full Jacobian with respect to the configuration
+%       variables q; (m by 1) cell array where each entry corresponds to
+%       the partial derivative of the Jacobian for link m, which is another
+%       cell array of size (n by n) where each entry (j,k) corresponds to a
+%       three-element vector that represents the partial of Jacobian column
+%       j with respect to configuration variable k.
+
 % Determine how many joint angles are in the system; the first three terms
 % in the Jacobian are for the body coordinates, with any additional columns
 % corresponding to the joint space of the system
 n_joints = size(J_full{1},2) - 3;
 m_links = length(J_full);
 
+% Prototype a template to fit into each level of the output cell array
 dJdq = cell(m_links,1);
 template = cell(3+n_joints,3+n_joints);
 zero_vec = zeros(3,1);

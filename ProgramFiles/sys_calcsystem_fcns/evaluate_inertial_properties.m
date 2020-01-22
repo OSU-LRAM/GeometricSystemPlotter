@@ -11,10 +11,6 @@ function s = evaluate_inertial_properties(s)
     % Evaluate all components in the list
     for i = 1:length(component_list)
         s = evaluate_tensors_in_system_file(s,component_list{i},eval_list{i},field_list{i});
-
-%         % resample metric at a resolution appropriate for displaying as an
-%         % ellipse field
-%         s = resample_tensors_in_system_file(s,component_list{i},eval_list{i}{1},display_list{i},field_list{i});
     end
     % Use a numerical approach for the second partial derivative of the
     % mass matrix
