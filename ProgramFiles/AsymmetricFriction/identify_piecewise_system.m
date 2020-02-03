@@ -1,4 +1,4 @@
-function [consistent_system, consistency_count] = identify_piecewise_system(s, a, adot)
+function [consistent_system, consistency_count] = identify_piecewise_system(s, adot_grid)
 %IDENTIFY_PIECEWISE_SYSTEM Summary of this function goes here
 %   Find the system that's consistent at each point in the alpha / alphadot
 %   space.
@@ -10,14 +10,16 @@ function [consistent_system, consistency_count] = identify_piecewise_system(s, a
 %       ...
 %       last system: any system is consistent... occurs on axes
 
-consistent_system = zeros(length(a), length(adot));
-consistency_count = zeros(length(a), length(adot)); % for error checking
+a_grid = s.grid.eval{1};
+
+consistent_system = zeros(length(a_grid), length(adot_grid));
+consistency_count = zeros(length(a_grid), length(adot_grid)); % for error checking
 
 for dir = 0:3
     backwards = [mod(dir,2), floor(dir/2)]; % this is a hacky way to do all 4 direction combos with binary
     friction_direction = [1, 1] - 2 * backwards;
-    for i = 1:length(a)
-        shape = a(i);
+    for i = 1:length(a_grid)
+        shape = a_grid(i);
         
         % todo: the also don't depend on dir, so make this the outer loop
         % these two don't depend on alpha dot:
@@ -26,8 +28,8 @@ for dir = 0:3
         % get Jfull(alpha)
         [~, ~, J_full, ~, ~] = N_link_chain(s.geometry, shape);
         
-        for j = 1:length(adot)
-            shapechange = adot(j);
+        for j = 1:length(adot_grid)
+            shapechange = adot_grid(j);
             
             % gcirc right
             body_vel = A * shapechange;
