@@ -49,7 +49,7 @@ function output = sysf_two_link_lowRe(input_mode,pathnames)
             % Define system physics
             s.physics.drag_ratio = 2;
             s.physics.drag_coefficient = 1;
-            s.physics.drag_bw_ratio = 2;
+            s.physics.drag_bw_ratio = 4;
            
  
             %Functional Local connection and dissipation metric
