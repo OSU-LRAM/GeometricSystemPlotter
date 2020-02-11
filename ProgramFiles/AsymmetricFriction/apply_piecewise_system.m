@@ -20,7 +20,7 @@ backwards = [mod(dir,2), floor(dir/2)]; % this is a hacky way to do all 4 direct
 [A, ~, ~, ~, ~] = LowRE_connection_discrete(s.geometry, s.physics, shape, backwards);
 
 % gcirc right
-body_velocity = A * shapechange;
+body_velocity = -A * shapechange;
 
 end
 
