@@ -6,9 +6,7 @@ function [body_velocity] = apply_piecewise_system(s, piecewise_system_map, shape
 % using results found for two-link.
 
 % pick which system to use for this a/adot
-opening = sign(shape) == sign(shapechange);
-
-A = get_correct_A(s, shape, opening);
+A = get_correct_A(s, shape, shapechange);
 
 % gcirc right
 body_velocity = -A * shapechange;

@@ -1,6 +1,8 @@
-function A = get_correct_A(s, shape, opening)
+function A = get_correct_A(s, shape, shapechange)
 %GET_CORRECT_A Summary of this function goes here
 %   Detailed explanation goes here
+
+opening = sign(shape) == sign(shapechange);
 
 if opening
     dir = 3 - 1;
