@@ -9,7 +9,7 @@ nframes = gait_cycles * frames_per_cycle;
 
 t_solution = softspace(0,gait_period * gait_cycles, nframes);
 g_solution = deval(solution, mod(t_solution, gait_period));
-gait_displacement = deval(solution, gait_period);
+gait_displacement = vec_to_mat_SE2(deval(solution, gait_period));
 
 % record movie
 figure()
@@ -25,13 +25,10 @@ for frame = 1:nframes
     t = t_solution(frame);
     gaits_finished = floor(t/gait_period);
     
+    accumulated_displacement = gait_displacement ^ gaits_finished;
+    g = accumulated_displacement * vec_to_mat_SE2(g_solution(:, frame));
     
-    % bug: this should be a matrix transformation, not an addition
-    accumulated_displacement = gait_displacement * gaits_finished;
-    g = g_solution(:, frame) + accumulated_displacement;
-    
-    
-    B = vec_to_mat_SE2(g) * fat_chain(system.geometry, gait{1}(t));
+    B = g * fat_chain(system.geometry, gait{1}(t));
     cla
     hold on
     patch(B(1,:),B(2,:),[1 0 0])
