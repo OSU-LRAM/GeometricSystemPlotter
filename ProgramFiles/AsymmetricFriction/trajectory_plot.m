@@ -2,11 +2,32 @@ function trajectory_plot(solution)
 %TRAJECTORY_PLOT Summary of this function goes here
 %   Detailed explanation goes here
 
-time = linspace(0, 2* pi, 20);
-dif_eq = deval(solution, time);
-dif_eq_trajectory = dif_eq(1:2, :);
-figure()
-plot(dif_eq_trajectory(1,:), dif_eq_trajectory(2, :))
+gait_period = 2*pi;
+gait_cycles = 3;
+frames_per_cycle = 10;
+nframes = gait_cycles * frames_per_cycle;
+
+t_solution = linspace(0, gait_period*gait_cycles, nframes);
+g_solution = deval(solution, mod(t_solution, gait_period));
+
+gait_displacement = vec_to_mat_SE2(deval(solution, gait_period));
+
+
+trajectory = zeros(size(g_solution));
+
+for frame = 1:nframes
+    t = t_solution(frame);
+    gaits_finished = floor(t/gait_period);
+    
+    accumulated_displacement = gait_displacement ^ gaits_finished;
+    g = accumulated_displacement * vec_to_mat_SE2(g_solution(:, frame));
+    
+    
+    trajectory(:, frame) = mat_to_vec_SE2(g);
+    
+end
+%figure()
+plot(trajectory(1,:), trajectory(2, :))
 axis equal
 
 end
