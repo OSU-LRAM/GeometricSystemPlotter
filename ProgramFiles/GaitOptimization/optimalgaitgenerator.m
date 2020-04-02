@@ -74,25 +74,25 @@ for i=1:dimension
 end
 
 writerObj = [];
-% % Uncomment this section if you'd like to record a video of the
-% % optimizer's steps in the shape space
-% writerObj = VideoWriter('cost_as_time_period_circle_start.mp4','MPEG-4');
-% writerObj.FrameRate = 5;
-% % set the seconds per image
-% % open the video writer
-% open(writerObj);
-% figure(5);
-% subplot(1,2,1)
-% contour(s.grid.eval{1},s.grid.eval{2},s.DA_optimized{1},'LineWidth',1.5)
-% axis square
-% hold on
+% Uncomment this section if you'd like to record a video of the
+% optimizer's steps in the shape space
+writerObj = VideoWriter('cost_as_time_period_circle_start.mp4','MPEG-4');
+writerObj.FrameRate = 5;
+% set the seconds per image
+% open the video writer
+open(writerObj);
+figure(5);
+subplot(1,2,1)
+contour(s.grid.eval{1},s.grid.eval{2},s.DA_optimized{1},'LineWidth',1.5)
+axis square
+hold on
 
  options = optimoptions('fmincon','SpecifyObjectiveGradient',true,'Display','iter','Algorithm','sqp','CheckGradients',false,'FiniteDifferenceType','central','MaxIter',4000,'MaxFunEvals',20000,'TolCon',10^-2,'OutputFcn', @outfun);
  [yf fval exitflag output]=fmincon(@(y) solvedifffmincon(y,s,n,dimension,lb,ub,writerObj),y0,A,b,Aeq,beq,lb1,ub1,@(y) nonlcon(y,s,n,dimension,lb,ub),options);
 
-% % Uncomment this if you uncommented the section above so that the video
-% % writer object is closed appropriately.
-% close(writerObj);
+% Uncomment this if you uncommented the section above so that the video
+% writer object is closed appropriately.
+close(writerObj);
 
 %% Getting point position values from the result of fmincon
 % This section helps us go back to a direct transcription parametrization
@@ -442,7 +442,8 @@ end
 % end
 
 %% minimizing negative of efficiency(or displacement)
- f=-lineint/(totalstroke);
+ f=-lineint/(totalstroke); % Optimizing for displacement over cost
+%     f = -lineint; % Optimizing for displacement only
 %  % Uncomment these lines if you'd like to print out the displacement
 %  % (lineint) and cost (totalstroke) while the program is optimizing
 %  lineint
@@ -451,11 +452,13 @@ if nargout>1
     if strcmpi(s.system_type,'inertia')
         % Return the gradient of efficiency as previously calculated for
         % inertia systems
-        g = -totaljacobianfourier;
+        g = -totaljacobianfourier; % Optimizing for displacement over cost
+%         g = -jacobiandispfourier; % Optimizing for displacement only
     else
         % Return the gradient of efficiency plus row of zeros for frequency
         % terms for drag systems
-        g=[-totaljacobianfourier;zeros(1,dimension)];
+        g=[-totaljacobianfourier;zeros(1,dimension)]; % Optimizing for displacement over cost
+%         g = [-jacobiandispfourier;zeros(1,dimension)]; % Optimizing for displacement only
     end
 end
 
@@ -574,14 +577,14 @@ end
 % % Uncomment this section if you'd like to plot the optimizer's progress
 % % more frequently (i.e. not just the steps that worked) and save a video of
 % % the frames
-% figure(5)
-% subplot(1,2,1)
-% plot(y(:,1),y(:,2),'r','LineWidth',2)
-% title({['Disp: ',num2str(lineint)],['Cost: ',num2str(totalstroke)],['Period from freq: ',num2str(2*pi/w1)]})
-% 
-%  pause(0.1)
-%  frame = getframe(gcf);
-%  writeVideo(writerObj,frame);
+figure(5)
+subplot(1,2,1)
+plot(y(:,1),y(:,2),'r','LineWidth',2)
+title({['Disp: ',num2str(lineint)],['Cost: ',num2str(totalstroke)],['Period from freq: ',num2str(2*pi/w1)]})
+
+ pause(0.05)
+ frame = getframe(gcf);
+ writeVideo(writerObj,frame);
 end
 
 function jacobianstroke = jacobianstrokecalculator(y,n,dimension,metric,metricgrad)
@@ -790,69 +793,69 @@ function stop=outfun(y,optimValues,state)
 n=100;
 dimension=length(y(1,:));
 
-% The if else statement below deletes gaits 2 iterations after they have been plotted
-if optimValues.iteration>2
-    children=get(gca,'children');
-    delete(children(6:10));
-else
-end
-
-% The if else statement below fades the gait plotted during the previous iteration
-if optimValues.iteration>1
-    children=get(gca,'children');
-    children(1).Color=[0.5 0.5 0.5];
-    children(2).Color=[0.5 0.5 0.5];
-    children(3).Color=[0.5 0.5 0.5];
-    children(4).Color=[0.5 0.5 0.5];
-    children(5).Color=[0.5 0.5 0.5];
-
-    children(1).LineWidth=4;
-    children(2).LineWidth=4;
-    children(3).LineWidth=4;
-    children(4).LineWidth=4;
-    children(5).LineWidth=4;
-else
-end
-
-% The if else statement below plots the gait after every iteration
-if optimValues.iteration>0
-    y1 = path_from_fourier(y,n,dimension);
-    hold on
-    handle1=plot(y1(:,1),y1(:,2),'k','linewidth',3);
-    plot_dir_arrows(y1(:,1),y1(:,2),2,'Color',[0 0 0],'LineWidth',3);
-else
-end
-
-% % Use this version if you're writing a video and have the system plotting
-% % more frequently in the difffmincon call
+% % The if else statement below deletes gaits 2 iterations after they have been plotted
+% if optimValues.iteration>2
+%     children=get(gca,'children');
+%     delete(children(6:10));
+% else
+% end
+% 
+% % The if else statement below fades the gait plotted during the previous iteration
+% if optimValues.iteration>1
+%     children=get(gca,'children');
+%     children(1).Color=[0.5 0.5 0.5];
+%     children(2).Color=[0.5 0.5 0.5];
+%     children(3).Color=[0.5 0.5 0.5];
+%     children(4).Color=[0.5 0.5 0.5];
+%     children(5).Color=[0.5 0.5 0.5];
+% 
+%     children(1).LineWidth=4;
+%     children(2).LineWidth=4;
+%     children(3).LineWidth=4;
+%     children(4).LineWidth=4;
+%     children(5).LineWidth=4;
+% else
+% end
+% 
+% % The if else statement below plots the gait after every iteration
 % if optimValues.iteration>0
 %     y1 = path_from_fourier(y,n,dimension);
-%     figure(5);
-%     subplot(1,2,1)
-%     delete(findobj(gca,'Type','Line'));
+%     hold on
 %     handle1=plot(y1(:,1),y1(:,2),'k','linewidth',3);
 %     plot_dir_arrows(y1(:,1),y1(:,2),2,'Color',[0 0 0],'LineWidth',3);
-%     xlabel('\alpha_1')
-%     ylabel('\alpha_2')
-%     
-%     subplot(1,2,2)
-%     if optimValues.iteration > 1
-%         fig = gcf;
-%         axObjs = fig.Children;
-%         dataObjs = axObjs(1).Children;
-%         iterations = [dataObjs(1).XData, optimValues.iteration];
-%         fvals = [dataObjs(1).YData, optimValues.fval];
-%     else
-%         iterations = optimValues.iteration;
-%         fvals = optimValues.fval;
-%     end
-%     
-%     plot(iterations,fvals,'bo-')
-%     xlabel('Optimizer Iteration')
-%     ylabel('Efficiency')
-%     title('Efficiency per iteration')
+% else
 % end
-pause(0.1)
+
+% Use this version if you're writing a video and have the system plotting
+% more frequently in the difffmincon call
+if optimValues.iteration>0
+    y1 = path_from_fourier(y,n,dimension);
+    figure(5);
+    subplot(1,2,1)
+    delete(findobj(gca,'Type','Line'));
+    handle1=plot(y1(:,1),y1(:,2),'k','linewidth',3);
+    plot_dir_arrows(y1(:,1),y1(:,2),2,'Color',[0 0 0],'LineWidth',3);
+    xlabel('\alpha_1')
+    ylabel('\alpha_2')
+    
+    subplot(1,2,2)
+    if optimValues.iteration > 1
+        fig = gcf;
+        axObjs = fig.Children;
+        dataObjs = axObjs(1).Children;
+        iterations = [dataObjs(1).XData, optimValues.iteration];
+        fvals = [dataObjs(1).YData, optimValues.fval];
+    else
+        iterations = optimValues.iteration;
+        fvals = optimValues.fval;
+    end
+    
+    plot(iterations,fvals,'bo-')
+    xlabel('Optimizer Iteration')
+    ylabel('Efficiency')
+    title('Efficiency per iteration')
+end
+pause(0.05)
 stop=false;
 end
 
