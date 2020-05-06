@@ -35,12 +35,8 @@ function output = sysf_constantcurv2_lowRe(input_mode,pathnames)
             % along the backbone
             s.geometry.type = 'curvature basis';                
 
-            % The specific basis functions are those for a serpenoid curve,
-            % in which the curvature varies sinusoidally along the length
-            % of the body. This function is normalized such that the body length
-            % is taken as one unit long. For this system, we use a
-            % wavelength equal to the body length.
-            n_waves = 1;
+            % The specific basis functions are those for a
+            % piecewise-constant curvature system
             s.geometry.function = {@(s)constant_curvature_1(s);@(s)constant_curvature_2(s)};
 
             % Total length of the swimmer, in real units
@@ -55,11 +51,9 @@ function output = sysf_constantcurv2_lowRe(input_mode,pathnames)
             % Define properties for visualizing the system
             
             % Make a grid of values at which to visualize the system in
-            % illustrate_shapespace. The code below uses properties of cell
-            % arrays to automatically match the dimensionality of the grid
-            % with the number of shape basis functions in use
-            s.visual.grid = cell(size(s.geometry.function));
-            [s.visual.grid{:}] = ndgrid([-1 -0.5 0 0.5 1]*6);
+            % illustrate_shapespace. (Use a cell of gridpoints along each
+            % axis to use different spacings for different axes)
+            s.visual.grid_spacing = [-1 -0.5 0 0.5 1]*5;
 
             
             %%%

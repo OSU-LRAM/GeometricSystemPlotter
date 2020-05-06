@@ -128,5 +128,4 @@ function [A, h, J, J_full, omega, M_full, local_inertias] = Inertial_connection_
     
     % Build the local connection
     A = omega(:,1:3)\omega(:,4:end);
-    
 end

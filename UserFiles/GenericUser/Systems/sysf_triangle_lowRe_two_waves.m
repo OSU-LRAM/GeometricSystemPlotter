@@ -83,11 +83,9 @@ function output = sysf_triangle_lowRe_two_waves(input_mode,pathnames)
             % Define properties for visualizing the system
             
             % Make a grid of values at which to visualize the system in
-            % illustrate_shapespace. The code below uses properties of cell
-            % arrays to automatically match the dimensionality of the grid
-            % with the number of shape basis functions in use
-            s.visual.grid = cell(size(curvdef_parameters));
-            [s.visual.grid{:}] = ndgrid([-1 -0.5 0 0.5 1]*6+.001); %.001 is to avoid a singularity at zero
+            % illustrate_shapespace. (Use a cell of gridpoints along each
+            % axis to use different spacings for different axes)
+            s.visual.grid_spacing = ndgrid([-1 -0.5 0 0.5 1]*6+.001); %.001 is to avoid a singularity at zero
 
             
             %%%
@@ -125,7 +123,7 @@ function output = sysf_triangle_lowRe_two_waves(input_mode,pathnames)
             
 			%densities for various operations
 			s.density.vector = [1 1]*11; %density to display vector field
-			s.density.scalar = [1 1]*21; %density to display scalar functions
+			s.density.scalar = [1 1]*51; %density to display scalar functions
 			s.density.eval = [1 1]*31;   %density for function evaluations
             s.density.metric_eval = [1 1]*11;
             s.density.finite_element=31;

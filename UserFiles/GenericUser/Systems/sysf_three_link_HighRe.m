@@ -38,12 +38,9 @@ function output = sysf_three_link_HighRe(input_mode,pathnames)
             % Define properties for visualizing the system
             
             % Make a grid of values at which to visualize the system in
-            % illustrate_shapespace. The code below uses properties of cell
-            % arrays to automatically match the dimensionality of the grid
-            % with the number of shape basis functions in use
-            s.visual.grid = cell(numel(s.geometry.linklengths)-1,1);
-            [s.visual.grid{:}] = ndgrid([-1  0  1]);
-
+            % illustrate_shapespace. (Use a cell of gridpoints along each
+            % axis to use different spacings for different axes)
+            s.visual.grid_spacing = [-1  0  1];
             
             %%%
             %%%%%%
@@ -53,12 +50,12 @@ function output = sysf_three_link_HighRe(input_mode,pathnames)
  
             %Functional Local connection and dissipation metric
 
-            %[s.A,~,s.J,s.J_full,~,s.M_full]
+
             s.A = @(alpha1,alpha2) Inertial_local_connection( ...
                         s.geometry,...                           % Geometry of body
                         s.physics,...                            % Physics properties
                         [alpha1,alpha2]);                        % Joint angles
-            
+
              s.metric = @(alpha1,alpha2) mass_matrix(s.geometry,s.physics,[alpha1,alpha2]);
              
             % TODO: These should probably be calculated as part of a larger
@@ -92,7 +89,6 @@ function output = sysf_three_link_HighRe(input_mode,pathnames)
 
             % System type flag
             s.system_type = 'inertia';
-            
 			%%%%
 			%Save the system properties
 			output = s;

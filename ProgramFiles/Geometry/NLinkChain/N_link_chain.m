@@ -1,4 +1,4 @@
-function [h, J, J_full,frame_zero,J_zero] = N_link_chain(geometry,jointangles)
+function [h, J, J_full,frame_zero,J_zero] = N_link_chain(geometry,shapeparams)
 % Build a backbone for a chain of links, specified as a vector of link
 % lengths and the joint angles between them.
 %
@@ -23,6 +23,13 @@ function [h, J, J_full,frame_zero,J_zero] = N_link_chain(geometry,jointangles)
 %               sysf_           Pull minimum-perturbation coordinates from a
 %                                       sysf_ file. Argument should be the name of
 %                                       a system in the current UserFiles folder
+%
+%       modes (optional): Option to map input "jointangles" across
+%           multiple links in a chain (which can have more joints than the
+%           provided number of "jointangles". Should be a matrix in which
+%           each column is the set of joint angles on the full chain associated
+%           with a unit value of the corresponding "jointangle" input.
+%
 %
 %   length (optional): Total length of the chain. If specified, the elements of
 %       will be scaled such that their sum is equal to L. If this field
@@ -83,10 +90,22 @@ else
     baseframe = geometry.baseframe;
 end
 
-% Force linklength and jointangle vectors to be columns, and normalize link
+% If no modes are specified, use an identity mapping for the modes
+if ~isfield(geometry,'modes') || isempty(geometry.modes)
+    modes = eye(numel(shapeparams));
+else
+    modes = geometry.modes;
+end
+
+% Force linklength and shapeparam vectors to be columns, and normalize link
 % lengths for a total length of 1.
 linklengths = geometry.linklengths(:)/sum(geometry.linklengths)*L;
-jointangles = jointangles(:);
+shapeparams = shapeparams(:);
+
+
+% Expand jointangles from specified shape variables to actual joint angles
+% by multiplying in the modal function
+jointangles = modes*shapeparams;
 
 %%%%%%%%%%%%
 
@@ -283,6 +302,9 @@ for idx = 1:N_links
 
     end
     
+    % Convert joint-angle Jacobian into shape-mode coordinates
+    J_temp{idx} = J_temp{idx} * modes;
+    
 end
 
 
@@ -310,6 +332,8 @@ end
                                                 joints_v,...
                                                 jointangles,...
                                                 linklengths,...
+                                                shapeparams,...
+                                                modes,...
                                                 J_temp,...
                                                 baseframe);        
 
@@ -317,6 +341,17 @@ end
 % Use frame_zero and J_zero to convert the link transformations and
 % Jacobian so that they are refefenced off of the new base frame
 [h_m,J,J_full] = N_link_conversion(chain_m,J_temp,frame_zero,J_zero); 
+
+
+
+
+% %%%%%%%
+% % Multiply the Jacobians by the modal matrices to produce Jacobians that
+% % act from the modal coefficients rather than the full joint space
+% J = cellfun(@(j) j*modes,J,'UniformOutput',false);
+% full_mode_conversion = [eye(size(J{1},1)), zeros(size(J{1},1),size(modes,2));
+%                         zeros(size(modes,1),size(J{1},1)),modes];
+% J_full = cellfun(@(j) j*full_mode_conversion,J_full,'UniformOutput',false);
 
 % For output, convert h into row form. Save this into a structure, with
 % link lengths included

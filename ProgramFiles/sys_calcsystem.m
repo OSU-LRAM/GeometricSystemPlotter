@@ -26,15 +26,13 @@ function output = sys_calcsystem(input_mode,systemfilename)
 			
 			%%%%%
 			%Processing stages, passed off to secondary functions
-			
+            
+            % Ensure that there is a connection and a metric
+            s = ensure_connection_and_metric(s);
+                        
 			%Create grids for evaluating the connection functions
 			s = create_grids(s);
 			
-            % Ensure that there is a connection and a metric
-            s = ensure_connection_and_metric(s);
-
-            
-            
 			%Evaluate the connection and metric over the fine grid for calculations and the coarse
 			%grid for vector display
 			s = evaluate_connection(s);
