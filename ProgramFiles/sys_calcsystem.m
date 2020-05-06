@@ -58,6 +58,18 @@ function output = sys_calcsystem(input_mode,systemfilename)
             if length(s.grid_range)/2<3
                 s = calc_stretch_functions(s);
             end
+            
+            % Check for whether system type variable exists in structure; default to
+            % 'drag' type if non-existent and throw an error if an unsuitable value is
+            % present
+            if isfield(s,'system_type')
+                if ~( strcmpi(s.system_type,'drag') || strcmpi(s.system_type,'inertia') )
+                    error('Invalid system_type flag in system struct; must be ''drag'' or ''inertia''')
+                end
+            else
+                disp('No system_type flag set in system struct, defaulting to ''drag''')
+                s.system_type = 'drag';
+            end
 						
 			%Save out the updated system properties
 			save(outfile,'s')
