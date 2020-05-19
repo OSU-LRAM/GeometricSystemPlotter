@@ -51,8 +51,8 @@ function output = sysf_three_link_granular(input_mode,pathnames)
 			%Functional representation of local connection
 			s.A_num = @(a1,a2) Conn_num(a1,a2,alpha1,alpha2,Ax1,Ax2,Ay1,Ay2,Atheta1,Atheta2);
 
-
 			%%%
+            
 			%Processing details
 
 			%Mark that system has a singularity that needs to be accounted for
@@ -87,14 +87,18 @@ function output = sysf_three_link_granular(input_mode,pathnames)
 			%s.metric = eye(2); %@(x,y) Granular_metric_calc(x,y,Metric_Tensor_raw,alpha1,alpha2);
 
 			%%%
+            
 			%Display parameters
 
 			%shape space tic locations
 			s.tic_locs.x = [-1 0 1]*2;
 			s.tic_locs.y = [-1 0 1]*2;
 
-
+            % Set system type variable for gait optimization
+            s.system_type = 'drag';
+            
 			%%%%
+            
 			%Save the system properties
 			output = s;
 

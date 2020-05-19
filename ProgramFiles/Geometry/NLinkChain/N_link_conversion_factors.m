@@ -86,6 +86,21 @@ switch baseframe
        
         halfstep = Adjinv(frame_zero);
         J_zero = halfstep * J_temp{1};
+        
+    case 'tail-end'
+        
+        % Identify the end link
+        link_zero = 1;
+
+        % The transform from the midpoint of the first link to its end is
+        % the half-link transform
+        frame_zero = links_m(:,:,link_zero);
+        
+        %%%%%%%%
+        % Jacobian to new frame is Jacobian of last link, but with an
+        % adjoint-inverse transform by the half-link to get to the end
+        halfstep = Adjinv(frame_zero);
+        J_zero = halfstep * J_temp{end};
 
 
     % Places the reference frame at the middle of the chain, splitting the
