@@ -211,7 +211,7 @@ if n_dim==2
 
             %set the button down callback on the plot to be sys_draw with
             %the argument list for the current plot
-            set(plot_info.axes(i),'ButtonDownFcn',{@sys_draw_dummy_callback,plot_info_specific,sys,shch});
+            set(plot_info.axes(i),'ButtonDownFcn',{@sys_draw_dummy_callback,plot_info_specific,sys,shch,plot_info.stretch_name});
 
         else
 

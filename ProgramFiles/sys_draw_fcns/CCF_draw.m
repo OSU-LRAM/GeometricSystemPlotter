@@ -441,7 +441,79 @@ function plot_info = CCF_draw(s,p,plot_info,sys,shch,resolution)
 				coloration = Colorset.colormap_contour;
 
 				
-			otherwise
+			case 'pcolor'
+                				
+				%Plot the constraint curvature function
+% 				[junk, meshhandle] = contour(ax,grid{:},H{function_number},7,'linewidth',2);
+
+                
+
+                [x_new, y_new] = s.convert.old_to_new_points(grid{1},grid{2});
+                
+%                 C = (s.convert.EI.C);
+%                  C = reshape(smooth(C(:)),[],12);
+                
+                HF_isomap = griddata(s.convert.EI.A,s.convert.EI.B,s.convert.EI.C,x_new, y_new,'cubic');
+                
+                isomap.x_new = x_new;
+                isomap.y_new = y_new;
+                isomap.HF_isomap = HF_isomap;
+				
+				%Plot the constraint curvature function
+% 				[junk, meshhandle] = contour(ax,grid{:},H{function_number},7,'linewidth',2);
+                meshhandle = pcolor(ax,grid{1},grid{2},H{function_number});
+                
+                meshhandle.ZData = HF_isomap;
+                meshhandle.XData = x_new;
+                meshhandle.YData = y_new;
+                
+                [grid{:}] = s.convert.old_to_new_points(grid{:});
+				
+				%If there's a shape change involved, plot it
+				if ~strcmp(shch,'null')
+
+					overlay_shape_change_2d(ax,p,plot_info.stretch,s.convert,isomap,s);
+
+				end
+				
+				
+				% Make edges if coordinates have changed
+				if plot_info.stretch
+					
+					edgeres = 30;
+					
+					oldx_edge = [s.grid_range(1)*ones(edgeres,1);linspace(s.grid_range(1),s.grid_range(2),edgeres)';...
+						s.grid_range(2)*ones(edgeres,1);linspace(s.grid_range(2),s.grid_range(1),edgeres)'];
+					oldy_edge = [linspace(s.grid_range(3),s.grid_range(4),edgeres)';s.grid_range(4)*ones(edgeres,1);...
+						linspace(s.grid_range(4),s.grid_range(3),edgeres)';s.grid_range(3)*ones(edgeres,1)];
+
+					[x_edge,y_edge] = s.convert.old_to_new_points(oldx_edge,oldy_edge);
+                    
+                    HF_isomap_edge = griddata(s.convert.EI.A,s.convert.EI.B,s.convert.EI.C,x_edge,y_edge);
+					
+					l_edge = line('Parent',ax,'Xdata',x_edge,'YData',y_edge,'ZData',HF_isomap_edge,'Color','k','LineWidth',1);
+                    
+%                     plot3(x_edge,y_edge,HF_isomap_edge,'k','Parent',ax,'LineWidth',1)
+					
+				end
+				
+				%Put an outline box around the plot
+				box(ax,'on')
+
+				%equal axes sized to match grid or new dimensions if
+				%stretched
+				
+				if plot_info.stretch
+					axis(ax,'equal');
+					axis(ax,[min(grid{1}(:)) max(grid{1}(:)) min(grid{2}(:)) max(grid{2}(:))]);
+				else
+					axis(ax,'equal','tight');
+				end
+				
+				%set the color map
+				coloration = Colorset.colormap;
+                
+            otherwise
 				
 				error('Unknown plot style for the constraint curvature function')
 				
@@ -498,8 +570,8 @@ function plot_info = CCF_draw(s,p,plot_info,sys,shch,resolution)
             %set the button down callback on the plot to be sys_draw with
 			%the argument list for the current plot, and set the button
 			%down callback for the mesh to the same
-			set(plot_info.axes(i),'ButtonDownFcn',{@sys_draw_dummy_callback,plot_info_specific,sys,shch});
-			set(meshhandle,'ButtonDownFcn',{@sys_draw_dummy_callback,plot_info_specific,sys,shch});
+			set(plot_info.axes(i),'ButtonDownFcn',{@sys_draw_dummy_callback,plot_info_specific,sys,shch,plot_info.stretch_name});
+			set(meshhandle,'ButtonDownFcn',{@sys_draw_dummy_callback,plot_info_specific,sys,shch,plot_info.stretch_name});
 
 		else
 

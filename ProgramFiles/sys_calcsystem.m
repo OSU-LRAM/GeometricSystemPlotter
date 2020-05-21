@@ -1,4 +1,4 @@
-function output = sys_calcsystem(input_mode,systemfilename)
+function output = sys_calcsystem(input_mode,systemfilename,stretch)
 %Numerically evaluate the local connection and height function from the
 %symbolic defination, including special accounting for singularities.
 
@@ -54,7 +54,7 @@ function output = sys_calcsystem(input_mode,systemfilename)
             %Build a stretch function corresponding to the metric only if
             %the system is 2 dimensional
             if length(s.grid_range)/2<3
-                s = calc_stretch_functions(s);
+                s = calc_stretch_functions(s,stretch);
             end
             
             % Check for whether system type variable exists in structure; default to
