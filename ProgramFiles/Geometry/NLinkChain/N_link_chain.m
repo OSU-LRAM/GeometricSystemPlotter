@@ -17,8 +17,9 @@ function [h, J, J_full,frame_zero,J_zero] = N_link_chain(geometry,shapeparams)
 % 
 %               'centered' :    Default behavior
 %               'tail' :        Lowest-numbered link is the base frame
+%               'tail-tip' :    Start of lowest-numbered link is the base frame
 %               'head' :        Highest-numbered link is the base frame
-%               'head-tip':     End of the highest-numbered link is the base frame
+%               'head-tip' :    End of the highest-numbered link is the base frame
 %               numeric :       Specify a link number to use as a base frame
 %               sysf_           Pull minimum-perturbation coordinates from a
 %                                       sysf_ file. Argument should be the name of
@@ -31,13 +32,13 @@ function [h, J, J_full,frame_zero,J_zero] = N_link_chain(geometry,shapeparams)
 %           with a unit value of the corresponding "jointangle" input.
 %
 %
-%   length (optional): Total length of the chain. If specified, the elements of
-%       will be scaled such that their sum is equal to L. If this field
-%       is not provided or is entered as an empty matrix, then the links
-%       will not be scaled.
-
-%   jointangles: A vector of the angles between the links. Must be one
-%       element shorter than the linklengths vector
+%       length (optional): Total length of the chain. If specified, the elements of
+%           will be scaled such that their sum is equal to L. If this field
+%           is not provided or is entered as an empty matrix, then the links
+%           will not be scaled.
+%
+%       jointangles: A vector of the angles between the links. Must be one
+%           element shorter than the linklengths vector
 %
 %   
 %
