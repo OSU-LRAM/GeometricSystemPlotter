@@ -63,216 +63,218 @@ end
 % Depending on which baseframe option is specified, use different methods
 % to calculate transform and Jacobian to use in the conversion
 for idx_baseframe = 1:numel(baseframe)
-
-    switch baseframe{idx_baseframe}
     
-        % Places the reference frame at the midpoint of the lowest-index link on the chain
-        case 'tail'
+    if ischar(baseframe{idx_baseframe}) || isscalar(baseframe{idx_baseframe})
 
-            % Identify the first link
-            link_zero = 1;
+        switch baseframe{idx_baseframe}
 
-            % Extract the transform from the end link to itself 
-            frame_zero = eye(3);       
+            % Places the reference frame at the midpoint of the lowest-index link on the chain
+            case 'tail'
 
-            % Jacobian for base link is zero
-            J_zero = zeros(size(J_temp{1}));
+                % Identify the first link
+                link_zero = 1;
 
-        % Places the reference frame at the *end* of the lowest-index link on the chain
-        case 'tail-tip'
+                % Extract the transform from the end link to itself 
+                frame_zero = eye(3);       
 
-            % Identify the end link
-            link_zero = 1;
+                % Jacobian for base link is zero
+                J_zero = zeros(size(J_temp{1}));
 
-            % The transform from the midpoint of the first link to its end is
-            % the inverse of the half-link transform
-            frame_zero = inv(links_m(:,:,link_zero));
+            % Places the reference frame at the *end* of the lowest-index link on the chain
+            case 'tail-tip'
 
-            %%%%%%%%
-            % Jacobian to new frame is Jacobian of first link, but with an
-            % adjoint-inverse transform by the half-link to get to the end
+                % Identify the end link
+                link_zero = 1;
 
-            halfstep = Adjinv(frame_zero);
-            J_zero = halfstep * J_temp{1};
-
-
-        % Places the reference frame at the middle of the chain, splitting the
-        % difference between the two middle links if there is an even number of
-        % links
-        case {'centered','center','midpoint-tangent'}
-
-
-            % If there is an odd number of links, the middle link is the center of the
-            % chain
-            if N_odd
-
-                % Identify the middle link
-                link_zero = ceil(N_links/2);
-
-                % Extract the transform from the end link to the middle link
-                frame_zero = chain_m(:,:,link_zero);
-
-                %%%%%%
-                % Jacobian for conversion is Jacobian of link zero
-                J_zero = J_temp{link_zero};
-
-            % If there is an even number of links, the midpoint is at the middle joint,
-            % rotated by half of that joint's angle
-            else
-
-                % Identify the middle joint
-                joint_zero = ceil(M_joints/2);
-
-                % Extract the position of the middle joint, and multiply it by half of
-                % the transform associated with its joint angle
-                frame_zero = jointchain_m(:,:,joint_zero) * ...
-                                    vec_to_mat_SE2(joints_v(joint_zero,:)/2);
+                % The transform from the midpoint of the first link to its end is
+                % the inverse of the half-link transform
+                frame_zero = inv(links_m(:,:,link_zero));
 
                 %%%%%%%%
-                % Jacobian for conversion is Jacobian of link before it, with a
-                % half-step to get to the end of the link, and a half rotation
-                % to average orientation between the two links
-                halfstep = Adjinv(links_v(joint_zero,:));
-                halfrotation = Adjinv(joints_v(joint_zero,:)/2);
-                J_zero = halfrotation * halfstep * J_temp{joint_zero};
+                % Jacobian to new frame is Jacobian of first link, but with an
+                % adjoint-inverse transform by the half-link to get to the end
 
-                % Account for centered frame being half-sensitive to middle joint
-                J_zero = J_zero + .5*[zeros(2,size(modes,2));modes(joint_zero,:)];
-
-                %J_zero(:,joint_zero) = [0; 0; .5]; 
+                halfstep = Adjinv(frame_zero);
+                J_zero = halfstep * J_temp{1};
 
 
-            end
+            % Places the reference frame at the middle of the chain, splitting the
+            % difference between the two middle links if there is an even number of
+            % links
+            case {'centered','center','midpoint-tangent'}
+
+
+                % If there is an odd number of links, the middle link is the center of the
+                % chain
+                if N_odd
+
+                    % Identify the middle link
+                    link_zero = ceil(N_links/2);
+
+                    % Extract the transform from the end link to the middle link
+                    frame_zero = chain_m(:,:,link_zero);
+
+                    %%%%%%
+                    % Jacobian for conversion is Jacobian of link zero
+                    J_zero = J_temp{link_zero};
+
+                % If there is an even number of links, the midpoint is at the middle joint,
+                % rotated by half of that joint's angle
+                else
+
+                    % Identify the middle joint
+                    joint_zero = ceil(M_joints/2);
+
+                    % Extract the position of the middle joint, and multiply it by half of
+                    % the transform associated with its joint angle
+                    frame_zero = jointchain_m(:,:,joint_zero) * ...
+                                        vec_to_mat_SE2(joints_v(joint_zero,:)/2);
+
+                    %%%%%%%%
+                    % Jacobian for conversion is Jacobian of link before it, with a
+                    % half-step to get to the end of the link, and a half rotation
+                    % to average orientation between the two links
+                    halfstep = Adjinv(links_v(joint_zero,:));
+                    halfrotation = Adjinv(joints_v(joint_zero,:)/2);
+                    J_zero = halfrotation * halfstep * J_temp{joint_zero};
+
+                    % Account for centered frame being half-sensitive to middle joint
+                    J_zero = J_zero + .5*[zeros(2,size(modes,2));modes(joint_zero,:)];
+
+                    %J_zero(:,joint_zero) = [0; 0; .5]; 
+
+
+                end
 
 
 
 
 
-        % Places the reference frame at the midpoint of the highest-numbered link in the chain
-        case 'head'
+            % Places the reference frame at the midpoint of the highest-numbered link in the chain
+            case 'head'
 
-            % Identify the end link
-            link_zero = N_links;
+                % Identify the end link
+                link_zero = N_links;
 
-            % Extract the transform from the end link to the end link
-            frame_zero = chain_m(:,:,link_zero);
+                % Extract the transform from the end link to the end link
+                frame_zero = chain_m(:,:,link_zero);
 
-            %%%%%%%%
-            % Jacobian to new frame is Jacobian of last link
-            J_zero = J_temp{end};
+                %%%%%%%%
+                % Jacobian to new frame is Jacobian of last link
+                J_zero = J_temp{end};
 
-        % Places the reference frame at the *end of* the highest-numbered link
-        % in the chain
-        case 'head-tip'
+            % Places the reference frame at the *end of* the highest-numbered link
+            % in the chain
+            case 'head-tip'
 
-            % Identify the end link
-            link_zero = N_links;
+                % Identify the end link
+                link_zero = N_links;
 
-            % Extract the transform from the first link to the end link, and
-            % multiply it by the half-link transformation on that link
-            frame_zero = chain_m(:,:,link_zero)*links_m(:,:,link_zero);
+                % Extract the transform from the first link to the end link, and
+                % multiply it by the half-link transformation on that link
+                frame_zero = chain_m(:,:,link_zero)*links_m(:,:,link_zero);
 
-            %%%%%%%%
-            % Jacobian to new frame is Jacobian of last link, but with an
-            % adjoint-inverse transform by the half-link to get to the end
-            halfstep = Adjinv(links_v(end,:));
-            J_zero = halfstep * J_temp{end};
+                %%%%%%%%
+                % Jacobian to new frame is Jacobian of last link, but with an
+                % adjoint-inverse transform by the half-link to get to the end
+                halfstep = Adjinv(links_v(end,:));
+                J_zero = halfstep * J_temp{end};
 
-        % Places the reference frame at center of mass and average orientation
-        % of the links, using link-lengths as weighting terms
-        case 'com-mean'
+            % Places the reference frame at center of mass and average orientation
+            % of the links, using link-lengths as weighting terms
+            case 'com-mean'
 
-            % Convert link positions to row form
-            chain = mat_to_vec_SE2(chain_m);
+                % Convert link positions to row form
+                chain = mat_to_vec_SE2(chain_m);
 
-            % Substitute a cumulative sum of the joint angles for the
-            % orientations of the links: We're not looking for the mean of the
-            % SO(2)-modulated orientations, we're looking for the mean angular
-            % displacement from the base link.
-            chain(:,3) = [0;cumsum(jointangles)];
+                % Substitute a cumulative sum of the joint angles for the
+                % orientations of the links: We're not looking for the mean of the
+                % SO(2)-modulated orientations, we're looking for the mean angular
+                % displacement from the base link.
+                chain(:,3) = [0;cumsum(jointangles)];
 
-            % Take a weighted average of the link positions
-            CoM = sum(diag(linklengths)*chain)/L;
+                % Take a weighted average of the link positions
+                CoM = sum(diag(linklengths)*chain)/L;
 
 
-            % Place the new frame at this location
-            frame_zero = vec_to_mat_SE2(CoM);
+                % Place the new frame at this location
+                frame_zero = vec_to_mat_SE2(CoM);
+
+                %%%%%%%%%%%
+                % The Jacobian of the weighted average of frames is the
+                % weighted average of their Jacobian (by the commutativity of
+                % sumation and derivation operations).
+
+                % Multiply each link's Jacobian by its link length
+                J_weighted = J_temp;
+                for idx = 1:numel(J_weighted)
+                    J_weighted{idx} = TeLg(chain(idx,:)) * J_temp{idx} * linklengths(idx);
+                end
+
+                % Sum the weighted Jacobians
+                J_zero = J_weighted{1};
+                for idx = 2:numel(J_weighted)
+                    J_zero = J_zero + J_weighted{idx};
+                end
+        %        J_zero = sum(cat(3,J_weighted{:}),3);
+
+                % Divide by the total length to g
+                J_zero = J_zero/L;  
+
+                % Bring into local coordinates
+                J_zero = TgLginv(frame_zero)*J_zero;
+
 
             %%%%%%%%%%%
-            % The Jacobian of the weighted average of frames is the
-            % weighted average of their Jacobian (by the commutativity of
-            % sumation and derivation operations).
+            % These are cases that can be used as modifiers on other baseframes
 
-            % Multiply each link's Jacobian by its link length
-            J_weighted = J_temp;
-            for idx = 1:numel(J_weighted)
-                J_weighted{idx} = TeLg(chain(idx,:)) * J_temp{idx} * linklengths(idx);
-            end
+            % Places the reference frame at the proximal end of the link to
+            % which it is attached
+            case 'start'
 
-            % Sum the weighted Jacobians
-            J_zero = J_weighted{1};
-            for idx = 2:numel(J_weighted)
-                J_zero = J_zero + J_weighted{idx};
-            end
-    %        J_zero = sum(cat(3,J_weighted{:}),3);
+                % Make sure that a link was previously specified
+                if ~exist('link_zero','var')
+                    error('Baseframe string ''start'' may only be used as a secondary baseframe specification, where the primary specification attaches the baseframe to a link.');
+                end
 
-            % Divide by the total length to g
-            J_zero = J_zero/L;  
+                % The transform from the midpoint of the first link to its proximal end is
+                % the inverse of the half-link transform
+                frame_step = inv(links_m(:,:,link_zero));
 
-            % Bring into local coordinates
-            J_zero = TgLginv(frame_zero)*J_zero;
+                % compose the frame step with the previously-computed
+                % frame_zero
+                frame_zero = frame_zero*frame_step; %#ok<MINV>
+
+                %%%%%%%%
+                % Jacobian to new frame is previously-calculated Jacobian, but with an
+                % adjoint-inverse transform by the half-link to get to the end
+
+                halfstep = Adjinv(frame_step);
+                J_zero = halfstep * J_zero;
+
+            % Places the reference frame at the distal end of the link to which
+            % it is attached
+            case 'end'
+
+                % Make sure that a link was previously specified
+                if ~exist('link_zero','var')
+                    error('Baseframe string ''end'' may only be used as a secondary baseframe specification, where the primary specification attaches the baseframe to a link.');
+                end
+
+                % Transform from the midpoint to the distal end of the link
+                frame_step = links_m(:,:,link_zero);
+
+                % compose the frame step with the previously-computed
+                % frame_zero
+                frame_zero = frame_zero*frame_step;
 
 
-        %%%%%%%%%%%
-        % These are cases that can be used as modifiers on other baseframes
-            
-        % Places the reference frame at the proximal end of the link to
-        % which it is attached
-        case 'start'
+                %%%%%%%%
+                % Jacobian to new frame is previously-calculated Jacobian, but with an
+                % adjoint-inverse transform by the half-link to get to the end
 
-            % Make sure that a link was previously specified
-            if ~exist('link_zero','var')
-                error('Baseframe string ''start'' may only be used as a secondary baseframe specification, where the primary specification attaches the baseframe to a link.');
-            end
-            
-            % The transform from the midpoint of the first link to its proximal end is
-            % the inverse of the half-link transform
-            frame_step = inv(links_m(:,:,link_zero));
-            
-            % compose the frame step with the previously-computed
-            % frame_zero
-            frame_zero = frame_zero*frame_step; %#ok<MINV>
-
-            %%%%%%%%
-            % Jacobian to new frame is previously-calculated Jacobian, but with an
-            % adjoint-inverse transform by the half-link to get to the end
-
-            halfstep = Adjinv(frame_step);
-            J_zero = halfstep * J_zero;
-            
-        % Places the reference frame at the distal end of the link to which
-        % it is attached
-        case 'end'
-
-            % Make sure that a link was previously specified
-            if ~exist('link_zero','var')
-                error('Baseframe string ''end'' may only be used as a secondary baseframe specification, where the primary specification attaches the baseframe to a link.');
-            end
-            
-            % Transform from the midpoint to the distal end of the link
-            frame_step = links_m(:,:,link_zero);
-            
-            % compose the frame step with the previously-computed
-            % frame_zero
-            frame_zero = frame_zero*frame_step;
-            
-
-            %%%%%%%%
-            % Jacobian to new frame is previously-calculated Jacobian, but with an
-            % adjoint-inverse transform by the half-link to get to the end
-
-            halfstep = Adjinv(frame_step);
-            J_zero = halfstep * J_zero;
+                halfstep = Adjinv(frame_step);
+                J_zero = halfstep * J_zero;
             
             
             
@@ -285,7 +287,7 @@ for idx_baseframe = 1:numel(baseframe)
             % If a number is provided as the input, place the baseframe on that
             % link
             % Check for numeric baseframe specification
-            if isnumeric(baseframe{idx_baseframe})
+            if isnumeric(baseframe{idx_baseframe}) && isscalar(baseframe{idx_baseframe})
 
                 % Make sure that base frame specification is actually in
                 % the range of valid link numbers
@@ -307,7 +309,10 @@ for idx_baseframe = 1:numel(baseframe)
                     error (['Baseframe specification ' num2str(baseframe{idx_baseframe}) ' is not in the range of link numbers'])
 
                 end
+                
 
+            
+            
             %%%%%%%%
             % If the provided string is the name of a sysf_ system file, pull
             % the transformation to minimum-perturbation coordinates from that file            
@@ -480,10 +485,43 @@ for idx_baseframe = 1:numel(baseframe)
                 else
                     error (['Baseframe specification ' baseframe{idx_baseframe} ' is not a valid option, and there is no system file with that name'])
                 end
+                
+            end
+        end
+            
+        %%%%%%%
+        % If a transformation matrix is provided as the input, apply it
+        % to the base frame (stacked onto any previous base frame)
+
+        elseif isnumeric(baseframe{idx_baseframe})
+
+
+            if ~exist('J_zero','var')
+
+                % Identify the first link
+                link_zero = 1;
+
+                % Extract the transform from the end link to itself 
+                frame_zero = eye(3);       
+
+                % Jacobian for base link is zero
+                J_zero = zeros(size(J_temp{1}));
 
             end
+
+            % Step by the provided transformation
+            frame_step = baseframe{idx_baseframe};
+
+            % Apply the step relatve to the pre-existing frame zero
+            frame_zero = frame_zero * frame_step;
+
+            % Use the adjoint-inverse of the step to modify the
+            % Jacobian
+            J_zero = Adjinv(frame_step) * J_zero;
+
+        end
             
-                        
+                     
     end
       
     % Update J_temp to be the J_zero computed at this stage of the loop
@@ -492,5 +530,4 @@ for idx_baseframe = 1:numel(baseframe)
 end
 
 
-end
     
