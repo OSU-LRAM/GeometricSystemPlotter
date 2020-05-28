@@ -108,22 +108,26 @@ function [B,h,J, J_full] = fat_branched_chain(geometry, jointangles, display)
     % Iterate over links
     for idx = 1:N_links
         
-        %%%
-        % Create an ellipse-ended rectangle for the link 
+        if h.lengths(idx) ~= 0
         
-        % Make the shape slightly shorter than this link (so that there is
-        % a whitespace gap between them when plotted)
-        length = h.lengths(idx)/1.05; %
-                
-        % get the points on the ellipse-ended rectangle
-        C = squashed_rectangle(length,width,cap_width,points);
-        
-        % Transform rectangle to link position
-        C = g(:,:,idx) * C;
-        
-        % Append C onto the end of B, and add a NaN so that the links will
-        % plot discontinuously
-        B = [B, C, NaN(3,1)];
+            %%%
+            % Create an ellipse-ended rectangle for the link 
+
+            % Make the shape slightly shorter than this link (so that there is
+            % a whitespace gap between them when plotted)
+            length = h.lengths(idx)/1.05; %
+
+            % get the points on the ellipse-ended rectangle
+            C = squashed_rectangle(length,width,cap_width,points);
+
+            % Transform rectangle to link position
+            C = g(:,:,idx) * C;
+
+            % Append C onto the end of B, and add a NaN so that the links will
+            % plot discontinuously
+            B = [B, C, NaN(3,1)];
+            
+        end
         
     end
 

@@ -159,7 +159,7 @@ for idx = 2:numel(h_set)
 	h_attach = vec_to_mat_SE2(h_set{attach.parent}.pos(attach.link,:));
     
     % Multiply the link transformations by the attachment transformation
-    for idx2 = 1:size(h_set{idx}.pos,3)
+    for idx2 = 1:size(h_set{idx}.pos,2)
         h_set{idx}.pos(idx2,:) = mat_to_vec_SE2( h_attach * vec_to_mat_SE2(h_set{idx}.pos(idx2,:)));
     end
     

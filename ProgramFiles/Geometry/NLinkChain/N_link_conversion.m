@@ -1,4 +1,4 @@
-function [h_m,J,J_full] = N_link_conversion(chain_m,J_temp,frame_zero,J_zero)
+function [h_m,J,J_full,C] = N_link_conversion(C,frame_zero,J_zero)
 %%%%%%%
 % This is a helper-function for N_link_chain. 
 %
@@ -20,6 +20,22 @@ function [h_m,J,J_full] = N_link_conversion(chain_m,J_temp,frame_zero,J_zero)
 %
 % The code here uses the conversion transformation and Jacobian calculated
 % in N_link_conversion_factors.
+
+
+    % Extract elements from structure array (some functions like size do not
+    % work properly if applied to struct contents without a breakout)
+    chain_m = C.chain_m;
+    jointchain_m = C.jointchain_m;
+    links_m = C.links_m;
+    joints_m = C.joints_m;
+    links_v = C.links_v;
+    joints_v = C.joints_v;
+    jointangles = C.jointangles;
+    linklengths = C.linklengths;
+    shapeparams = C.shapeparams;
+    modes = C.modes;
+    J_temp = C.J_temp;
+    baseframe = C.baseframe;
 
     % Preallocate a matrix for holding the transformed link matrices
     h_m = zeros(size(chain_m));
