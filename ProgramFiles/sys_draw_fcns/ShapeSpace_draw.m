@@ -1,7 +1,18 @@
 function plot_info = ShapeSpace_draw(s,p,plot_info,sys,shch,resolution)
 
+    % If the request is to display in optimized coordinates, append the change-of-body-frame
     if strcmp(plot_info.components{1},'opt')
-        s.geometry.baseframe = sys;
+        
+        % Ensure that the baseframe is a cell array, so that the change to
+        % optimized coordinates can be appended
+        if ~iscell(s.geometry.baseframe)
+            s.geometry.baseframe = {s.geometry.baseframe};
+        end
+        
+        % Append the transformation to optimized coordinates
+        s.geometry.baseframe = [s.geometry.baseframe {sys}];
+        
+        % Change the display name
         displayname = 'Minimum-perturbation coordinates';
     else
         displayname = s.geometry.baseframe;

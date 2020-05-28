@@ -437,54 +437,62 @@ for idx_baseframe = 1:numel(baseframe)
 
 
                         % Convert the transforms that were just found into an
-                        % SE(2) matrix and a body-velocity Jacobian
+                        % SE(2) matrix and a Jacobian for the body velocity
+                        % of the new frame relative to the frame in which it
+                        % is defined
                         frame_mp = vec_to_mat_SE2(frame_mp);
                         J_mp = TgLginv(frame_mp) * J_mp;
+                        
+                        
+                        % Concatenate this transform and Jacobian with any
+                        % previously-calculated values
+                        frame_zero = frame_zero * frame_mp;
+                        J_zero = (Adjinv(frame_mp) * J_zero) + J_mp;
 
-                        %%%%
-                        % Get the conversion factors from the tail link to the
-                        % baseframe used by the system
+%                        %%%%
+%                         % Get the conversion factors from the tail link to the
+%                         % baseframe used by the system
+% 
+%                         % Get the geometry specification in this file
+%                         if isfield(s,'geometry')
+%                             if isfield(s.geometry,'baseframe')
+%                                 baseframe_original = s.geometry.baseframe;
+%                             else
+%                                 error('Baseframe is not specified in system geometry structure')
+%                             end
+%                         else
+%                             error('System does not have a geometry structure')
+%                         end
+% 
 
-                        % Get the geometry specification in this file
-                        if isfield(s,'geometry')
-                            if isfield(s.geometry,'baseframe')
-                                baseframe_original = s.geometry.baseframe;
-                            else
-                                error('Baseframe is not specified in system geometry structure')
-                            end
-                        else
-                            error('System does not have a geometry structure')
-                        end
-
-
-                        % Get conversion factors for the original baseframe
-                        [frame_original,J_original] =...
-                            N_link_conversion_factors(C);
-%                         chain_m,...
-%                                                      jointchain_m,...
-%                                                      links_m,...
-%                                                      joints_m,...
-%                                                      links_v,...
-%                                                      joints_v,...
-%                                                      jointangles,...
-%                                                      linklengths,...
-%                                                      shapeparams,...
-%                                                      modes,...
-%                                                      J_temp,...
-%                                                      baseframe_original);
-
-                        % Combine original conversion with minimum-perturbation
-                        % conversion
-
-                        % Frame construction is straightforward concatenation
-                        % of SE(2) transforms
-                        frame_zero = frame_original * frame_mp; 
-
-                        % Combination of body-velocity Jacobians is by taking
-                        % the adjoint-inverse of the proximal Jacobian by the
-                        % distal transformation, then adding the distal
-                        % Jacobian
-                        J_zero = (Adjinv(frame_mp) * J_original) + J_mp;
+%                         % Get conversion factors for the original baseframe
+%                         [frame_original,J_original] =...
+%                             N_link_conversion_factors(C);
+% %                         chain_m,...
+% %                                                      jointchain_m,...
+% %                                                      links_m,...
+% %                                                      joints_m,...
+% %                                                      links_v,...
+% %                                                      joints_v,...
+% %                                                      jointangles,...
+% %                                                      linklengths,...
+% %                                                      shapeparams,...
+% %                                                      modes,...
+% %                                                      J_temp,...
+% %                                                      baseframe_original);
+% 
+%                         % Combine original conversion with minimum-perturbation
+%                         % conversion
+% 
+%                         % Frame construction is straightforward concatenation
+%                         % of SE(2) transforms
+%                         frame_zero = frame_original * frame_mp; 
+% 
+%                         % Combination of body-velocity Jacobians is by taking
+%                         % the adjoint-inverse of the proximal Jacobian by the
+%                         % distal transformation, then adding the distal
+%                         % Jacobian
+%                         J_zero = (Adjinv(frame_mp) * J_original) + J_mp;
 
                    end
 
