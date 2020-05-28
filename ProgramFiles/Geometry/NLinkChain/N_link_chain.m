@@ -24,6 +24,15 @@ function [h, J, J_full,frame_zero,J_zero] = N_link_chain(geometry,shapeparams)
 %               sysf_           Pull minimum-perturbation coordinates from a
 %                                       sysf_ file. Argument should be the name of
 %                                       a system in the current UserFiles folder
+%               'start' :       Modifier on a link specification (e.g., 
+%                   {2,'start'} to put the frame at the proximal end of the
+%                   specified link
+%               'end' :         Modifier on a link specification (e.g., 
+%                   {head,'end'} to put the frame at the distal end of the
+%                   specified link
+%               transform:      A 3x3 SE(2) matrix giving the position
+%                   of the base frame. This can be a standalone entry or a
+%                   modifier on any other frame.
 %
 %       modes (optional): Option to map input "jointangles" across
 %           multiple links in a chain (which can have more joints than the
@@ -37,8 +46,8 @@ function [h, J, J_full,frame_zero,J_zero] = N_link_chain(geometry,shapeparams)
 %           is not provided or is entered as an empty matrix, then the links
 %           will not be scaled.
 %
-%       jointangles: A vector of the angles between the links. Must be one
-%           element shorter than the linklengths vector
+%   shapeparams: A vector of the angles between the links. Must be one
+%       element shorter than the linklengths vector
 %
 %   
 %
