@@ -1,6 +1,10 @@
-function [h_m,J,J_full,C] = N_link_conversion(C,frame_zero,J_zero)
+function [h_m,J,J_full,C] = N_link_conversion_move_chain(C,frame_zero,J_zero)
 %%%%%%%
 % This is a helper-function for N_link_chain. 
+%
+% This function moves the existing baseframe of the chain described in C to
+% a frame at frame_zero relative to the baseframe. (This is different from
+% N_link_conversion, which leaves the chain fixed and moves the baseframe
 %
 % N_link_chain takes in an argument that specifies which link on the chain
 % (or another frame, such as a center-of-mass frame or one loaded from a
@@ -48,7 +52,7 @@ function [h_m,J,J_full,C] = N_link_conversion(C,frame_zero,J_zero)
     % For each link and joint in the chain, transform its matrix by the inverse of the
     % central transformation
     for idx = 1:size(h_m,3)
-        h_m(:,:,idx) = frame_zero \ chain_m(:,:,idx);
+        h_m(:,:,idx) = frame_zero * chain_m(:,:,idx);
         
         if isa(chain_m,'sym')
             h_m(:,:,idx) = simplify(h_m(:,:,idx),'steps',10);
@@ -57,7 +61,7 @@ function [h_m,J,J_full,C] = N_link_conversion(C,frame_zero,J_zero)
     end
     
     for idx = 1:size(hj_m,3)
-        hj_m(:,:,idx) = frame_zero \ jointchain_m(:,:,idx);
+        hj_m(:,:,idx) = frame_zero * jointchain_m(:,:,idx);
         
         if isa(chain_m,'sym')
             hj_m(:,:,idx) = simplify(hj_m(:,:,idx),'steps',10);
@@ -77,7 +81,8 @@ function [h_m,J,J_full,C] = N_link_conversion(C,frame_zero,J_zero)
     % frame
     
     % First operation is to get the Jacobian that maps shape velocity to
-    % body velocity of the links, taking our new base frame as fixed. 
+    % body velocity of the links, taking the frame that frame_zero is
+    % defined with respect to as fixed
     %
     % This is achieved by multiplying the Jacobian from the original base
     % frame to the new base frame by the Adjoint-inverse of the
@@ -86,9 +91,9 @@ function [h_m,J,J_full,C] = N_link_conversion(C,frame_zero,J_zero)
     J_new = J_temp;
     for idx = 1:numel(J_new)
         J_new{idx} = ...
-            (J_temp{idx} - ...                % Jacobian from joint velocities to body velocity of link, with first link fixed
-                Adjinv(h_m(:,:,idx)) * ...       % Adjoint-inverse transformation by position of this link in new frame
-                    J_zero);                 % Jacobian from joint velocities to body velocity of new frame, with first link fixed
+            (J_temp{idx} + ...                % Jacobian from joint velocities to body velocity of link, with first link of the chain fixed
+                Adjinv(chain_m(:,:,idx)) * ...       % Adjoint-inverse transformation by position of this link relative to frame_zero
+                    J_zero);                 % Jacobian from joint velocities to body velocity of frame_zero, with its reference frame fixed
     end
     
     % Save this Jacobian out to the chain description structure
@@ -97,7 +102,7 @@ function [h_m,J,J_full,C] = N_link_conversion(C,frame_zero,J_zero)
 
     % Second operation is to transform the link Jacobians such that they
     % return the velocities of the links in the coordinate directions of
-    % the new base frame, instead of in each link's local coordinates
+    % the new base frame (the reference frame for frame_zero), instead of in each link's local coordinates
     %
     % This is achieved by multiplying each link Jacobian by the left lifted
     % action of the transformation from the new base frame to the link

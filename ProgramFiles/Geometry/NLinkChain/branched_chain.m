@@ -113,7 +113,7 @@ end
 
 
 % Get the kinematics for each individual chain
-[h_set, J_set, J_full_set,frame_zero_set,J_zero_set] ...
+[h_set, J_set, J_full_set,frame_zero_set,J_zero_set,chain_description_set] ...
     = cellfun(@(geom,shape) N_link_chain(geom,shapeparams(shape)),geometry,joint_lookup_local_to_global,'UniformOutput',false);
 
 %%%%%%%%%
@@ -122,9 +122,10 @@ end
 
 J_set_padded = cell(size(J_set));
 J_full_set_padded = cell(size(J_full_set));
+J_temp_set_padded = cell(size(chain_description_set));
 
 % Iterate over the individual chains
-for idx = 1:numel(h_set)
+for idx = 1:numel(J_set)
     
     
     % Extract the local-to-global joint lookup for joint on this subchain 
@@ -134,6 +135,7 @@ for idx = 1:numel(h_set)
     % Create matrices of the right size to hold the J and J full matrices
     J_set_padded{idx} = repmat({zeros(3,numel(shapeparams))},size(J_set{idx}));
     J_full_set_padded{idx} = repmat({zeros(3,3+numel(shapeparams))},size(J_set{idx}));
+    J_temp_set_padded{idx} = repmat({zeros(3,numel(shapeparams))},size(chain_description_set{idx}.J_temp));
         
     % Iterate over the Jacobans in the chain
     for idx2 = 1:numel(J_set_padded)
@@ -145,37 +147,64 @@ for idx = 1:numel(h_set)
         J_full_set_padded{idx}{idx2}(:,1:3) = J_full_set{idx}{idx2}(:,1:3);
         J_full_set_padded{idx}{idx2}(:,3+jllg) = J_full_set{idx}{idx2}(:,4:end);
          
+        % Move the columns of J_full_set to their global joint number
+        J_temp_set_padded{idx}{idx2}(:,jllg) = chain_description_set{idx}.J_temp{idx2};
+
     end
+   
+    % Put the padded J_temp into the chain_description
+    chain_description_set{idx}.J_temp = J_temp_set_padded{idx};
     
 end
 
 % Loop over the subchains
 for idx = 2:numel(h_set)
-    
-    % Extract the attachment parameters for ths subchain
+
+    % Extract the attachment parameters for ths subchain, and put it into
+    % the chain_description
 	attach = geometry{idx}.attach;
     
-	% Get the position of the link to which this subchain is attached
-	h_attach = vec_to_mat_SE2(h_set{attach.parent}.pos(attach.link,:));
+    chain_description_parent = chain_description_set{attach.parent};
     
-    % Multiply the link transformations by the attachment transformation
-    for idx2 = 1:size(h_set{idx}.pos,2)
-        h_set{idx}.pos(idx2,:) = mat_to_vec_SE2( h_attach * vec_to_mat_SE2(h_set{idx}.pos(idx2,:)));
-    end
+    chain_description_parent.baseframe = attach.location;
     
-    % Transform the Jacobians
-    for idx2 = 1:numel(J_set_padded{idx})
-        
-        % Use left lifted action of the attachment point to modify the
-        % in-frame Jacobian
-        J_set_padded{idx}{idx2} = TeLg(h_attach) * J_set_padded{idx}{idx2};
-        
-        % Convert the full Jacobian
-        Adjointinverse_body_transform = Adjinv(h_attach); % Adjoint-inverse transformation by position of attachment point
-        
-        J_full_set_padded{idx}{idx2} = [Adjointinverse_body_transform * J_full_set_padded{idx}{idx2}(:,1:3), J_full_set_padded{idx}{idx2}(:,4:end)];
-        
-    end
+    % Put the padded J_temp into the chain_description
+    chain_description_set{idx}.J_temp = J_temp_set_padded{idx};
+    
+    % Use the modified chain descriptions to get the location and Jacobian of the
+    % attachment point relative to the first chain's baseframe
+    [frame_zero,J_zero] = N_link_conversion_factors(chain_description_parent);
+    
+    % Move the chain to frame_zero, J_zero
+    [h_m,J_set{idx},J_full_set{idx},chain_description_set{idx}] ...
+        = N_link_conversion_move_chain(chain_description_set{idx},frame_zero,J_zero);
+    
+    h_set{idx}.pos = mat_to_vec_SE2(h_m);
+    
+%     % Extract the attachment parameters for ths subchain
+% 	attach = geometry{idx}.attach;
+%     
+% 	% Get the position of the link to which this subchain is attached
+% 	h_attach = vec_to_mat_SE2(h_set{attach.parent}.pos(attach.link,:));
+%     
+%     % Multiply the link transformations by the attachment transformation
+%     for idx2 = 1:size(h_set{idx}.pos,2)
+%         h_set{idx}.pos(idx2,:) = mat_to_vec_SE2( h_attach * vec_to_mat_SE2(h_set{idx}.pos(idx2,:)));
+%     end
+%     
+%     % Transform the Jacobians
+%     for idx2 = 1:numel(J_set_padded{idx})
+%         
+%         % Use left lifted action of the attachment point to modify the
+%         % in-frame Jacobian
+%         J_set_padded{idx}{idx2} = TeLg(h_attach) * J_set_padded{idx}{idx2};
+%         
+%         % Convert the full Jacobian
+%         Adjointinverse_body_transform = Adjinv(h_attach); % Adjoint-inverse transformation by position of attachment point
+%         
+%         J_full_set_padded{idx}{idx2} = [Adjointinverse_body_transform * J_full_set_padded{idx}{idx2}(:,1:3), J_full_set_padded{idx}{idx2}(:,4:end)];
+%         
+%     end
     
 end
 
