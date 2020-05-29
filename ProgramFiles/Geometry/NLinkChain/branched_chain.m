@@ -152,7 +152,9 @@ for idx = 1:numel(J_set)
 
     end
    
-    % Put the padded J_temp into the chain_description
+    % Overwrite the original J values with their padded versions
+    J_set{idx} = J_set_padded{idx};
+    J_full_set{idx} = J_full_set_padded{idx};
     chain_description_set{idx}.J_temp = J_temp_set_padded{idx};
     
 end
@@ -217,9 +219,20 @@ for idx = 1:numel(h_set)
     h.lengths = [h.lengths;h_set{idx}.lengths];
 end
 
-J = [];
-J_full = [];
+J = {};
+for idx = 1:numel(J_set)
+    
+    J = [J,J_set{idx}]; %#ok<AGROW>
+    
+end
 
+
+J_full = {};
+for idx = 1:numel(J_set)
+    
+    J_full = [J_full,J_full_set{idx}]; %#ok<AGROW>
+    
+end
 
 
 end
