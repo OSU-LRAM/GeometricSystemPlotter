@@ -7,7 +7,11 @@ function plot_info = mfield_draw(s,p,plot_info,sys,shch,resolution)
 %   metric stretch has been selected. Should probably improve this in the
 %   future. 
 
-
+    %Get the configuration file, and extract the Colorpath
+	configfile = 'sysplotter_config';
+    configfile = fullfile(fileparts(mfilename('fullpath')),'..',configfile);
+	load(configfile,'Colorset');
+    
 % Get the number of dimensions
 n_dim = numel(s.grid.eval);
 
@@ -152,7 +156,7 @@ if n_dim==2
 
         % metricellipsefield(s.grid.metric_display{:},celltensorconvert(s.metricfield.metric_display.content.metric),'tissot',{'edgecolor','k’})
 
-        metricellipsefield(grid{:},celltensorconvert(M),'tissot',{'edgecolor','k','parent',ax});
+        metricellipsefield(grid{:},celltensorconvert(M),'tissot-cross',{'edgecolor','k','parent',ax},{'color',Colorset.secondary,'parent',ax});
         box(ax,'on');
 
         % Make edges if coordinates have changed

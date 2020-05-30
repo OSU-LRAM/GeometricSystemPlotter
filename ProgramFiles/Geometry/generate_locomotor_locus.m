@@ -15,6 +15,9 @@ else
 
         case {'n-link chain'}
             drawing_generator = @fat_chain;
+            
+        case {'branched chain'}
+            drawing_generator = @fat_branched_chain;
 
     end
 end

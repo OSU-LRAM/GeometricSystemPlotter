@@ -1,4 +1,4 @@
-function [h, J, J_full,frame_zero,J_zero] = N_link_chain(geometry,shapeparams)
+function [h, J, J_full,frame_zero,J_zero,chain_description] = N_link_chain(geometry,shapeparams)
 % Build a backbone for a chain of links, specified as a vector of link
 % lengths and the joint angles between them.
 %
@@ -17,12 +17,22 @@ function [h, J, J_full,frame_zero,J_zero] = N_link_chain(geometry,shapeparams)
 % 
 %               'centered' :    Default behavior
 %               'tail' :        Lowest-numbered link is the base frame
+%               'tail-tip' :    Start of lowest-numbered link is the base frame
 %               'head' :        Highest-numbered link is the base frame
-%               'head-tip':     End of the highest-numbered link is the base frame
+%               'head-tip' :    End of the highest-numbered link is the base frame
 %               numeric :       Specify a link number to use as a base frame
 %               sysf_           Pull minimum-perturbation coordinates from a
 %                                       sysf_ file. Argument should be the name of
 %                                       a system in the current UserFiles folder
+%               'start' :       Modifier on a link specification (e.g., 
+%                   {2,'start'} to put the frame at the proximal end of the
+%                   specified link
+%               'end' :         Modifier on a link specification (e.g., 
+%                   {head,'end'} to put the frame at the distal end of the
+%                   specified link
+%               transform:      A 3x3 SE(2) matrix giving the position
+%                   of the base frame. This can be a standalone entry or a
+%                   modifier on any other frame.
 %
 %       modes (optional): Option to map input "jointangles" across
 %           multiple links in a chain (which can have more joints than the
@@ -31,12 +41,12 @@ function [h, J, J_full,frame_zero,J_zero] = N_link_chain(geometry,shapeparams)
 %           with a unit value of the corresponding "jointangle" input.
 %
 %
-%   length (optional): Total length of the chain. If specified, the elements of
-%       will be scaled such that their sum is equal to L. If this field
-%       is not provided or is entered as an empty matrix, then the links
-%       will not be scaled.
-
-%   jointangles: A vector of the angles between the links. Must be one
+%       length (optional): Total length of the chain. If specified, the elements of
+%           will be scaled such that their sum is equal to L. If this field
+%           is not provided or is entered as an empty matrix, then the links
+%           will not be scaled.
+%
+%   shapeparams: A vector of the angles between the links. Must be one
 %       element shorter than the linklengths vector
 %
 %   
@@ -71,6 +81,10 @@ function [h, J, J_full,frame_zero,J_zero] = N_link_chain(geometry,shapeparams)
 %
 %   J_zero : The Jacobian from shape velocity to body velocity of the
 %       selected baseframe, with the first link held fixed.
+%
+%   chain_description : The full set of chain features passed to
+%       N_link_conversion_factors (but modified so that they are in the
+%       specified baseframe, not the first-link frame.
 %       
 
 %%%%%%%%%%%%
@@ -165,6 +179,11 @@ joints_m = vec_to_mat_SE2(joints_v);
 % Create a 3-d array in which the ith 2-dimensional sheet is the 3x3 SE(2) matrix
 % representing the corresponding link's configuration
 chain_m = repmat(eye(3),1,1,N_links);
+
+% Also take a cumulative sum of the joint angles -- this is useful if we
+% want to take a mean orientation of the link orientations while making a
+% distinction between orientations separated by 2pi radians
+jointangles_c = [0; cumsum(jointangles)];
 
 % If we're working with symbolic variables, then we need to explicitly make
 % the array symbolic, because matlab tries to cast items being inserted
@@ -324,23 +343,29 @@ end
 %%%%%%
 % Calculate the transformation from the original base frame to the new base
 % frame
-[frame_zero,J_zero] = N_link_conversion_factors(chain_m,...
-                                                jointchain_m,...
-                                                links_m,...
-                                                joints_m,...
-                                                links_v,...
-                                                joints_v,...
-                                                jointangles,...
-                                                linklengths,...
-                                                shapeparams,...
-                                                modes,...
-                                                J_temp,...
-                                                baseframe);        
+
+chain_description = struct( ...
+'chain_m',{chain_m},...
+'jointchain_m',{jointchain_m},...
+'links_m',{links_m},...
+'joints_m',{joints_m},...
+'links_v',{links_v},...            % Future refactoring could dispense with passing both links_v and links_m and joints_v and joints_m
+'joints_v',{joints_v},...
+'jointangles',{jointangles},...
+'jointangles_c',{jointangles_c}, ...
+'linklengths',{linklengths},...
+'shapeparams',{shapeparams},...
+'modes',{modes},...
+'J_temp',{J_temp},...
+'baseframe',{baseframe} ...
+);
+
+[frame_zero,J_zero] = N_link_conversion_factors(chain_description);        
 
 %%%%%%
 % Use frame_zero and J_zero to convert the link transformations and
 % Jacobian so that they are refefenced off of the new base frame
-[h_m,J,J_full] = N_link_conversion(chain_m,J_temp,frame_zero,J_zero); 
+[h_m,J,J_full,chain_description] = N_link_conversion(chain_description,frame_zero,J_zero); 
 
 
 

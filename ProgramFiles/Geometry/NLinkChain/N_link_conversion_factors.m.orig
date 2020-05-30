@@ -70,7 +70,100 @@ end
 % to calculate transform and Jacobian to use in the conversion
 for idx_baseframe = 1:numel(baseframe)
     
+<<<<<<< HEAD
+    % Places the reference frame at the midpoint of the lowest-index link on the chain
+    case 'tail'
+        
+        % Identify the first link
+        link_zero = 1;
+        
+        % Extract the transform from the end link to itself 
+        frame_zero = eye(3);       
+        
+        % Jacobian for base link is zero
+        J_zero = zeros(size(J_temp{1}));
+
+    % Places the reference frame at the *end* of the lowest-index link on the chain
+    case 'tail-tip'
+        
+        % Identify the end link
+        link_zero = 1;
+
+        % The transform from the midpoint of the first link to its end is
+        % the inverse of the half-link transform
+        frame_zero = inv(links_m(:,:,link_zero));
+        
+        %%%%%%%%
+        % Jacobian to new frame is Jacobian of first link, but with an
+        % adjoint-inverse transform by the half-link to get to the end
+       
+        halfstep = Adjinv(frame_zero);
+        J_zero = halfstep * J_temp{1};
+        
+    case 'tail-end'
+        
+        % Identify the end link
+        link_zero = 1;
+
+        % The transform from the midpoint of the first link to its end is
+        % the half-link transform
+        frame_zero = links_m(:,:,link_zero);
+        
+        %%%%%%%%
+        % Jacobian to new frame is Jacobian of last link, but with an
+        % adjoint-inverse transform by the half-link to get to the end
+        halfstep = Adjinv(frame_zero);
+        J_zero = halfstep * J_temp{end};
+
+
+    % Places the reference frame at the middle of the chain, splitting the
+    % difference between the two middle links if there is an even number of
+    % links
+    case {'centered','center','midpoint-tangent'}
+
+
+        % If there is an odd number of links, the middle link is the center of the
+        % chain
+        if N_odd
+
+            % Identify the middle link
+            link_zero = ceil(N_links/2);
+
+            % Extract the transform from the end link to the middle link
+            frame_zero = chain_m(:,:,link_zero);
+            
+            %%%%%%
+            % Jacobian for conversion is Jacobian of link zero
+            J_zero = J_temp{link_zero};
+
+        % If there is an even number of links, the midpoint is at the middle joint,
+        % rotated by half of that joint's angle
+        else
+
+            % Identify the middle joint
+            joint_zero = ceil(M_joints/2);
+
+            % Extract the position of the middle joint, and multiply it by half of
+            % the transform associated with its joint angle
+            frame_zero = jointchain_m(:,:,joint_zero) * ...
+                                vec_to_mat_SE2(joints_v(joint_zero,:)/2);
+                            
+            %%%%%%%%
+            % Jacobian for conversion is Jacobian of link before it, with a
+            % half-step to get to the end of the link, and a half rotation
+            % to average orientation between the two links
+            halfstep = Adjinv(links_v(joint_zero,:));
+            halfrotation = Adjinv(joints_v(joint_zero,:)/2);
+            J_zero = halfrotation * halfstep * J_temp{joint_zero};
+            
+            % Account for centered frame being half-sensitive to middle joint
+            J_zero = J_zero + .5*[zeros(2,size(modes,2));modes(joint_zero,:)];
+            
+            %J_zero(:,joint_zero) = [0; 0; .5]; 
+           
+=======
     if ischar(baseframe{idx_baseframe}) || isscalar(baseframe{idx_baseframe})
+>>>>>>> master
 
         switch baseframe{idx_baseframe}
 
@@ -87,7 +180,7 @@ for idx_baseframe = 1:numel(baseframe)
                 J_zero = zeros(size(J_temp{1}));
 
             % Places the reference frame at the *end* of the lowest-index link on the chain
-            case {'tail-tip','tail-end'}
+            case 'tail-tip'
 
                 % Identify the end link
                 link_zero = 1;
