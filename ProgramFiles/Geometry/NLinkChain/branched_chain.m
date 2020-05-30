@@ -98,14 +98,20 @@ joint_lookup_global_to_local = [];
 
 for idx = 1:numel(joint_lookup_local_to_global)
     
-    joint_lookup_local_to_global{idx} = joint_count + (1:(numel(geometry.subchains{idx}.linklengths)-1))';
+    % Handle any local modes applied to the system
+    % If no modes are specified, use an identity mapping for the modes
+    if ~isfield(geometry.subchains{idx},'modes') || isempty(geometry.subchains{idx}.modes)
+        geometry.subchains{idx}.modes = eye(numel(geometry.subchains{idx}.linklengths)-1);
+    end
+
+    joint_lookup_local_to_global{idx} = joint_count + (1:size(geometry.subchains{idx}.modes,2))';
     
-    joint_count = joint_count + (numel(geometry.subchains{idx}.linklengths)-1);
+    joint_count = joint_count + size(geometry.subchains{idx}.modes,2);
     
     joint_lookup_global_to_local = [joint_lookup_global_to_local;                                                           % Anything already in joint_lookup
-                    [size(joint_lookup_global_to_local,1)+(1:(numel(geometry.subchains{idx}.linklengths)-1))' ...     % A sequence of numbers starting where existing numbers leave off
-                , idx*ones(numel(geometry.subchains{idx}.linklengths)-1,1) ...                        % The subchain number
-                , (1:(numel(geometry.subchains{idx}.linklengths)-1))'] ];                             % The joint number within the subchain
+                    [size(joint_lookup_global_to_local,1)+(1:size(geometry.subchains{idx}.modes,2))' ...     % A sequence of numbers starting where existing numbers leave off
+                , idx*ones(size(geometry.subchains{idx}.modes,2),1) ...                        % The subchain number
+                , (1:size(geometry.subchains{idx}.modes,2))'] ];                             % The joint number within the subchain
                  
     
 end
@@ -150,7 +156,7 @@ for idx = 1:numel(J_set)
     J_temp_set_padded{idx} = repmat({zeros(3,numel(shapeparams))},size(chain_description_set{idx}.J_temp));
         
     % Iterate over the Jacobans in the chain
-    for idx2 = 1:numel(J_set_padded)
+    for idx2 = 1:numel(J_set_padded{idx})
         
         % Move the columns of J_set to their global joint number
         J_set_padded{idx}{idx2}(:,jllg) = J_set{idx}{idx2};
@@ -204,9 +210,9 @@ for idx = 2:numel(h_set)
         if isscalar(attach.location{idx2})
             orientation_offset = chain_description_parent.jointangles_c(attach.location{idx2});
         elseif ischar(attach.location{idx2}) && strncmp(attach.location{idx2},'tail',4)
-            orientation_offset = chain_description_parent.jointangles_c(attach.location{1});
+            orientation_offset = chain_description_parent.jointangles_c(1);
         elseif ischar(attach.location{idx2}) && strncmp(attach.location{idx2},'head',4)
-            orientation_offset = chain_description_parent.jointangles_c(attach.location{end});
+            orientation_offset = chain_description_parent.jointangles_c(end);
         elseif isnumeric(attach.location{idx2})
             t_v = mat_to_vec_SE2(attach.location{idx2});
             orientation_offset = t_v(3);
@@ -219,7 +225,7 @@ for idx = 2:numel(h_set)
         chain_description_set{idx}.jointangles_c ...
             = chain_description_set{idx}.jointangles_c ...
              + orientation_offset;
-         
+    end
 
     
 %     % Extract the attachment parameters for ths subchain

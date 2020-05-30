@@ -62,7 +62,11 @@ function [A, h, J, J_full, omega] = Inertial_connection_discrete(geometry,physic
     %%%%
     % First, get the positions of the links in the chain and their
     % Jacobians with respect to the system parameters
-    [h, J, J_full] = N_link_chain(geometry,jointangles);
+    if isfield(geometry,'subchains')
+        [h, J, J_full] = branched_chain(geometry,jointangles);
+    else
+        [h, J, J_full] = N_link_chain(geometry,jointangles);
+    end
 
     %%%%%%%%
     % We are modeling low Reynolds number physics as being resistive

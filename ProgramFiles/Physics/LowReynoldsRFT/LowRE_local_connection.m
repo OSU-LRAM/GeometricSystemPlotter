@@ -23,7 +23,7 @@ switch geometry.type
     case {'curvature basis','curvature bases','general curvature'}
         physics_function = @LowRE_connection_continuous;
         
-    case {'n-link chain'}
+    case {'n-link chain','branched chain'}
         physics_function = @LowRE_connection_discrete;
         
 end
