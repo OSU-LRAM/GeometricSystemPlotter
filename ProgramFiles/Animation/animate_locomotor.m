@@ -278,10 +278,19 @@ function frame_info = execute_gait(frame_info,tau)
     %%%%
 	% Place the locomotor at the position
     
-    % If a drawing baseframe has been specified, replace the original
+    % If a drawing baseframe has been specified, append the original
     % system baseframe with the one that has been specified
-    if isfield(frame_info{irobot},'drawing_baseframe')
-        frame_info{irobot}.s.geometry.baseframe = frame_info{irobot}.drawing_baseframe;
+    if isfield(frame_info{irobot},'drawing_baseframe') && ~isfield(frame_info{irobot},'drawing_baseframe_inserted')
+        if ~iscell(frame_info{irobot}.s.geometry.baseframe)
+            frame_info{irobot}.s.geometry.baseframe ...
+                = {frame_info{irobot}.s.geometry.baseframe};
+        end
+        if ~iscell(frame_info{irobot}.s.geometry.baseframe)
+            frame_info{irobot}.drawing_baseframe ...
+                = {frame_info{irobot}.drawing_baseframe};
+        end
+        frame_info{irobot}.s.geometry.baseframe = [frame_info{irobot}.s.geometry.baseframe frame_info{irobot}.drawing_baseframe];
+        frame_info{irobot}.drawing_baseframe_inserted = 1;
     end
     
     % Use the configuration to place the locomotor

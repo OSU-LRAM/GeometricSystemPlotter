@@ -81,7 +81,11 @@ function [A_out, h, J, J_full, omega] = Nonholonomic_connection_discrete(geometr
     %%%%
     % First, get the positions of the links in the chain and their
     % Jacobians with respect to the system parameters
-    [h, J, J_full] = N_link_chain(geometry,jointangles);
+    if isfield(geometry,'subchains')
+        [h, J, J_full] = branched_chain(geometry,jointangles);
+    else
+        [h, J, J_full] = N_link_chain(geometry,jointangles);
+    end
 
     
     %%%%

@@ -26,7 +26,7 @@ switch style
 		[u,s,v] = cellfun(@(m) svd(inv(m)),M,'UniformOutput',false);
 
 		% Apply the transform corresponding to M to the circles
-		circles = cellfun(@(u,s,v,c)(u*sqrt(s)*v')*c,u,s,v,circles,'UniformOutput',false);
+		circles = cellfun(@(u,s,c)(u*sqrt(s))*c,u,s,circles,'UniformOutput',false);
 		%circles = cellfun(@(u,s,v,c)(sqrt(s)*v')*c,u,s,v,circles,'UniformOutput',false);
 		
 		plot_options = varargin{1};
@@ -35,16 +35,17 @@ switch style
 	case 'tissot-cross'
 
 		% Calculate the svd of the metric tensor
-		[u,s,v] = cellfun(@(m) svd(inv(m)),M,'UniformOutput',false);
+		[u,s,~] = cellfun(@(m) svd(inv(m)),M,'UniformOutput',false);
 		
 		% Apply the transform corresponding to M to the circles
-		circles = cellfun(@(u,s,v,c)(u*sqrt(s)*v')*c,u,s,v,circles,'UniformOutput',false);
+		circles = cellfun(@(u,s,c)(u*sqrt(s))*c,u,s,circles,'UniformOutput',false);
 		
 		% Create the crosses
 		crosses = cellfun(@(u,s)...
-			[u(1,1)*s(1,1) -u(1,1)*s(1,1);...% NaN u(1,2)*s(2,2) u(1,2)*s(2,2);...
-			u(2,1)*s(1,1) -u(2,1)*s(1,1);... NaN u(2,2)*s(2,2) -u(2,2)*s(2,2)
-			],u,s,'UniformOutput',false);
+			u*[-sqrt(s(1,1)) sqrt(s(1,1)) NaN 0 0;...[u(1,1)*s(1,1) -u(1,1)*s(1,1);...% NaN u(1,2)*s(2,2) u(1,2)*s(2,2);...
+			0 0 NaN -sqrt(s(2,2)) sqrt(s(2,2))...u(2,1)*s(1,1) -u(2,1)*s(1,1);... NaN u(2,2)*s(2,2) -u(2,2)*s(2,2)
+			]...
+            ,u,s,'UniformOutput',false);
 		
 		plot_options = varargin{1};
 		plot_options_crosses = varargin{2};
@@ -83,9 +84,9 @@ end
 % Recenter the circles
 circles = cellfun(@(u,v,w) [u(1,:)+v;u(2,:)+w],circles,num2cell(x),num2cell(y),'UniformOutput',false);
 
-if exist('crosses','var')
-	crosses = cellfun(@(u,v,w) [u(1,:)+v;u(2,:)+w],crosses,num2cell(x),num2cell(y),'UniformOutput',false);
-end
+% if exist('crosses','var')
+% 	crosses = cellfun(@(u,v,w) [u(1,:)+v;u(2,:)+w],crosses,num2cell(x),num2cell(y),'UniformOutput',false);
+% end
 
 %%%%%%%%%%%%%%%%%
 % Fill in default values for plot options
@@ -130,9 +131,14 @@ switch style
 		
 	case 'tissot-cross'
 		
-		h_cross = cellfun(@(u)patch('XData',u(1,:),'YData',u(2,:),plot_options_crosses{:}),crosses,'UniformOutput',false);
+		%h_cross = cellfun(@(u)patch('XData',u(1,:),'YData',u(2,:),plot_options_crosses{:}),crosses,'UniformOutput',false);
 		
+
+        h_cross=cell(size(crosses));
+        for i =1:numel(h_cross)
+            h_cross{i} = line('xdata',crosses{i}(1,:)+x(i),'ydata',crosses{i}(2,:)+y(i),plot_options_crosses{:});
+        end
+        
 		h_ellipse = cellfun(@(u)patch('XData',u(1,:),'YData',u(2,:),plot_options{:}),circles,'UniformOutput',false);
-
-
+        
 end
