@@ -187,13 +187,40 @@ for idx = 2:numel(h_set)
     
     % Use the modified chain descriptions to get the location and Jacobian of the
     % attachment point relative to the first chain's baseframe
-    [frame_zero,J_zero] = N_link_conversion_factors(chain_description_parent);
+    [frame_zero,J_zero,link_zero] = N_link_conversion_factors(chain_description_parent);
     
     % Move the chain to frame_zero, J_zero
     [h_m,J_set{idx},J_full_set{idx},chain_description_set{idx}] ...
         = N_link_conversion_move_chain(chain_description_set{idx},frame_zero,J_zero);
     
     h_set{idx}.pos = mat_to_vec_SE2(h_m);
+    
+    % Update the cumulative sum of joint angles
+    if ~iscell(attach.location)
+        attach.location = {attach.location};
+    end
+    for idx2 = 1:numel(attach.location)
+        
+        if isscalar(attach.location{idx2})
+            orientation_offset = chain_description_parent.jointangles_c(attach.location{idx2});
+        elseif ischar(attach.location{idx2}) && strncmp(attach.location{idx2},'tail',4)
+            orientation_offset = chain_description_parent.jointangles_c(attach.location{1});
+        elseif ischar(attach.location{idx2}) && strncmp(attach.location{idx2},'head',4)
+            orientation_offset = chain_description_parent.jointangles_c(attach.location{end});
+        elseif isnumeric(attach.location{idx2})
+            t_v = mat_to_vec_SE2(attach.location{idx2});
+            orientation_offset = t_v(3);
+        elseif ischar(attach.location{idx2}) && ( strncmp(attach.location{idx2},'start',4) || strncmp(attach.location{idx2},'end',4))
+            orientation_offset = 0;
+        else
+            orientation_offset = 0;
+            warning('Chain attachment does not call out a link, errors may occur if the whole chain is specified to be in averaged coordinates')
+        end
+        chain_description_set{idx}.jointangles_c ...
+            = chain_description_set{idx}.jointangles_c ...
+             + orientation_offset;
+         
+
     
 %     % Extract the attachment parameters for ths subchain
 % 	attach = geometry{idx}.attach;
@@ -260,6 +287,7 @@ chain_description.joints_m = [];
 chain_description.links_v = [];
 chain_description.joints_v = [];
 chain_description.jointangles = [];
+chain_description.jointangles_c = [];
 chain_description.linklengths = [];
 chain_description.shapeparams = [];
 chain_description.modes = [];
@@ -275,6 +303,7 @@ for idx = 1:numel(chain_description_set)
     chain_description.links_v = [chain_description.links_v; chain_description_set{idx}.links_v];
     chain_description.joints_v = [chain_description.joints_v; chain_description_set{idx}.joints_v];
     chain_description.jointangles = [chain_description.jointangles; chain_description_set{idx}.jointangles];
+    chain_description.jointangles_c = [chain_description.jointangles_c; chain_description_set{idx}.jointangles_c];
     chain_description.linklengths = [chain_description.linklengths; chain_description_set{idx}.linklengths];
     chain_description.J_temp = [chain_description.J_temp, chain_description_set{idx}.J_temp];
     

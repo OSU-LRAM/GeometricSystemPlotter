@@ -1,4 +1,4 @@
-function [frame_zero,J_zero] = N_link_conversion_factors(C)
+function [frame_zero,J_zero,link_zero] = N_link_conversion_factors(C)
 %%%%%%%
 % This is a helper-function for N_link_chain. 
 %
@@ -38,6 +38,7 @@ joints_m = C.joints_m;
 links_v = C.links_v;
 joints_v = C.joints_v;
 jointangles = C.jointangles;
+jointangles_c = C.jointangles_c;
 linklengths = C.linklengths;
 shapeparams = C.shapeparams;
 modes = C.modes;
@@ -196,7 +197,7 @@ for idx_baseframe = 1:numel(baseframe)
                 % orientations of the links: We're not looking for the mean of the
                 % SO(2)-modulated orientations, we're looking for the mean angular
                 % displacement from the base link.
-                chain(:,3) = [0;cumsum(jointangles)];
+                chain(:,3) = jointangles_c;
 
                 % Take a weighted average of the link positions
                 CoM = sum(diag(linklengths)*chain)/L;
@@ -541,6 +542,10 @@ for idx_baseframe = 1:numel(baseframe)
     % Update J_temp to be the J_zero computed at this stage of the loop
 %    J_temp = J_zero;
     
+    if ~exist('link_zero','var')
+        link_zero = 0;
+    end
+
 end
 
 
