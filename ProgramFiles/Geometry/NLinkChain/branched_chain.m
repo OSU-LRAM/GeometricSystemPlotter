@@ -1,4 +1,4 @@
-function [h, J, J_full,frame_zero,J_zero] = branched_chain(geometry,shapeparams)
+function [h, J, J_full,frame_zero,J_zero] = branched_chain(geometry,shapeparams_global)
 % Build a backbone for a branching chain of links. The geometry input
 % should be a cell array of structures, each of which has the same elements
 % as required for an N_link_chain, and also (except for the first chain)
@@ -91,30 +91,42 @@ function [h, J, J_full,frame_zero,J_zero] = branched_chain(geometry,shapeparams)
 %       
 
 % Build a lookup table from joint numbers to joints on the subchains
-joint_lookup_local_to_global = cell(size(geometry));
+joint_lookup_local_to_global = cell(size(geometry.subchains));
 joint_count = 0;
 
 joint_lookup_global_to_local = [];
 
 for idx = 1:numel(joint_lookup_local_to_global)
     
-    joint_lookup_local_to_global{idx} = joint_count + (1:(numel(geometry{idx}.linklengths)-1))';
+    joint_lookup_local_to_global{idx} = joint_count + (1:(numel(geometry.subchains{idx}.linklengths)-1))';
     
-    joint_count = joint_count + (numel(geometry{idx}.linklengths)-1);
+    joint_count = joint_count + (numel(geometry.subchains{idx}.linklengths)-1);
     
     joint_lookup_global_to_local = [joint_lookup_global_to_local;                                                           % Anything already in joint_lookup
-                    [size(joint_lookup_global_to_local,1)+(1:(numel(geometry{idx}.linklengths)-1))' ...     % A sequence of numbers starting where existing numbers leave off
-                , idx*ones(numel(geometry{idx}.linklengths)-1,1) ...                        % The subchain number
-                , (1:(numel(geometry{idx}.linklengths)-1))'] ];                             % The joint number within the subchain
+                    [size(joint_lookup_global_to_local,1)+(1:(numel(geometry.subchains{idx}.linklengths)-1))' ...     % A sequence of numbers starting where existing numbers leave off
+                , idx*ones(numel(geometry.subchains{idx}.linklengths)-1,1) ...                        % The subchain number
+                , (1:(numel(geometry.subchains{idx}.linklengths)-1))'] ];                             % The joint number within the subchain
                  
     
 end
 
+% Handle any global modes applied to the system
+% If no modes are specified, use an identity mapping for the modes
+if ~isfield(geometry,'modes') || isempty(geometry.modes)
+    modes = eye(numel(shapeparams_global));
+else
+    modes = geometry.modes;
+end
+
+% Expand jointangles from specified shape variables to actual joint angles
+% by multiplying in the modal function
+shapeparams_global = shapeparams_global(:);
+shapeparams = modes*shapeparams_global;
 
 
 % Get the kinematics for each individual chain
 [h_set, J_set, J_full_set,frame_zero_set,J_zero_set,chain_description_set] ...
-    = cellfun(@(geom,shape) N_link_chain(geom,shapeparams(shape)),geometry,joint_lookup_local_to_global,'UniformOutput',false);
+    = cellfun(@(geom,shape) N_link_chain(geom,shapeparams(shape)),geometry.subchains,joint_lookup_local_to_global,'UniformOutput',false);
 
 %%%%%%%%%
 % Internally pad the Jacobians with zeros so that they line up with their
@@ -164,7 +176,7 @@ for idx = 2:numel(h_set)
 
     % Extract the attachment parameters for ths subchain, and put it into
     % the chain_description
-	attach = geometry{idx}.attach;
+	attach = geometry.subchains{idx}.attach;
     
     chain_description_parent = chain_description_set{attach.parent};
     
@@ -211,27 +223,87 @@ for idx = 2:numel(h_set)
 end
 
 
-% Combine the h_set values into a single item
-h.pos = [];
+% % Combine the h_set values into a single item
+% h.pos = [];
+% h.lengths = [];
+% for idx = 1:numel(h_set)
+%     h.pos = [h.pos;h_set{idx}.pos];
+%     h.lengths = [h.lengths;h_set{idx}.lengths];
+% end
+% 
+% J = {};
+% for idx = 1:numel(J_set)
+%     
+%     J = [J,J_set{idx}]; %#ok<AGROW>
+%     
+% end
+% 
+% 
+% J_full = {};
+% for idx = 1:numel(J_set)
+%     
+%     J_full = [J_full,J_full_set{idx}]; %#ok<AGROW>
+%     
+% end
+
+
+%%%%%%%%%%%
+% Apply any global baseframe and mode transformations
+
+
+
+% Baseframe modifications
+chain_description.chain_m = [];
+chain_description.jointchain_m = [];
+chain_description.links_m = [];
+chain_description.joints_m = [];
+chain_description.links_v = [];
+chain_description.joints_v = [];
+chain_description.jointangles = [];
+chain_description.linklengths = [];
+chain_description.shapeparams = [];
+chain_description.modes = [];
+chain_description.J_temp = [];
+chain_description.baseframe = {};
+
+for idx = 1:numel(chain_description_set)
+    
+    chain_description.chain_m = cat(3,chain_description.chain_m, chain_description_set{idx}.chain_m);
+    chain_description.jointchain_m = cat(3,chain_description.jointchain_m, chain_description_set{idx}.jointchain_m);
+    chain_description.links_m = cat(3,chain_description.links_m, chain_description_set{idx}.links_m);
+    chain_description.joints_m = cat(3,chain_description.joints_m, chain_description_set{idx}.joints_m);
+    chain_description.links_v = [chain_description.links_v; chain_description_set{idx}.links_v];
+    chain_description.joints_v = [chain_description.joints_v; chain_description_set{idx}.joints_v];
+    chain_description.jointangles = [chain_description.jointangles; chain_description_set{idx}.jointangles];
+    chain_description.linklengths = [chain_description.linklengths; chain_description_set{idx}.linklengths];
+    chain_description.J_temp = [chain_description.J_temp, chain_description_set{idx}.J_temp];
+    
+end
+    
+chain_description.shapeparams = shapeparams;
+chain_description.modes = modes;
+chain_description.baseframe = geometry.baseframe;
+
+% Make the final conversion by the overall baseframe specification
+[frame_zero,J_zero] = N_link_conversion_factors(chain_description);
+    
+[h_m,J,J_full,chain_description] = N_link_conversion(chain_description,frame_zero,J_zero); 
+
+
+% Apply modal restriction to shape components of Jacobians
+for idx = 1:numel(J)
+    J{idx} = J{idx} * modes;
+    J_full{idx}(:,4:end) = J_full{idx}(:,4:end)*modes;
+end
+
+
+% For output, convert h into row form. Save this into a structure, with
+% link lengths included
+h.pos = mat_to_vec_SE2(h_m);
+
 h.lengths = [];
 for idx = 1:numel(h_set)
-    h.pos = [h.pos;h_set{idx}.pos];
     h.lengths = [h.lengths;h_set{idx}.lengths];
-end
-
-J = {};
-for idx = 1:numel(J_set)
-    
-    J = [J,J_set{idx}]; %#ok<AGROW>
-    
-end
-
-
-J_full = {};
-for idx = 1:numel(J_set)
-    
-    J_full = [J_full,J_full_set{idx}]; %#ok<AGROW>
-    
 end
 
 
