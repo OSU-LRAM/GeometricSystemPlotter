@@ -54,7 +54,7 @@ function output = sys_calcsystem(input_mode,systemfilename,stretch)
             %Build a stretch function corresponding to the metric only if
             %the system is 2 dimensional
             if length(s.grid_range)/2<3
-                s = calc_stretch_functions(s,stretch);
+                s = calc_stretch_functions(s);
             end
             
             % Check for whether system type variable exists in structure; default to

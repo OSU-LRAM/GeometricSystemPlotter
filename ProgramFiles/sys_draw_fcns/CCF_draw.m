@@ -162,15 +162,17 @@ function plot_info = CCF_draw(s,p,plot_info,sys,shch,resolution)
 	% determinant)
 	
 	if plot_info.stretch && (numel(s.grid.eval) == 2)
-			
-		% Get the value by which to scale the constraint curvature function
-		ascale = arrayfun(@(x,y) 1/det(s.convert.jacobian(x,y)),grid{:});
+		
+        if plot_info.stretch==1
+            % Get the value by which to scale the constraint curvature function
+            ascale = arrayfun(@(x,y) 1/det(s.convert.stretch.jacobian(x,y)),grid{:});
 
-		% Apply the jacobian to the vectors
-		H = cellfun(@(x) x.*ascale,H,'UniformOutput',false);
+            % Apply the jacobian to the vectors
+            H = cellfun(@(x) x.*ascale,H,'UniformOutput',false);
 
-		% Convert the grid points to their new locations
-		[grid{:}] = s.convert.old_to_new_points(grid{:});
+            % Convert the grid points to their new locations
+            [grid{:}] = s.convert.stretch.old_to_new_points(grid{:});
+        end
 		
 	end
 	
@@ -418,7 +420,7 @@ function plot_info = CCF_draw(s,p,plot_info,sys,shch,resolution)
 					oldy_edge = [linspace(s.grid_range(3),s.grid_range(4),edgeres)';s.grid_range(4)*ones(edgeres,1);...
 						linspace(s.grid_range(4),s.grid_range(3),edgeres)';s.grid_range(3)*ones(edgeres,1)];
 
-					[x_edge,y_edge] = s.convert.old_to_new_points(oldx_edge,oldy_edge);
+					[x_edge,y_edge] = s.convert.stretch.old_to_new_points(oldx_edge,oldy_edge);
 					
 					l_edge = line('Parent',ax,'Xdata',x_edge,'YData',y_edge,'Color','k','LineWidth',1);
 					
@@ -448,12 +450,12 @@ function plot_info = CCF_draw(s,p,plot_info,sys,shch,resolution)
 
                 
 
-                [x_new, y_new] = s.convert.old_to_new_points(grid{1},grid{2});
+                [x_new, y_new] = s.convert.surface.old_to_new_points(grid{1},grid{2});
                 
 %                 C = (s.convert.EI.C);
 %                  C = reshape(smooth(C(:)),[],12);
                 
-                HF_isomap = griddata(s.convert.EI.A,s.convert.EI.B,s.convert.EI.C,x_new, y_new,'cubic');
+                HF_isomap = griddata(s.convert.surface.EI.A,s.convert.surface.EI.B,s.convert.surface.EI.C,x_new, y_new,'cubic');
                 
                 isomap.x_new = x_new;
                 isomap.y_new = y_new;
@@ -467,8 +469,13 @@ function plot_info = CCF_draw(s,p,plot_info,sys,shch,resolution)
                 meshhandle.XData = x_new;
                 meshhandle.YData = y_new;
                 
-                [grid{:}] = s.convert.old_to_new_points(grid{:});
-				
+                if plot_info.stretch==2
+                    [grid{:}] = s.convert.surface.old_to_new_points(grid{:});
+                end
+                
+                if plot_info.stretch==1
+                    [grid{:}] = s.convert.stretch.old_to_new_points(grid{:});
+                end
 				%If there's a shape change involved, plot it
 				if ~strcmp(shch,'null')
 
@@ -487,9 +494,16 @@ function plot_info = CCF_draw(s,p,plot_info,sys,shch,resolution)
 					oldy_edge = [linspace(s.grid_range(3),s.grid_range(4),edgeres)';s.grid_range(4)*ones(edgeres,1);...
 						linspace(s.grid_range(4),s.grid_range(3),edgeres)';s.grid_range(3)*ones(edgeres,1)];
 
-					[x_edge,y_edge] = s.convert.old_to_new_points(oldx_edge,oldy_edge);
+					if plot_info.stretch==2
+                        [x_edge,y_edge] = s.convert.surface.old_to_new_points(oldx_edge,oldy_edge);
+                    end
                     
-                    HF_isomap_edge = griddata(s.convert.EI.A,s.convert.EI.B,s.convert.EI.C,x_edge,y_edge);
+                    if plot_info.stretch==1
+                        [x_edge,y_edge] = s.convert.stretch.old_to_new_points(oldx_edge,oldy_edge);
+                    end
+                    
+                    
+                    HF_isomap_edge = griddata(s.convert.surface.EI.A,s.convert.surface.EI.B,s.convert.surface.EI.C,x_edge,y_edge);
 					
 					l_edge = line('Parent',ax,'Xdata',x_edge,'YData',y_edge,'ZData',HF_isomap_edge,'Color','k','LineWidth',1);
                     

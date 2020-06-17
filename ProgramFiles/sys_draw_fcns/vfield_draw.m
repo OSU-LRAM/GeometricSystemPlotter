@@ -51,9 +51,16 @@ function plot_info = vfield_draw(s,p,plot_info,sys,shch,resolution)
 	% (multiply the vectors by the inverse jacobian)
 	
 	if plot_info.stretch
-	
-		% Calculate the jacobians at the plotting points
-		Jac = arrayfun(s.convert.jacobian,grid{:},'UniformOutput',false);
+        
+        if plot_info.stretch==1
+            % Calculate the jacobians at the plotting points
+            Jac = arrayfun(s.convert.stretch.jacobian,grid{:},'UniformOutput',false);
+        end
+        
+        if plot_info.stretch==2
+            % Calculate the jacobians at the plotting points
+            Jac = arrayfun(s.convert.surface.jacobian,grid{:},'UniformOutput',false);
+        end
 		
 		% Use the jacobians to convert the vectors
 		
@@ -130,7 +137,14 @@ function plot_info = vfield_draw(s,p,plot_info,sys,shch,resolution)
         end
         
         % Convert the grid points to their new locations
-		[grid{:}] = s.convert.old_to_new_points(grid{:});
+		
+        if plot_info.stretch==1
+            [grid{:}] = s.convert.stretch.old_to_new_points(grid{:});
+        end
+        
+        if plot_info.stretch==2
+            [grid{:}] = s.convert.surface.old_to_new_points(grid{:});
+        end
 		
 	
     
@@ -238,9 +252,15 @@ function plot_info = vfield_draw(s,p,plot_info,sys,shch,resolution)
 				s.grid_range(2)*ones(edgeres,1);linspace(s.grid_range(2),s.grid_range(1),edgeres)'];
 			oldy_edge = [linspace(s.grid_range(3),s.grid_range(4),edgeres)';s.grid_range(4)*ones(edgeres,1);...
 				linspace(s.grid_range(4),s.grid_range(3),edgeres)';s.grid_range(3)*ones(edgeres,1)];
-
-			[x_edge,y_edge] = s.convert.old_to_new_points(oldx_edge,oldy_edge);
-
+            
+            if plot_info.stretch==1
+                [x_edge,y_edge] = s.convert.stretch.old_to_new_points(oldx_edge,oldy_edge);
+            end
+			
+            if plot_info.stretch==2
+                [x_edge,y_edge] = s.convert.surface.old_to_new_points(oldx_edge,oldy_edge);
+            end
+            
 			l_edge = line('Parent',ax,'Xdata',x_edge,'YData',y_edge,'Color','k','LineWidth',1); %#ok<NASGU>
 
 		end
@@ -267,7 +287,10 @@ function plot_info = vfield_draw(s,p,plot_info,sys,shch,resolution)
         if ~strcmp(shch,'null')
 			n_dim=length(s.grid_range)/2;
             if n_dim==2
-                overlay_shape_change_2d(ax,p,plot_info.stretch,s.convert);
+                if plot_info.stretch
+                    overlay_shape_change_2d(ax,p,1,s.convert); %% if stretch is metric surface this plots the wrong gait.
+                end
+                
             end            
             if n_dim>2
                 line('Parent',ax,'XData',p.phi_locus_full{i}.shape(:,1),'YData',p.phi_locus_full{i}.shape(:,2),'ZData',p.phi_locus_full{i}.shape(:,3),'Color',Colorset.spot,'LineWidth',6,'parent',ax);

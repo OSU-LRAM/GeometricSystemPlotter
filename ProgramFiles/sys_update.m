@@ -61,7 +61,7 @@ function sys_update(sys,shch,stretch,progress,handles)
 	
 	if update.sys_calc
 		sys_calcsystem('calculate',sys,stretch);
-	end
+    end
 	
 	if exist('progress','var')
 		%Advance the progress bar

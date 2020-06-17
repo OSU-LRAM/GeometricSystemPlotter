@@ -44,9 +44,18 @@ CCFtype(3) = [];
 % metric)
 stretchstate = get(handles.stretchmenu,'Value');
 stretch_names = get(handles.stretchmenu,'UserData');
-current_stretch = stretch_names(stretchstate);
+current_stretch = lower(stretch_names(stretchstate));
 
-	
+% if stretchstate==1
+%     current_stretch='null';
+% end
+% if stretchstate==2
+%     current_stretch='metric_stretch';
+% end
+% if stretchstate==3
+%     current_stretch='metric_surface';
+% end
+% 	
 % Initialize the plot windows
 plots_to_make = initialize_plot_windows(box_names,...
                                                  box_active,...

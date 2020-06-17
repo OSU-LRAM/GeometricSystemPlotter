@@ -8,7 +8,7 @@ function overlay_shape_change_3d_surf(ax,p,zdata,stretch,convert,scale_when_stre
 
 		% Get the value by which to scale the z data
         if scale_when_stretched
-            ascale = arrayfun(@(x,y) 1/det(convert.jacobian(x,y)),p.phi_locus_full{i}.shape(:,1), p.phi_locus_full{i}.shape(:,2));
+            ascale = arrayfun(@(x,y) 1/det(convert.stretch.jacobian(x,y)),p.phi_locus_full{i}.shape(:,1), p.phi_locus_full{i}.shape(:,2));
         else
             ascale = 1;
         end
@@ -17,7 +17,7 @@ function overlay_shape_change_3d_surf(ax,p,zdata,stretch,convert,scale_when_stre
 		zdata{i} = ascale.*zdata{i};
 
 		[p.phi_locus_full{i}.shape(:,1), p.phi_locus_full{i}.shape(:,2)] ...
-				= convert.old_to_new_points(p.phi_locus_full{i}.shape(:,1), p.phi_locus_full{i}.shape(:,2));
+				= convert.stretch.old_to_new_points(p.phi_locus_full{i}.shape(:,1), p.phi_locus_full{i}.shape(:,2));
 
 
 
