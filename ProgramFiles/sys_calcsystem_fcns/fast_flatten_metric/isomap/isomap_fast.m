@@ -154,10 +154,10 @@ end
 
 
 %%%%% Step 3: Construct low-dimensional embeddings (Classical MDS) %%%%%
-disp('Constructing low-dimensional embeddings (Classical MDS)...'); 
+%disp('Constructing low-dimensional embeddings (Classical MDS)...'); 
 
 %%%%% Remove outliers from graph %%%%%
-disp('  Checking for outliers...'); 
+%disp('  Checking for outliers...'); 
 
 if ((mode == 1) & (use_dijk == 0))
      [tmp, firsts] = min(D==INF);     %% first point each point connects to
@@ -181,8 +181,8 @@ N = length(Y.index);
 [tmp, landmarks, land_ind] = intersect(landmarks,Y.index);   %% list of landmarks in component
 nl = length(landmarks); 
 D = full(D(landmarks,Y.index))'; 
-disp(['    Number of connected components in graph: ' num2str(n_comps)]); 
-disp(['    Embedding component ' num2str(comp) ' with ' num2str(length(Y.index)) ' points.']); 
+%disp(['    Number of connected components in graph: ' num2str(n_comps)]); 
+%disp(['    Embedding component ' num2str(comp) ' with ' num2str(length(Y.index)) ' points.']); 
 
 
 opt.display = 0;
@@ -210,7 +210,7 @@ for di = 1:length(dims)
      R(di) = r2(2,1); 
      % R(di) = norm(Y.coords{di}'*Y.coords{di} - subB, 'fro')^2 / norm(subB, 'fro')^2;
      if (verbose == 1)
-         disp(['  Isomap on ' num2str(N) ' points with dimensionality ' num2str(dims(di)) '  --> residual variance = ' num2str(R(di))]); 
+         %disp(['  Isomap on ' num2str(N) ' points with dimensionality ' num2str(dims(di)) '  --> residual variance = ' num2str(R(di))]); 
      end
 end
 
