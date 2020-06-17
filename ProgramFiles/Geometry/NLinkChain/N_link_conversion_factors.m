@@ -34,10 +34,10 @@ function [frame_zero,J_zero,link_zero] = N_link_conversion_factors(C)
 chain_m = C.chain_m;
 jointchain_m = C.jointchain_m;
 links_m = C.links_m;
-joints_m = C.joints_m;
+%joints_m = C.joints_m;
 links_v = C.links_v;
 joints_v = C.joints_v;
-jointangles = C.jointangles;
+%jointangles = C.jointangles;
 jointangles_c = C.jointangles_c;
 linklengths = C.linklengths;
 shapeparams = C.shapeparams;
@@ -534,17 +534,17 @@ for idx_baseframe = 1:numel(baseframe)
             % Jacobian
             J_zero = Adjinv(frame_step) * J_zero;
 
-        end
+    end
             
                      
-    end
+end
       
     % Update J_temp to be the J_zero computed at this stage of the loop
 %    J_temp = J_zero;
     
-    if ~exist('link_zero','var')
-        link_zero = 0;
-    end
+if ~exist('link_zero','var')
+    link_zero = 0;
+end
 
 end
 

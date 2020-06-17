@@ -1,4 +1,4 @@
-function [frame_info, endframe] = animation(frame_gen_function,frame_info,timing,destination,export,skip,startframe)
+function [frame_info, endframe] = sysplotter_animation(frame_gen_function,frame_info,timing,destination,export,skip,startframe)
 % An animation framework for writing a series of frames into a directory,
 % at which point ffmpeg, QuicktimePro, or the like can be used to turn them
 % into a movie.
