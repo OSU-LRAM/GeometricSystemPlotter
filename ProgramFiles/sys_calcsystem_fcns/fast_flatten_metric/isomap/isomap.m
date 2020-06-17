@@ -17,14 +17,14 @@ function [final_x, final_y,final_z, rv, D,EI] = isomap(x, y, springs, neutral_le
      [Y, R, E] = isomap_fast(D, 'epsilon', 8, options);
     len=length(x(:,1));
     
-    opts=statset('Display','iter');
+    %opts=statset('Display','iter');
     z=zeros(len*len,1);
     for i=1:len/2
         z(len*(i-1)+1:len*i,1)=(i-1)*0.005/20;
         z((len-i)*len+1:(len-i+1)*len,1)=(i-1)*0.005/20;
     end
     
-    [Y,stress,disparities]=mdscale(D,3,'Start',[x(:),y(:),z],'Criterion','strain','Options',opts);
+    [Y,stress,disparities]=mdscale(D,3,'Start',[x(:),y(:),z],'Criterion','strain');%,'Options',opts);
 Y=Y';
 %     figure(14)
 % sf=fit([Y(:,1),Y(:,2)],Y(:,3),'poly23');

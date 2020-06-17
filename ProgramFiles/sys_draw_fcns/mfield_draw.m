@@ -79,7 +79,7 @@ if n_dim==2
         M = celltensorconvert(M);
 
         % Calculate the jacobians at the plotting points
-        Jac = arrayfun(s.convert.jacobian,grid{:},'UniformOutput',false);
+        Jac = arrayfun(s.convert.stretch.jacobian,grid{:},'UniformOutput',false);
 
         % Use the jacobians to convert the metric
         for i = 1:size(M,1)
@@ -118,7 +118,7 @@ if n_dim==2
 
 
         % Convert the grid points to their new locations
-        [grid{:}] = s.convert.old_to_new_points(grid{:});
+        [grid{:}] = s.convert.stretch.old_to_new_points(grid{:});
 
         M = celltensorconvert(M);
 
@@ -169,7 +169,7 @@ if n_dim==2
             oldy_edge = [linspace(s.grid_range(3),s.grid_range(4),edgeres)';s.grid_range(4)*ones(edgeres,1);...
                 linspace(s.grid_range(4),s.grid_range(3),edgeres)';s.grid_range(3)*ones(edgeres,1)];
 
-            [x_edge,y_edge] = s.convert.old_to_new_points(oldx_edge,oldy_edge);
+            [x_edge,y_edge] = s.convert.stretch.old_to_new_points(oldx_edge,oldy_edge);
 
             l_edge = line('Parent',ax,'Xdata',x_edge,'YData',y_edge,'Color','k','LineWidth',1); %#ok<NASGU>
 
