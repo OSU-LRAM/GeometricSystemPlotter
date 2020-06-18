@@ -105,6 +105,8 @@ function [convert,sol] = fast_flatten_metric(grid,metric,mask)
 	convert.stretch.new_metric = @(x_p,y_p) interpolate_cellwise_tensor(grid{:},x_p,y_p,celltensorconvert(final_new_metric));
 	convert.stretch.old_metric = @(x_p,y_p) interpolate_cellwise_tensor(grid{:},x_p,y_p,celltensorconvert(metric));
     
+    %%%%%%%%%%%%%%%%%%%%%%%%
+    %%%%%%%%%%%%%%%%%%%%%%%%
     
     method='metric_surface';
     
@@ -114,19 +116,21 @@ function [convert,sol] = fast_flatten_metric(grid,metric,mask)
     convert.surface.D = D;
     
             
-        % Jacobian from old to new tangent vectors
-    jacobian = find_jacobian(griddual{:},final_x1,final_y1);
-    Jacobian = @(x_p,y_p) interpolate_cellwise_tensor(griddual{:},x_p,y_p,jacobian);
+    % Jacobian from old to new tangent vectors
+    jacobian = find_jacobian_two_three(griddual{:},final_x1,final_y1,final_z1);
+    convert.surface.jacobian = @(x_p,y_p) interpolate_cellwise_tensor(griddual{:},x_p,y_p,jacobian);
 
 %         jacobian3 = find_jacobian3(griddual{:},final_x,final_y,final_z);
 %         Jacobian3 = @(x_p,y_p) interpolate_cellwise_tensor(griddual{:},x_p,y_p,jacobian);
     % Calculate the new jacobian evaluated at the grid points
-    jacobian_metric = arrayfun(Jacobian,grid{:},'UniformOutput',false);
+    jacobian_metric = arrayfun(convert.surface.jacobian,grid{:},'UniformOutput',false);
     new_metric = cellfun(@(j,m) j'\m/j,jacobian_metric,(metric),'UniformOutput',false);
 
-    % Normalize by the average metric determinant
+    % Normalize by the average metric determinant, using product of
+    % singular values since we are up-projecting into higher dimension
     met_grid = new_metric;
-    det_grid = cellfun(@(m) det(m),met_grid);
+    [~,SVs,~] = cellfun(@(m) svd(m),met_grid,'UniformOutput',false);
+    det_grid = cellfun(@(S) S(1,1)*S(2,2),SVs);
     det_original = cellfun(@(m) det(m),metric);
     %note that this is the determinant of the original metric, for correct
     %integration. Assumption here is that the original coordinates are a
@@ -137,33 +141,35 @@ function [convert,sol] = fast_flatten_metric(grid,metric,mask)
     % Scale the final positions so that the determinant at the origin is 1
     final_x1 = final_x1/(mean_det^(.25));
     final_y1 = final_y1/(mean_det^(.25));
+    final_z1 = final_z1/(mean_det^(.25));
     EI.A = EI.A/(mean_det^(.25));
     EI.B = EI.B/(mean_det^(.25));
     EI.C = EI.C/(mean_det^(.25));
     
     
     % Convert points
-	convert.surface.old_to_new_points = @(x_old,y_old) convert_points(griddual{:},final_x1,final_y1,x_old,y_old);
-	Fx = TriScatteredInterp([final_x1(:) final_y1(:)],griddual{1}(:));
-	Fy = TriScatteredInterp([final_x1(:) final_y1(:)],griddual{2}(:));
-	convert.surface.new_to_old_points = @(x_new,y_new) multiTriInterp(Fx,Fy,x_new,y_new);
+	convert.surface.old_to_new_points = @(x_old,y_old) convert_points_two_three(griddual{:},final_x1,final_y1,final_z1,x_old,y_old);
+	Fx = TriScatteredInterp([final_x1(:) final_y1(:) final_z1(:)],griddual{1}(:));
+	Fy = TriScatteredInterp([final_x1(:) final_y1(:) final_z1(:)],griddual{2}(:));
+	convert.surface.new_to_old_points = @(x_new,y_new) multiTriInterp(Fx,Fy,x_new,y_new,z_new);
 	
-	% Jacobian from old to new tangent vectors
-	final_jacobian = find_jacobian(griddual{:},final_x,final_y);
-	convert.surface.jacobian = @(x_p,y_p) interpolate_cellwise_tensor(griddual{:},x_p,y_p,final_jacobian);
-	
-	% Metric in new space
-    final_jacobian_metric = arrayfun(convert.surface.jacobian,grid{:},'UniformOutput',false);
-	final_new_metric = cellfun(@(j,m) j'\m/j,final_jacobian_metric,(metric),'UniformOutput',false);
-	convert.surface.new_metric = @(x_p,y_p) interpolate_cellwise_tensor(grid{:},x_p,y_p,celltensorconvert(final_new_metric));
-	convert.surface.old_metric = @(x_p,y_p) interpolate_cellwise_tensor(grid{:},x_p,y_p,celltensorconvert(metric));
-    
+% 	% Jacobian from old to new tangent vectors
+% 	final_jacobian = find_jacobian(griddual{:},final_x,final_y);
+% 	convert.surface.jacobian = @(x_p,y_p) interpolate_cellwise_tensor(griddual{:},x_p,y_p,final_jacobian);
+% 	
+% 	% Metric in new space
+%     final_jacobian_metric = arrayfun(convert.surface.jacobian,grid{:},'UniformOutput',false);
+% 	final_new_metric = cellfun(@(j,m) j'\m/j,final_jacobian_metric,(metric),'UniformOutput',false);
+% 	convert.surface.new_metric = @(x_p,y_p) interpolate_cellwise_tensor(grid{:},x_p,y_p,celltensorconvert(final_new_metric));
+% 	convert.surface.old_metric = @(x_p,y_p) interpolate_cellwise_tensor(grid{:},x_p,y_p,celltensorconvert(metric));
+%     
      % Sampled points
     if strcmp(method, 'metric_surface')
         convert.surface.old_x = griddual{1};
         convert.surface.old_y = griddual{2};
         convert.surface.new_x = final_x1;
         convert.surface.new_y = final_y1;
+        convert.surface.new_z = final_z1;
         convert.surface.EI = EI;
     end
     

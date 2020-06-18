@@ -1,4 +1,4 @@
-function plot_info = CCF_draw(s,p,plot_info,sys,shch,resolution)
+function plot_info = CCF_draw_old(s,p,plot_info,sys,shch,resolution)
 %Draw the constraint curvature function
     
     %Get the configuration file, and extract the Colorpath
@@ -162,34 +162,17 @@ function plot_info = CCF_draw(s,p,plot_info,sys,shch,resolution)
 	% determinant)
 	
 	if plot_info.stretch && (numel(s.grid.eval) == 2)
-			
-        switch plot_info.stretch
-            
-            case 1 % This is the 2-d stretch
-                
-                % Get the value by which to scale the constraint curvature function
-                ascale = arrayfun(@(x,y) 1/det(s.convert.stretch.jacobian(x,y)),grid{:});
+		
+        if plot_info.stretch==1
+            % Get the value by which to scale the constraint curvature function
+            ascale = arrayfun(@(x,y) 1/det(s.convert.stretch.jacobian(x,y)),grid{:});
 
-                % Apply the jacobian to the vectors
-                H = cellfun(@(x) x.*ascale,H,'UniformOutput',false);
+            % Apply the jacobian to the vectors
+            H = cellfun(@(x) x.*ascale,H,'UniformOutput',false);
 
-                % Convert the grid points to their new locations
-                [grid{:}] = s.convert.stretch.old_to_new_points(grid{:});
-                
-            case 2 % This is embedding the surface in 3-d space
-                
-                % Get the value by which to scale the constraint curvature function
-                J_grid = arrayfun(@(x,y) s.convert.surface.jacobian(x,y),grid{:},'UniformOutput',false);
-                J_det = cellfun(@(J) norm(cross(J(:,1),J(:,2))),J_grid);
-
-                % Apply the jacobian to the vectors
-                H = cellfun(@(x) x./J_det,H,'UniformOutput',false);
-
-                % Convert the grid points to their new locations
-                [grid{:},grid_extra] = s.convert.surface.old_to_new_points(grid{:});
-                
+            % Convert the grid points to their new locations
+            [grid{:}] = s.convert.stretch.old_to_new_points(grid{:});
         end
-               
 		
 	end
 	
@@ -206,92 +189,38 @@ function plot_info = CCF_draw(s,p,plot_info,sys,shch,resolution)
         %get which constraint curvature function to use
         function_number = strcmp(plot_info.components{i}, CCF_list);
         
-      
-        % Handle 2-d plots differently from 3-d plots
-        if n_dim == 2
-
-            % Handle metric surface plots differently from
-            % unstretched or metric stretched plots
-            if plot_info.stretch == 2
-                
-                % Specific plotting commands based on the plot style
-                % selected
-                switch plot_info.style
-
-                    % "surface" plot with metric surface should use the
-                    % surface from the metric, with color taken from the
-                    % ccf
-                    case 'surface'
-                        
-                        meshhandle = surf(ax,grid{:},grid_extra,H{function_number});
-                        colormap(Colorset.colormap); 
-                        %shading(ax,'interp')
-                        axis(ax,'equal')
-                        axis(ax,'tight')
-                        view(ax,3)
-                        
-                    % ideally, "contour" would allow us to overlay a
-                    % contour plot of one function on the surface of
-                    % another, but this doesn't seem easy. making it just
-                    % plot a color plot for now
-                    case 'contour'
-                        
-                         meshhandle = surf(ax,grid{:},grid_extra,H{function_number});
-                         
-                        colormap(Colorset.colormap); 
-                        %shading(ax,'interp')
-                        axis(ax,'equal')
-                        axis(ax,'tight')
-                        view(ax,3)
-                   otherwise
-                        
-                        error('plot_info.style does not contain a valid option')
-                        
-                end
-            
-            % This "else" matches unstretched or 2-d stretched plots
-            else
-                
-                % Specific plotting commands based on the plot style
-                % selected
-                switch plot_info.style
-
-                    % "surface" plot with metric surface should use the
-                    % surface from the metric, with color taken from the
-                    % ccf
-                    case 'surface'
-                        
-                        meshhandle = surf(ax,grid{:},H{function_number});
-                        colormap(Colorset.colormap); 
-                        axis(ax,'tight')
-                       %shading(ax,'interp')
-                        view(ax,3)                         
-
-                    case 'contour'
-                        
-                         [~, meshhandle] = contour(ax,grid{:},H{function_number},7,'linewidth',2);
-                         axis(ax,'equal')
-                        axis(ax,'tight')
-                          
-                        colormap(Colorset.colormap_contour); 
-                   otherwise
-                        
-                        error('plot_info.style does not contain a valid option')
-                        
+		switch plot_info.style
+			
+			case 'surface'
+		
+% 				if s.singularity
+% 					
+% 					H{function_number}(singularity_location) = NaN;
+% 					
+% 				end
+                if n_dim==2
+				%Plot the constraint curvature function
+                    meshhandle = surf(ax,grid{:},H{function_number});
                 end
                 
-            end
-
-        % This "else" catches the case where the shape space has more than
-        % two dimensions. The code figures out the plane intersecting the
-        % maximum-norm point on the ccf in the direction that most
-        % interacts with it; it badly needs commenting
-        else
-
-            switch plot_info.style
-
-                case 'surface'
-
+                 if n_dim>2
+%                     curvinterest=H{function_number,:};
+%                     for j=1:length(curvinterest(:,1,1))
+%                         for k=1:length(curvinterest(1,:,1))
+%                             for l=1:length(curvinterest(1,1,:))
+%                                 totalcurvvalue(j,k,l)=sqrt(H{function_number,1}(j,k,l)^2+H{function_number,2}(j,k,l)^2+H{function_number,3}(j,k,l)^2);
+%                             end
+%                         end
+%                     end
+% 
+%                     [max1,ind1]=max(totalcurvvalue);
+%                     [max2,ind2]=max(max1);
+%                     [max3,ind3]=max(max2);
+% 
+%                     totalcurvvalue(ind1(1,ind2(1,1,ind3),ind3),ind2(1,1,ind3),ind3);
+% 
+%                     y=[grid{1}(ind1(1,ind2(1,1,ind3),ind3),ind2(1,1,ind3),ind3),grid{2}(ind1(1,ind2(1,1,ind3),ind3),ind2(1,1,ind3),ind3),grid{3}(ind1(1,ind2(1,1,ind3),ind3),ind2(1,1,ind3),ind3)];
+%                     
                     y=cell(1,n_dim);
                     y(:)={0};
                     idxt=cell(1,n_dim-2);
@@ -303,27 +232,27 @@ function plot_info = CCF_draw(s,p,plot_info,sys,shch,resolution)
                     for j=1:n_dim*(n_dim-1)/2
                         curvature(:,j)=interpn(interpstatecurvature{:},H{function_number,j},y{:},'cubic');
                     end
-
+                    
                     B=[0,curvature(1),curvature(2);-curvature(1),0,curvature(n_dim);-curvature(2),-curvature(n_dim),0];
 
                     [V,D]=eig(B);
                     [d,ind] = sort(diag(D));
                     Ds = D(ind,ind);
                     Vs = V(:,ind);
-
-
+                    
+                    
                     X=real(Vs(:,end));
                     Y=(Vs(:,end)-X)/(sqrt(-1));
-
+                    
                     Xnorm=X/(norm(X));
                     Ynorm=Y/(norm(Y));
 
 %                     normal=cross(Xnorm,Ynorm);
 %                     y=zeros(1,n_dim)
 %                     projnorm=y*normal;
-
+                    
                     pointonplane=zeros(1,n_dim);%y'-(y'-projnorm*normal);
-
+                    
                     Xtemp=grid{1,1}(:,:,idxt{:});
                     Ytemp=grid{2,1}(:,:,idxt{:});
 
@@ -342,19 +271,72 @@ function plot_info = CCF_draw(s,p,plot_info,sys,shch,resolution)
                                 curvatureproj(m,j)=curvaturetemp(1)*(Xnorm(1)*Ynorm(2)-Ynorm(1)*Xnorm(2))+curvaturetemp(2)*(Xnorm(1)*Ynorm(3)-Ynorm(1)*Xnorm(3))+curvaturetemp(3)*(Xnorm(2)*Ynorm(3)-Ynorm(2)*Xnorm(3));
                         end
                     end
-
+                    
                     meshhandle=pcolor(xgrid,ygrid,-curvatureproj,'Parent',ax);
                     meshhandle.ZData=zgrid;
-
+                    
                     hold on
-
+                    
                     colormap(Colorset.colormap); 
                     shading(ax,'interp')
                     view(ax,3)
                     
-                case 'contour'
                     
-                    y=cell(1,n_dim);
+                end
+				
+				
+				%If there's a shape change involved, plot it
+				if ~strcmp(shch,'null')
+                    if n_dim==2
+					overlay_shape_change_3d_surf(ax,p,zdata{function_number,:},plot_info.stretch,s.convert,true);
+                    end
+                    if n_dim>2
+                        meshhandle.FaceAlpha=0.9;
+                        line('Parent',ax,'XData',p.phi_locus_full{i}.shape(:,1),'YData',p.phi_locus_full{i}.shape(:,2),'ZData',p.phi_locus_full{i}.shape(:,3),'Color',Colorset.spot,'LineWidth',6,'parent',ax);
+                    end
+				end
+
+				%square axes
+				axis(ax,'tight')
+				
+
+				%Put an outline box around the plot
+				nicebox(ax,'on')
+				
+				%load the color map
+                coloration = Colorset.colormap;
+				if s.singularity
+					coloration = coloration.^5;
+				end
+
+				
+			case 'contour'
+				if n_dim==2
+                    %Plot the constraint curvature function
+                    [junk, meshhandle] = contour(ax,grid{:},H{function_number},7,'linewidth',2);				
+                end
+                
+                if n_dim>2
+%                     
+%                     curvinterest=H{function_number,:};
+% 
+%                     for j=1:length(curvinterest(:,1,1))
+%                         for k=1:length(curvinterest(1,:,1))
+%                             for l=1:length(curvinterest(1,1,:))
+%                                 totalcurvvalue(j,k,l)=sqrt(H{function_number,1}(j,k,l)^2+H{function_number,2}(j,k,l)^2+H{function_number,3}(j,k,l)^2);
+%                             end
+%                         end
+%                     end
+% 
+%                     [max1,ind1]=max(totalcurvvalue);
+%                     [max2,ind2]=max(max1);
+%                     [max3,ind3]=max(max2);
+% 
+%                     totalcurvvalue(ind1(1,ind2(1,1,ind3),ind3),ind2(1,1,ind3),ind3)
+% 
+%                     y=[grid{1}(ind1(1,ind2(1,1,ind3),ind3),ind2(1,1,ind3),ind3),grid{2}(ind1(1,ind2(1,1,ind3),ind3),ind2(1,1,ind3),ind3),grid{3}(ind1(1,ind2(1,1,ind3),ind3),ind2(1,1,ind3),ind3)];
+%                     
+                     y=cell(1,n_dim);
                     y(:)={0};
                     idxt=cell(1,n_dim-2);
                     idxt(1,:)={1};
@@ -410,89 +392,146 @@ function plot_info = CCF_draw(s,p,plot_info,sys,shch,resolution)
                                
 
                    meshhandle=contourslice(grid{2,1}(:,:,:,idxt2{:}),grid{1,1}(:,:,:,idxt2{:}),grid{3,1}(:,:,:,idxt2{:}),curvatureproj,xgrid,ygrid,zgrid,'parent',ax);
-                   view(ax,3)                    
+                   view(ax,3)
 
-                    hold on
-
-                    colormap(Colorset.colormap_contour); 
-                    view(ax,3)
-            end
-
-
-        end
-                        
-
-				
-				
-        %If there's a shape change involved, plot it
-        if ~strcmp(shch,'null')
-            if n_dim==2
-                switch plot_info.stretch 
-                    case {0,1} % No stretch or 2-d stretch
-                        switch plot_info.style
-                            case 'contour'
-                                overlay_shape_change_2d(ax,p,plot_info.stretch,s.convert);
-                            case 'surface'
-                                overlay_shape_change_3d_surf(ax,p,zdata{function_number,:},plot_info.stretch,s.convert,true);
-                        end
-                        
-                    case 2 % Surface-embedded stretch
-                        
+                    
                 end
-                        
-            end
-            if n_dim>2
-                meshhandle.FaceAlpha=0.9;
-                line('Parent',ax,'XData',p.phi_locus_full{i}.shape(:,1),'YData',p.phi_locus_full{i}.shape(:,2),'ZData',p.phi_locus_full{i}.shape(:,3),'Color',Colorset.spot,'LineWidth',6,'parent',ax);
-            end
-        end
+                                 
+                    
+				%If there's a shape change involved, plot it
+				if ~strcmp(shch,'null')
+                    if n_dim==2
+					overlay_shape_change_2d(ax,p,plot_info.stretch,s.convert);
+                    end
+                    if n_dim>2
+                        line('Parent',ax,'XData',p.phi_locus_full{i}.shape(:,1),'YData',p.phi_locus_full{i}.shape(:,2),'ZData',p.phi_locus_full{i}.shape(:,3),'Color',Colorset.spot,'LineWidth',6,'parent',ax);
+                    end
+    
+				end
+				
+				
+				% Make edges if coordinates have changed
+				if plot_info.stretch && (numel(s.grid.eval) == 2)
+					
+					edgeres = 30;
+					
+					oldx_edge = [s.grid_range(1)*ones(edgeres,1);linspace(s.grid_range(1),s.grid_range(2),edgeres)';...
+						s.grid_range(2)*ones(edgeres,1);linspace(s.grid_range(2),s.grid_range(1),edgeres)'];
+					oldy_edge = [linspace(s.grid_range(3),s.grid_range(4),edgeres)';s.grid_range(4)*ones(edgeres,1);...
+						linspace(s.grid_range(4),s.grid_range(3),edgeres)';s.grid_range(3)*ones(edgeres,1)];
 
-        %tight axes
-        axis(ax,'tight')
+					[x_edge,y_edge] = s.convert.stretch.old_to_new_points(oldx_edge,oldy_edge);
+					
+					l_edge = line('Parent',ax,'Xdata',x_edge,'YData',y_edge,'Color','k','LineWidth',1);
+					
+				end
+				
+				%Put an outline box around the plot
+				box(ax,'on')
 
+				%equal axes sized to match grid or new dimensions if
+				%stretched
+				
+				if plot_info.stretch && (numel(s.grid.eval) == 2)
+					axis(ax,'equal');
+					axis(ax,[min(grid{1}(:)) max(grid{1}(:)) min(grid{2}(:)) max(grid{2}(:))]);
+				else
+					axis(ax,'equal','tight');
+				end
+				
+				%set the color map
+				coloration = Colorset.colormap_contour;
 
-        %Put an outline box around the plot
-        box(ax,'on')
+				
+			case 'pcolor'
+                				
+				%Plot the constraint curvature function
+% 				[junk, meshhandle] = contour(ax,grid{:},H{function_number},7,'linewidth',2);
 
-        % Make edges if coordinates have changed
-        if plot_info.stretch && (numel(s.grid.eval) == 2) && (strcmp(plot_info.style,'contour'))
-
-            edgeres = 30;
-
-            oldx_edge = [s.grid_range(1)*ones(edgeres,1);linspace(s.grid_range(1),s.grid_range(2),edgeres)';...
-                s.grid_range(2)*ones(edgeres,1);linspace(s.grid_range(2),s.grid_range(1),edgeres)'];
-            oldy_edge = [linspace(s.grid_range(3),s.grid_range(4),edgeres)';s.grid_range(4)*ones(edgeres,1);...
-                linspace(s.grid_range(4),s.grid_range(3),edgeres)';s.grid_range(3)*ones(edgeres,1)];
-
-            switch plot_info.stretch
                 
-                case 1 % 2-d stretch
-            
-                    [x_edge,y_edge] = s.convert.stretch.old_to_new_points(oldx_edge,oldy_edge);
 
-                    l_edge = line('Parent',ax,'Xdata',x_edge,'YData',y_edge,'Color','k','LineWidth',1);
-
-                case 2 % 3-d surface embedding
-            
-                    [x_edge,y_edge,z_edge] = s.convert.surface.old_to_new_points(oldx_edge,oldy_edge);
-
-                    l_edge = line('Parent',ax,'Xdata',x_edge,'YData',y_edge,'Zdata',z_edge,'Color','k','LineWidth',1);
-            end
-       end
+                [x_new, y_new] = s.convert.surface.old_to_new_points(grid{1},grid{2});
+                
+%                 C = (s.convert.EI.C);
+%                  C = reshape(smooth(C(:)),[],12);
+                
+                HF_isomap = griddata(s.convert.surface.EI.A,s.convert.surface.EI.B,s.convert.surface.EI.C,x_new, y_new,'cubic');
+                
+                isomap.x_new = x_new;
+                isomap.y_new = y_new;
+                isomap.HF_isomap = HF_isomap;
 				
+				%Plot the constraint curvature function
+% 				[junk, meshhandle] = contour(ax,grid{:},H{function_number},7,'linewidth',2);
+                meshhandle = pcolor(ax,grid{1},grid{2},H{function_number});
+                
+                meshhandle.ZData = HF_isomap;
+                meshhandle.XData = x_new;
+                meshhandle.YData = y_new;
+                
+                if plot_info.stretch==2
+                    [grid{:}] = s.convert.surface.old_to_new_points(grid{:});
+                end
+                
+                if plot_info.stretch==1
+                    [grid{:}] = s.convert.stretch.old_to_new_points(grid{:});
+                end
+				%If there's a shape change involved, plot it
+				if ~strcmp(shch,'null')
 
-%         %equal axes sized to match grid or new dimensions if
-%         %stretched
-% 
-%         if plot_info.stretch && (numel(s.grid.eval) == 2)
-%             axis(ax,'equal');
-%             axis(ax,[min(grid{1}(:)) max(grid{1}(:)) min(grid{2}(:)) max(grid{2}(:))]);
-%         else
-%             axis(ax,'equal','tight');
-%         end
+					overlay_shape_change_2d(ax,p,plot_info.stretch,s.convert,isomap,s);
+
+				end
 				
 				
-		
+				% Make edges if coordinates have changed
+				if plot_info.stretch
+					
+					edgeres = 30;
+					
+					oldx_edge = [s.grid_range(1)*ones(edgeres,1);linspace(s.grid_range(1),s.grid_range(2),edgeres)';...
+						s.grid_range(2)*ones(edgeres,1);linspace(s.grid_range(2),s.grid_range(1),edgeres)'];
+					oldy_edge = [linspace(s.grid_range(3),s.grid_range(4),edgeres)';s.grid_range(4)*ones(edgeres,1);...
+						linspace(s.grid_range(4),s.grid_range(3),edgeres)';s.grid_range(3)*ones(edgeres,1)];
+
+					if plot_info.stretch==2
+                        [x_edge,y_edge] = s.convert.surface.old_to_new_points(oldx_edge,oldy_edge);
+                    end
+                    
+                    if plot_info.stretch==1
+                        [x_edge,y_edge] = s.convert.stretch.old_to_new_points(oldx_edge,oldy_edge);
+                    end
+                    
+                    
+                    HF_isomap_edge = griddata(s.convert.surface.EI.A,s.convert.surface.EI.B,s.convert.surface.EI.C,x_edge,y_edge);
+					
+					l_edge = line('Parent',ax,'Xdata',x_edge,'YData',y_edge,'ZData',HF_isomap_edge,'Color','k','LineWidth',1);
+                    
+%                     plot3(x_edge,y_edge,HF_isomap_edge,'k','Parent',ax,'LineWidth',1)
+					
+				end
+				
+				%Put an outline box around the plot
+				box(ax,'on')
+
+				%equal axes sized to match grid or new dimensions if
+				%stretched
+				
+				if plot_info.stretch
+					axis(ax,'equal');
+					axis(ax,[min(grid{1}(:)) max(grid{1}(:)) min(grid{2}(:)) max(grid{2}(:))]);
+				else
+					axis(ax,'equal','tight');
+				end
+				
+				%set the color map
+				coloration = Colorset.colormap;
+                
+            otherwise
+				
+				error('Unknown plot style for the constraint curvature function')
+				
+		end
 
 		%Iterate up the tree to find the figure that contains the current
 		%axis
@@ -511,7 +550,7 @@ function plot_info = CCF_draw(s,p,plot_info,sys,shch,resolution)
 
 		end
 
-		%set(parH,'Colormap',coloration);
+		set(parH,'Colormap',coloration);
 
 		%center the color map around zero
             Clim = get(ax,'Clim'); %get the current color limits
@@ -545,8 +584,8 @@ function plot_info = CCF_draw(s,p,plot_info,sys,shch,resolution)
             %set the button down callback on the plot to be sys_draw with
 			%the argument list for the current plot, and set the button
 			%down callback for the mesh to the same
-			set(plot_info.axes(i),'ButtonDownFcn',{@sys_draw_dummy_callback,plot_info_specific,sys,shch,plot_info.stretch});
-			set(meshhandle,'ButtonDownFcn',{@sys_draw_dummy_callback,plot_info_specific,sys,shch,plot_info.stretch});
+			set(plot_info.axes(i),'ButtonDownFcn',{@sys_draw_dummy_callback,plot_info_specific,sys,shch,plot_info.stretch_name});
+			set(meshhandle,'ButtonDownFcn',{@sys_draw_dummy_callback,plot_info_specific,sys,shch,plot_info.stretch_name});
 
 		else
 

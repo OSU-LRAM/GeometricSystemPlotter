@@ -356,11 +356,11 @@ function plots_to_make_i = add_category_info(plots_to_make_i,...
 
     end
     
-    if strcmp(current_stretch,'metric_surface')
-                
-        plots_to_make_i.style = 'pcolor';
-                
-    end
+%     if strcmp(current_stretch,'metric_surface')
+%                 
+%         plots_to_make_i.style = 'pcolor';
+%                 
+%     end
     % Decide if monocolor or a cycling color set should be used for
     % multi-line plots
     switch get(handles.(['color' source_number_text]),'Value')
