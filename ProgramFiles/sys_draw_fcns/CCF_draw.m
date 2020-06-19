@@ -161,6 +161,7 @@ function plot_info = CCF_draw(s,p,plot_info,sys,shch,resolution)
 	% (multiply the constraint curvature function by the inverse of the jacobian's
 	% determinant)
 	
+    grid_orig = grid; % Save the original grid for contour-hacking
 	if plot_info.stretch && (numel(s.grid.eval) == 2)
 			
         switch plot_info.stretch
@@ -232,13 +233,16 @@ function plot_info = CCF_draw(s,p,plot_info,sys,shch,resolution)
                         
                     % ideally, "contour" would allow us to overlay a
                     % contour plot of one function on the surface of
-                    % another, but this doesn't seem easy. making it just
-                    % plot a color plot for now
+                    % another, but this isnt easy. code below uses
+                    % undocumented matlab features
                     case 'contour'
                         
-                         meshhandle = surf(ax,grid{:},grid_extra,H{function_number});
-                         
-                        colormap(Colorset.colormap); 
+                        [~, meshhandle] = contour(ax,grid_orig{:},H{function_number},7,'linewidth',2,'Fill','on');
+                        drawnow
+                        contours_on_surface(s.convert,meshhandle,[grid; {grid_extra}])
+                        addlistener(meshhandle, 'MarkedClean', @(src,evnt)contours_on_surface(s.convert,meshhandle,[grid; {grid_extra}]));
+                       
+                        colormap(Colorset.colormap_contour); 
                         %shading(ax,'interp')
                         axis(ax,'equal')
                         axis(ax,'tight')
@@ -453,6 +457,7 @@ function plot_info = CCF_draw(s,p,plot_info,sys,shch,resolution)
 
         %Put an outline box around the plot
         box(ax,'on')
+        set(ax,'BoxStyle','back');
 
         % Make edges if coordinates have changed
         if plot_info.stretch && (numel(s.grid.eval) == 2) && (strcmp(plot_info.style,'contour'))

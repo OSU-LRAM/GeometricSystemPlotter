@@ -111,7 +111,7 @@ function [convert,sol] = fast_flatten_metric(grid,metric,mask)
     method='metric_surface';
     
     varargin = [1 1];
-    [final_x1, final_y1,final_z1, R, D,EI] = isomap(x_scaled, y_scaled, springs, neutral_lengths, varargin(1), varargin(2));
+    [final_x1, final_y1,final_z1, R, D,EI] = isomap2(x_scaled, y_scaled, springs, neutral_lengths, varargin(1), varargin(2));
     convert.surface.rv = R;
     convert.surface.D = D;
     

@@ -54,7 +54,7 @@ function s = create_grids(s)
     %%%%%%%
     % Create visualization grid if not specified elsewhere
     
-    if ~isfield(s.visual,'grid')
+    if isfield(s,'visual') && ~isfield(s.visual,'grid')
     
         % Get the number of shape variables
         n_shape = nargin(s.A_num);
