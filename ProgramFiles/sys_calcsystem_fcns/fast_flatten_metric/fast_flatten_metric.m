@@ -112,6 +112,11 @@ function [convert,sol] = fast_flatten_metric(grid,metric,mask)
     
     varargin = [1 1];
     [final_x1, final_y1,final_z1, R, D,EI] = isomap2(x_scaled, y_scaled, springs, neutral_lengths, varargin(1), varargin(2));
+    % Make the shape a dome instead of a bowl
+    if mean(final_z1(:)) < mean([final_z1(:,1);final_z1(:,end);final_z1(1,:)';final_z1(end,:)'])
+        final_z1 = -final_z1;
+    end
+    
     convert.surface.rv = R;
     convert.surface.D = D;
     
