@@ -1,6 +1,6 @@
 % Take points in the one set of coordinates, and express them in the
 % power_normalized coordinates
-function [x_new, y_new] = convert_points(x_start,y_start,x_end,y_end,x_p,y_p)
+function [x_new, y_new, z_new] = convert_points(x_start,y_start,x_end,y_end,x_p,y_p)
 
 	%Identify any NaN elements
 	nanIDx = isnan(x_p);
@@ -17,6 +17,9 @@ function [x_new, y_new] = convert_points(x_start,y_start,x_end,y_end,x_p,y_p)
 	%Reinsert the NaNs
 	x_new(nanIDx) = NaN;
 	y_new(nanIDy) = NaN;
+    
+    
+    z_new = zeros(size(x_new));
 	
 	
 end

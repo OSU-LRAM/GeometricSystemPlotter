@@ -20,6 +20,13 @@ n_dim = numel(s.grid.eval);
 plot_info = ensure_figure_axes(plot_info);
 
 
+% Pull out the stretch name
+stretchnames = {'stretch','surface'};
+if plot_info.stretch
+    stretchname = stretchnames{plot_info.stretch};
+end
+
+
 if n_dim==2
     
     %Vector field list
@@ -74,55 +81,55 @@ if n_dim==2
     % If the shape coordinates should be transformed, make the conversion
     % (multiply the vectors by the inverse jacobian)
 
-    if plot_info.stretch
-
-        M = celltensorconvert(M);
-
-        % Calculate the jacobians at the plotting points
-        Jac = arrayfun(s.convert.stretch.jacobian,grid{:},'UniformOutput',false);
-
-        % Use the jacobians to convert the metric
-        for i = 1:size(M,1)
-            for j = 1:size(M,2)
-
-                M{i,j} = (Jac{i,j}'\M{i,j})/Jac{i,j};
-
-            end
-        end
-
-
-        % Use the jacobians to convert the coordinate vectors in accordance
-        % with the stretch transformation
-
-        for i = 1:size(M{1},1)
-
-            % Iterate over all vectors present
-            for j = 1:size(M{1},1)
-
-                % Extract all components of the relevant vector
-                % 				tempEin = cellfun(@(x) x(j),E_coord(i,:));
-                tempMin = [M{1}(i,j);M{2}(i,j)];
-
-                % Multiply by the Jacobian (because V_coord is a flow)
-                tempMout = Jac{i,j}*tempMin;
-
-                % Replace vector components
-
-                M{1}(i,j) = tempMout(1);
-                M{2}(i,j) = tempMout(2);
-
-            end
-
-
-        end
-
-
-        % Convert the grid points to their new locations
-        [grid{:}] = s.convert.stretch.old_to_new_points(grid{:});
-
-        M = celltensorconvert(M);
-
-    end
+%     if plot_info.stretch
+% 
+%         M = celltensorconvert(M);
+% 
+%         % Calculate the jacobians at the plotting points
+%         Jac = arrayfun(s.convert.stretch.jacobian,grid{:},'UniformOutput',false);
+% 
+%         % Use the jacobians to convert the metric
+%         for i = 1:size(M,1)
+%             for j = 1:size(M,2)
+% 
+%                 M{i,j} = (Jac{i,j}'\M{i,j})/Jac{i,j};
+% 
+%             end
+%         end
+% 
+% 
+%         % Use the jacobians to convert the coordinate vectors in accordance
+%         % with the stretch transformation
+% 
+%         for i = 1:size(M{1},1)
+% 
+%             % Iterate over all vectors present
+%             for j = 1:size(M{1},1)
+% 
+%                 % Extract all components of the relevant vector
+%                 % 				tempEin = cellfun(@(x) x(j),E_coord(i,:));
+%                 tempMin = [M{1}(i,j);M{2}(i,j)];
+% 
+%                 % Multiply by the Jacobian (because V_coord is a flow)
+%                 tempMout = Jac{i,j}*tempMin;
+% 
+%                 % Replace vector components
+% 
+%                 M{1}(i,j) = tempMout(1);
+%                 M{2}(i,j) = tempMout(2);
+% 
+%             end
+% 
+% 
+%         end
+% 
+% 
+%         % Convert the grid points to their new locations
+%         [grid{:}] = s.convert.stretch.old_to_new_points(grid{:});
+% 
+%         M = celltensorconvert(M);
+% 
+%     end
 
     %%%
     %If there's a singularity, use arctan scaling on the magnitude of the
@@ -156,7 +163,10 @@ if n_dim==2
 
         % metricellipsefield(s.grid.metric_display{:},celltensorconvert(s.metricfield.metric_display.content.metric),'tissot',{'edgecolor','k’})
 
-        metricellipsefield(grid{:},celltensorconvert(M),'tissot-cross',{'edgecolor','k','parent',ax},{'color',Colorset.secondary,'parent',ax});
+        %metricellipsefield(grid{:},celltensorconvert(M),'tissot-cross',{'edgecolor','k','parent',ax},{'color',Colorset.secondary,'parent',ax});
+        metricellipsefield_convert(grid{:},celltensorconvert(M),'tissot-cross',s.convert,plot_info.stretch,{'edgecolor','k','parent',ax},{'color',Colorset.secondary,'parent',ax});
+        
+        
         box(ax,'on');
 
         % Make edges if coordinates have changed
@@ -169,9 +179,9 @@ if n_dim==2
             oldy_edge = [linspace(s.grid_range(3),s.grid_range(4),edgeres)';s.grid_range(4)*ones(edgeres,1);...
                 linspace(s.grid_range(4),s.grid_range(3),edgeres)';s.grid_range(3)*ones(edgeres,1)];
 
-            [x_edge,y_edge] = s.convert.stretch.old_to_new_points(oldx_edge,oldy_edge);
+            [x_edge,y_edge,z_edge] = s.convert.(stretchname).old_to_new_points(oldx_edge,oldy_edge);
 
-            l_edge = line('Parent',ax,'Xdata',x_edge,'YData',y_edge,'Color','k','LineWidth',1); %#ok<NASGU>
+            l_edge = line('Parent',ax,'Xdata',x_edge,'YData',y_edge,'ZData',z_edge,'Color','k','LineWidth',1); %#ok<NASGU>
 
         end
 

@@ -86,6 +86,7 @@ function [convert,sol] = fast_flatten_metric(grid,metric,mask)
         % restore actual probelm scale
     final_x = final_x*mean_neutral_length;
     final_y = final_y*mean_neutral_length;
+    final_z = zeros(size(final_x));
     
     %Build the output functions
 	
@@ -93,7 +94,8 @@ function [convert,sol] = fast_flatten_metric(grid,metric,mask)
 	convert.stretch.old_to_new_points = @(x_old,y_old) convert_points(griddual{:},final_x,final_y,x_old,y_old);
 	Fx = TriScatteredInterp([final_x(:) final_y(:)],griddual{1}(:));
 	Fy = TriScatteredInterp([final_x(:) final_y(:)],griddual{2}(:));
-	convert.stretch.new_to_old_points = @(x_new,y_new) multiTriInterp(Fx,Fy,x_new,y_new);
+    Fz = zeros(size(Fx));
+	convert.stretch.new_to_old_points = @(x_new,y_new) multiTriInterp(Fx,Fy,Fz,x_new,y_new);
 	
 	% Jacobian from old to new tangent vectors
 	final_jacobian = find_jacobian(griddual{:},final_x,final_y);
