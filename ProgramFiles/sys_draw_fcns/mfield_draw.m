@@ -169,7 +169,7 @@ if n_dim==2
         
         box(ax,'on');
 
-        % Make edges if coordinates have changed
+        % Make edges and create a backing surfaceif coordinates have changed
         if plot_info.stretch
 
             edgeres = 30;
@@ -183,6 +183,11 @@ if n_dim==2
 
             l_edge = line('Parent',ax,'Xdata',x_edge,'YData',y_edge,'ZData',z_edge,'Color','k','LineWidth',1); %#ok<NASGU>
 
+            hold on
+            [s_x,s_y,s_z] = s.convert.(stretchname).old_to_new_points(s.grid.eval{:});
+            s_backing = surf('Parent',ax,'XData',s_x,'YData',s_y,'ZData',s_z,'FaceColor','w','EdgeColor','none');
+            hold off
+            
         end
 
 
@@ -190,6 +195,9 @@ if n_dim==2
             axis(ax,'equal');
             % 			axis(ax,[min(grid{1}(:)) max(grid{1}(:)) min(grid{2}(:)) max(grid{2}(:))]);
             axis(ax,[min(x_edge) max(x_edge) min(y_edge) max(y_edge)])
+            if plot_info.stretch == 2
+                view(ax,3)
+            end
         else
             axis(ax,'equal');
         end

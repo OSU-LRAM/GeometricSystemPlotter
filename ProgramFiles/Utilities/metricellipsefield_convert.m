@@ -123,9 +123,9 @@ if stretch
 
             [x_f, y_f, z_f] = convert.(stretchname).old_to_new_points(x,y);
 
-            circles = cellfun(@(u,v,w,t) [u(1,:)+v;u(2,:)+w;zeros(size(u(1,:)))+t],circles,num2cell(x_f),num2cell(y_f),num2cell(z_f),'UniformOutput',false);
+            circles = cellfun(@(u,v,w,t) [u(1,:)+v;u(2,:)+w;u(3,:)+t],circles,num2cell(x_f),num2cell(y_f),num2cell(z_f),'UniformOutput',false);
             if exist('crosses','var')
-                crosses = cellfun(@(u,v,w,t) [u(1,:)+v;u(2,:)+w;zeros(size(u(1,:)))+t],crosses,num2cell(x_f),num2cell(y_f),num2cell(z_f),'UniformOutput',false);
+                crosses = cellfun(@(u,v,w,t) [u(1,:)+v;u(2,:)+w;u(3,:)+t],crosses,num2cell(x_f),num2cell(y_f),num2cell(z_f),'UniformOutput',false);
             end
 
             
