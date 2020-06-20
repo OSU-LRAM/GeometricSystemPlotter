@@ -63,7 +63,8 @@ function plot_info = vfield_draw(s,p,plot_info,sys,shch,resolution)
         end
 		
 		% Use the jacobians to convert the vectors
-		
+		V_converted = repmat({V{1,1}},size(V,1),size(Jac{1},1));
+        
 		% Iterate over all connection vector fields present
         for i = 1:size(V,1)
 			
@@ -75,12 +76,12 @@ function plot_info = vfield_draw(s,p,plot_info,sys,shch,resolution)
 				
 				% Multiply by the inverse Jacobian (because V is a
 				% gradient, not a flow)
-				tempVout = Jac{j}\tempVin(:);
+				tempVout = (Jac{j}')\tempVin(:);
 				
 				% Replace vector components
-                for k = 1:size(V,2)
+                for k = 1:numel(tempVout)
 					
-					V{i,k}(j) = tempVout(k);
+					V_converted{i,k}(j) = tempVout(k);
 					
                 end
 				
@@ -88,11 +89,19 @@ function plot_info = vfield_draw(s,p,plot_info,sys,shch,resolution)
             
 			
         end
-        
+        V = V_converted;
 
 
 		% Use the jacobians to convert the coordinate vectors in accordance
 		% with the stretch transformation
+		    % Create a set of vector fields along coordinate directions
+        V_coord = repmat({zeros(size(V{1}))},size(Jac{1},1));
+        for i = 1:numel(grid)
+
+            V_coord{i,i} = ones(size(V{1}));
+
+        end
+        V_coord_converted = V_coord;
 		
 		% Iterate over all coordinate vector fields present
         for i = 1:size(V_coord,1)
@@ -101,15 +110,15 @@ function plot_info = vfield_draw(s,p,plot_info,sys,shch,resolution)
             for j = 1:numel(V_coord{i,1})
 				
 				% Extract all components of the relevant vector
-				tempVin = cellfun(@(x) x(j),V_coord(i,:));
+				tempVin = cellfun(@(x) x(j),V_coord(i,1:numel(grid)));
 				
 				% Multiply by the Jacobian (because V_coord is a flow)
 				tempVout = Jac{j}*tempVin(:);
 				
 				% Replace vector components
-				for k = 1:size(V_coord,2)
+				for k = 1:numel(tempVout)
 					
-					V_coord{i,k}(j) = tempVout(k);
+					V_coord_converted{i,k}(j) = tempVout(k);
 					
 				end
 				
@@ -117,15 +126,17 @@ function plot_info = vfield_draw(s,p,plot_info,sys,shch,resolution)
             
 			
         end
+        V_coord = V_coord_converted;
+        
         
         % Rotate the coordinate vectors to get normals
         V_norm = repmat({zeros(size(V{1}))},numel(grid));
-        if numel(grid) == 2
+        if size(V_coord,2) == 2
             
             V_norm = {V_coord{2,2} -V_coord{2,1};
                 -V_coord{1,2} V_coord{1,1}};
                 
-        elseif numel(grid) == 3
+        elseif size(V_coord,2) == 3
             
             V_norm = {V_coord{3,3} V_coord{3,2} -V_coord{3,1}; % z coord field around y
                 -V_coord{1,2} V_coord{1,1} -V_coord{1,3}; % x around z
@@ -143,8 +154,10 @@ function plot_info = vfield_draw(s,p,plot_info,sys,shch,resolution)
         end
         
         if plot_info.stretch==2
-            [grid{:}] = s.convert.surface.old_to_new_points(grid{:});
+            [grid{:},grid_extra] = s.convert.surface.old_to_new_points(grid{:});
+            grid = [grid;{grid_extra}];
         end
+        
 		
 	
     
@@ -236,7 +249,14 @@ function plot_info = vfield_draw(s,p,plot_info,sys,shch,resolution)
         
 		%plot the vector field arrows
         if n_dim == 2
-			quiver(ax,grid{:},V{field_number,1},V{field_number,2},'k','LineWidth',2)
+            
+            if numel(grid) == 2
+                quiver(ax,grid{:},V{field_number,1},V{field_number,2},'k','LineWidth',2)
+            else
+                quiver3(ax,grid{:},V{field_number,1},V{field_number,2},V{field_number,3},'k','LineWidth',2)
+            end
+            
+            
         else
             idxt=cell(1,n_dim-3);
             idxt(1,:)={1};

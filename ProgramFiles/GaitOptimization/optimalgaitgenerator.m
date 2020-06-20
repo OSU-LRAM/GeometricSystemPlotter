@@ -1,4 +1,4 @@
-function y=optimalgaitgenerator(s,dimension,npoints,a1,a2,lb,ub)
+function y=optimalgaitgenerator(s,dimension,npoints,a1,a2,lb,ub,stretch)
 %%%%%%%%%%%%%%
 % This function takes an input gait and runs fmincon to find the neareast locally 
 % optimal gait
@@ -88,7 +88,7 @@ writerObj = [];
 % axis square
 % hold on
 
- options = optimoptions('fmincon','SpecifyObjectiveGradient',true,'Display','iter','Algorithm','sqp','CheckGradients',false,'FiniteDifferenceType','central','MaxIter',4000,'MaxFunEvals',20000,'TolCon',10^-2,'OutputFcn', @outfun);
+ options = optimoptions('fmincon','SpecifyObjectiveGradient',true,'Display','iter','Algorithm','sqp','CheckGradients',false,'FiniteDifferenceType','central','MaxIter',4000,'MaxFunEvals',20000,'TolCon',10^-2,'OutputFcn', @(y,optimValues,state) outfun(y,optimValues,state,stretch,s));
  [yf fval exitflag output]=fmincon(@(y) solvedifffmincon(y,s,n,dimension,lb,ub,writerObj),y0,A,b,Aeq,beq,lb1,ub1,@(y) nonlcon(y,s,n,dimension,lb,ub),options);
 
 % % Uncomment this if you uncommented the section above so that the video
@@ -783,7 +783,7 @@ function y = path_from_fourier(f,n,dimension)
     end
 end
 
-function stop=outfun(y,optimValues,state)
+function stop=outfun(y,optimValues,state,stretch,s)
 %%%%%%%%% 
 %
 %This function plots the current state of the gait on the sysplotter GUI
@@ -794,27 +794,44 @@ function stop=outfun(y,optimValues,state)
 n=100;
 dimension=length(y(1,:));
 
-% The if else statement below deletes gaits 2 iterations after they have been plotted
-if optimValues.iteration>2
-    children=get(gca,'children');
-    delete(children(6:10));
-else
-end
+% % The if else statement below deletes gaits 2 iterations after they have been plotted
+% if optimValues.iteration>2
+%     children=get(gca,'children');
+%     delete(children(6:10));
+% else
+% end
 
 % The if else statement below fades the gait plotted during the previous iteration
 if optimValues.iteration>1
     children=get(gca,'children');
-    children(1).Color=[0.5 0.5 0.5];
-    children(2).Color=[0.5 0.5 0.5];
-    children(3).Color=[0.5 0.5 0.5];
-    children(4).Color=[0.5 0.5 0.5];
-    children(5).Color=[0.5 0.5 0.5];
-
-    children(1).LineWidth=4;
-    children(2).LineWidth=4;
-    children(3).LineWidth=4;
-    children(4).LineWidth=4;
-    children(5).LineWidth=4;
+    for idx = 1:numel(children)
+        
+        if iscell(children(idx).UserData) && strcmp(children(idx).UserData{1},'OptimizeTracer')
+            children(idx).UserData = {'OptimizeTracer', children(idx).UserData{2}-1};
+            
+            if children(idx).UserData{2} == 0
+                
+                delete(children(idx));
+                
+            else
+                
+                children(idx).Color=[0.5 0.5 0.5];
+                children(idx).LineWidth=4;
+            end
+        end
+        
+    end
+%     children(1).Color=[0.5 0.5 0.5];
+%     children(2).Color=[0.5 0.5 0.5];
+%     children(3).Color=[0.5 0.5 0.5];
+%     children(4).Color=[0.5 0.5 0.5];
+%     children(5).Color=[0.5 0.5 0.5];
+% 
+%     children(1).LineWidth=4;
+%     children(2).LineWidth=4;
+%     children(3).LineWidth=4;
+%     children(4).LineWidth=4;
+%     children(5).LineWidth=4;
 else
 end
 
@@ -822,8 +839,18 @@ end
 if optimValues.iteration>0
     y1 = path_from_fourier(y,n,dimension);
     hold on
-    handle1=plot(y1(:,1),y1(:,2),'k','linewidth',3);
-    plot_dir_arrows(y1(:,1),y1(:,2),2,'Color',[0 0 0],'LineWidth',3);
+    if stretch
+        stretchnames = {'stretch','surface'};
+        stretchname = stretchnames{stretch};
+
+        [x_temp,y_temp,z_temp] = s.convert.(stretchname).old_to_new_points(y1(:,1),y1(:,2));
+    else
+        x_temp = y1(:,1);
+        y_temp = y1(:,2);
+        z_temp = zeros(size(y1(:,1)));
+    end
+    handle1=line('XData',x_temp,'YData',y_temp,'ZData',z_temp,'color','k','linewidth',3,'UserData',{'OptimizeTracer',2});
+    %plot_dir_arrows(y1(:,1),y1(:,2),2,'Color',[0 0 0],'LineWidth',3);
 else
 end
 
@@ -1336,16 +1363,16 @@ function validate_shape_gradient(n,y,g,grad_alphaddot,grad_alphadot,grad_alpha)
         grad_alphadot2_eval = cell2mat(grad_alphadot_eval(:,2));
         grad_alphadot1_calc = [0,0;-w1*sin(w1*t(i)),0;w1*cos(w1*t(i)),0;-2*w1*sin(2*w1*t(i)),0;2*w1*cos(2*w1*t(i)),0;-3*w1*sin(3*w1*t(i)),0;3*w1*cos(3*w1*t(i)),0;-4*w1*sin(4*w1*t(i)),0;4*w1*cos(4*w1*t(i)),0;0,0];
         grad_alphadot2_calc = [0,0;0,-w2*sin(w2*t(i));0,w2*cos(w2*t(i));0,-2*w2*sin(2*w2*t(i));0,2*w2*cos(2*w2*t(i));0,-3*w2*sin(3*w2*t(i));0,3*w2*cos(3*w2*t(i));0,-4*w2*sin(4*w2*t(i));0,4*w2*cos(4*w2*t(i));0,0];
-        grad_alphadot1_err = grad_alphadot1_eval - grad_alphadot1_calc
-        grad_alphadot2_err = grad_alphadot2_eval - grad_alphadot2_calc
+        grad_alphadot1_err = grad_alphadot1_eval - grad_alphadot1_calc;
+        grad_alphadot2_err = grad_alphadot2_eval - grad_alphadot2_calc;
         
         grad_alphaddot_eval = cellfun(@(C) C(t(i)), grad_alphaddot, 'UniformOutput', false);
         grad_alphaddot1_eval = cell2mat(grad_alphaddot_eval(:,1));
         grad_alphaddot2_eval = cell2mat(grad_alphaddot_eval(:,2));
         grad_alphaddot1_calc = [0,0;-w1^2*cos(w1*t(i)),0;-w1^2*sin(w1*t(i)),0;-4*w1^2*cos(2*w1*t(i)),0;-4*w1^2*sin(2*w1*t(i)),0;-9*w1^2*cos(3*w1*t(i)),0;-9*w1^2*sin(3*w1*t(i)),0;-16*w1^2*cos(4*w1*t(i)),0;-16*w1^2*sin(4*w1*t(i)),0;0,0];
         grad_alphaddot2_calc = [0,0;0,-w2^2*cos(w2*t(i));0,-w2^2*sin(w2*t(i));0,-4*w2^2*cos(2*w2*t(i));0,-4*w2^2*sin(2*w2*t(i));0,-9*w2^2*cos(3*w2*t(i));0,-9*w2^2*sin(3*w2*t(i));0,-16*w2^2*cos(4*w2*t(i));0,-16*w2^2*sin(4*w2*t(i));0,0];
-        grad_alphaddot1_err = grad_alphaddot1_eval - grad_alphaddot1_calc
-        grad_alphaddot2_err = grad_alphaddot2_eval - grad_alphaddot2_calc
+        grad_alphaddot1_err = grad_alphaddot1_eval - grad_alphaddot1_calc;
+        grad_alphaddot2_err = grad_alphaddot2_eval - grad_alphaddot2_calc;
     end
 end
 

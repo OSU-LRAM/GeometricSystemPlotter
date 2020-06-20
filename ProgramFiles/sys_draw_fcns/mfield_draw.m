@@ -183,10 +183,12 @@ if n_dim==2
 
             l_edge = line('Parent',ax,'Xdata',x_edge,'YData',y_edge,'ZData',z_edge,'Color','k','LineWidth',1); %#ok<NASGU>
 
-            hold on
-            [s_x,s_y,s_z] = s.convert.(stretchname).old_to_new_points(s.grid.eval{:});
-            s_backing = surf('Parent',ax,'XData',s_x,'YData',s_y,'ZData',s_z,'FaceColor','w','EdgeColor','none');
-            hold off
+            if plot_info.stretch == 2
+                hold on
+                [s_x,s_y,s_z] = s.convert.(stretchname).old_to_new_points(s.grid.eval{:});
+                s_backing = surf('Parent',ax,'XData',s_x,'YData',s_y,'ZData',s_z,'FaceColor','w','EdgeColor','none');
+                hold off
+            end
             
         end
 
@@ -214,11 +216,29 @@ if n_dim==2
 
         %If there's a shape change involved, plot it
         if ~strcmp(shch,'null')
-
-            overlay_shape_change_2d(ax,p,plot_info.stretch,s.convert);
-
+            if n_dim==2
+                switch plot_info.stretch 
+                    case {0,1} % No stretch or 2-d stretch
+                        switch plot_info.style
+                            case 'contour'
+                                overlay_shape_change_2d(ax,p,plot_info.stretch,s.convert);
+                            case 'surface'
+                                overlay_shape_change_3d_surf(ax,p,zdata{function_number,:},plot_info.stretch,s.convert,true);
+                        end
+                        
+                    case 2 % Surface-embedded stretch
+                        
+                        overlay_shape_change_metricsurf(ax,p,s.convert.surface.old_to_new_points,Colorset)
+                        %overlay_shape_change_3d_surf(ax,p,grid_extra,plot_info.stretch,s.convert,false)
+                        %overlay_shape_change_2d(ax,p,plot_info.stretch,s.convert);
+                end
+                        
+            end
+            if n_dim>2
+                meshhandle.FaceAlpha=0.9;
+                line('Parent',ax,'XData',p.phi_locus_full{i}.shape(:,1),'YData',p.phi_locus_full{i}.shape(:,2),'ZData',p.phi_locus_full{i}.shape(:,3),'Color',Colorset.spot,'LineWidth',6,'parent',ax);
+            end
         end
-
 
         %%%%
         %Make clicking on the thumbnail open it larger in a new window

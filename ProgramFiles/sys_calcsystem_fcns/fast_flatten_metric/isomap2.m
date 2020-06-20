@@ -13,7 +13,7 @@ function [final_x, final_y,final_z, rv, D,EI] = isomap2(x, y, springs, neutral_l
     options.display = 0;
     options.verbose = 0;
     options.G = G;
-    [Y, R, E] = isomap_fast(D, 'k', 12, options);
+    [Y, R, E] = isomap_fast(D, 'k', 24, options);
 
     % Call MDS
     weights = G~=0;

@@ -442,7 +442,7 @@ function plot_info = CCF_draw(s,p,plot_info,sys,shch,resolution)
                         
                     case 2 % Surface-embedded stretch
                         
-                        overlay_shape_change_metricsurf(ax,p,s.convert.surface.old_to_new_points)
+                        overlay_shape_change_metricsurf(ax,p,s.convert.surface.old_to_new_points,Colorset)
                         %overlay_shape_change_3d_surf(ax,p,grid_extra,plot_info.stretch,s.convert,false)
                         %overlay_shape_change_2d(ax,p,plot_info.stretch,s.convert);
                 end

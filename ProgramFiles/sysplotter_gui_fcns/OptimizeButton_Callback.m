@@ -13,7 +13,7 @@ end
 
     plot_info = plotpushbutton_Callback_optimize(findall(0,'tag',lastpushbutton), eventdata, handles);
 
-% Execute the gait_gui_draw command
+% Execute the gait_gui_optimize command
     gait_gui_optimize(plot_info(1).axes(1),hObject, eventdata, handles);
     waitbar2a(1,handles.progresspanel,'Finished Plotting')
 end
