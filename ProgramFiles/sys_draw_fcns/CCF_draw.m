@@ -226,7 +226,7 @@ function plot_info = CCF_draw(s,p,plot_info,sys,shch,resolution)
                         
                         meshhandle = surf(ax,grid{:},grid_extra,H{function_number});
                         colormap(Colorset.colormap); 
-                        %shading(ax,'interp')
+                        shading(ax,'interp')
                         axis(ax,'equal')
                         axis(ax,'tight')
                         view(ax,3)
@@ -449,7 +449,9 @@ function plot_info = CCF_draw(s,p,plot_info,sys,shch,resolution)
                         
             end
             if n_dim>2
-                meshhandle.FaceAlpha=0.9;
+                if strcmp(plot_info.style,'surface')
+                    meshhandle.FaceAlpha=0.9;
+                end
                 line('Parent',ax,'XData',p.phi_locus_full{i}.shape(:,1),'YData',p.phi_locus_full{i}.shape(:,2),'ZData',p.phi_locus_full{i}.shape(:,3),'Color',Colorset.spot,'LineWidth',6,'parent',ax);
             end
         end
@@ -463,7 +465,7 @@ function plot_info = CCF_draw(s,p,plot_info,sys,shch,resolution)
         set(ax,'BoxStyle','back');
 
         % Make edges if coordinates have changed
-        if plot_info.stretch && (numel(s.grid.eval) == 2) && (strcmp(plot_info.style,'contour'))
+        if plot_info.stretch && (numel(s.grid.eval) == 2) %&& (strcmp(plot_info.style,'contour'))
 
             edgeres = 30;
 

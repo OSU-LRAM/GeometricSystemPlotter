@@ -50,7 +50,7 @@ function plot_info = vfield_draw(s,p,plot_info,sys,shch,resolution)
 	% If the shape coordinates should be transformed, make the conversion
 	% (multiply the vectors by the inverse jacobian)
 	
-	if plot_info.stretch
+	if plot_info.stretch && (n_dim == 2)
         
         if plot_info.stretch==1
             % Calculate the jacobians at the plotting points

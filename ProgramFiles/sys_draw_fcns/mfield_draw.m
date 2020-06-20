@@ -184,10 +184,10 @@ if n_dim==2
             l_edge = line('Parent',ax,'Xdata',x_edge,'YData',y_edge,'ZData',z_edge,'Color','k','LineWidth',1); %#ok<NASGU>
 
             if plot_info.stretch == 2
-                hold on
+                hold(ax,'on')
                 [s_x,s_y,s_z] = s.convert.(stretchname).old_to_new_points(s.grid.eval{:});
                 s_backing = surf('Parent',ax,'XData',s_x,'YData',s_y,'ZData',s_z,'FaceColor','w','EdgeColor','none');
-                hold off
+                hold(ax,'off')
             end
             
         end
