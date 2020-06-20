@@ -74,9 +74,12 @@ function plot_info = vfield_draw(s,p,plot_info,sys,shch,resolution)
 				% Extract all components of the relevant vector
 				tempVin = cellfun(@(x) x(j),V(i,:));
 				
-				% Multiply by the inverse Jacobian (because V is a
+				% Multiply by the inverse transpose Jacobian (because V is a
 				% gradient, not a flow)
-				tempVout = (Jac{j}')\tempVin(:);
+                
+                J_exp = [Jac{j} cross(Jac{j}(:,1),Jac{j}(:,2))];
+                
+				tempVout = (J_exp')\[tempVin(:);0];
 				
 				% Replace vector components
                 for k = 1:numel(tempVout)
@@ -163,69 +166,70 @@ function plot_info = vfield_draw(s,p,plot_info,sys,shch,resolution)
     
         %%%%
         % Trim any vectors that go outside the boundary
+        if ~plot_info.stretch
+            % Take the dot product of the connection vector fields and the
+            % normal vector fields
+            dprods = repmat({zeros(size(V_norm{1}))},size(V,1),size(V_norm,1));
+            for i = 1:size(dprods,1)
 
-        % Take the dot product of the connection vector fields and the
-        % normal vector fields
-        dprods = repmat({zeros(size(V_norm{1}))},size(V,1),size(V_norm,1));
-        for i = 1:size(dprods,1)
+                for j = 1:size(dprods,2)
 
-            for j = 1:size(dprods,2)
+                    elementprods = cellfun(@(x,y) x.*y,V(i,:),V_norm(j,:),'UniformOutput',false);
 
-                elementprods = cellfun(@(x,y) x.*y,V(i,:),V_norm(j,:),'UniformOutput',false);
+                    for k = 1:numel(elementprods)
 
-                for k = 1:numel(elementprods)
+                        dprods{i,j} = dprods{i,j}+elementprods{k};
 
-                    dprods{i,j} = dprods{i,j}+elementprods{k};
+                    end
 
                 end
 
             end
 
-        end
+            % Create a cell array to hold the masking term
+            edgemask = repmat({zeros(size(V{1}))},size(V));
 
-        % Create a cell array to hold the masking term
-        edgemask = repmat({zeros(size(V{1}))},size(V));
+            % Iterate along the rows of V (each row is one field)
+            for idxA = 1:size(V,1)
 
-        % Iterate along the rows of V (each row is one field)
-        for idxA = 1:size(V,1)
+                % Iterate along the elements of dotprods in the corresponding row
+                % (each colum corresponds to the dot product of the current row of
+                % V with the then nth coordinate field
+                for idxB = 1:size(dprods,2)
 
-            % Iterate along the elements of dotprods in the corresponding row
-            % (each colum corresponds to the dot product of the current row of
-            % V with the then nth coordinate field
-            for idxB = 1:size(dprods,2)
+                    % Identify the index sets that correspond to the first and last
+                    % elements along this direction of the grid
+                    indices_start = [repmat({':'},1,idxB-1), {1}, repmat({':'},1,size(V,2)-idxB)];
+                    indices_end = [repmat({':'},1,idxB-1), {size(V{1},idxB)}, repmat({':'},1,size(V,2)-idxB)];
 
-                % Identify the index sets that correspond to the first and last
-                % elements along this direction of the grid
-                indices_start = [repmat({':'},1,idxB-1), {1}, repmat({':'},1,size(V,2)-idxB)];
-                indices_end = [repmat({':'},1,idxB-1), {size(V{1},idxB)}, repmat({':'},1,size(V,2)-idxB)];
+                    % Find all vectors that point out
+                    V_test_start = dprods{idxA,idxB} < 0;
+                    V_test_end = dprods{idxA,idxB} > 0;
 
-                % Find all vectors that point out
-                V_test_start = dprods{idxA,idxB} < 0;
-                V_test_end = dprods{idxA,idxB} > 0;
+                    % Take the start and end indices values from the test boolean
+                    edgemask{idxA,idxB}(indices_start{:}) = V_test_start(indices_start{:});
+                    edgemask{idxA,idxB}(indices_end{:}) = V_test_end(indices_end{:});
 
-                % Take the start and end indices values from the test boolean
-                edgemask{idxA,idxB}(indices_start{:}) = V_test_start(indices_start{:});
-                edgemask{idxA,idxB}(indices_end{:}) = V_test_end(indices_end{:});
+                end
 
+                % Combine all the edgemasks for a field into a single mask
+
+                edgemask_merged = zeros(size(edgemask{1}));
+                for idxB = 1:size(V,2)
+
+                    edgemask_merged = edgemask_merged | edgemask{idxA,idxB};
+
+                end
+
+                % Apply edgemask_merged to all the fields in this row of V 
+                for idxB = 1:size(V,2)
+
+                    V{idxA,idxB}(edgemask_merged) = 0;
+
+                end       
             end
-
-            % Combine all the edgemasks for a field into a single mask
-
-            edgemask_merged = zeros(size(edgemask{1}));
-            for idxB = 1:size(V,2)
-
-                edgemask_merged = edgemask_merged | edgemask{idxA,idxB};
-
-            end
-
-            % Apply edgemask_merged to all the fields in this row of V 
-            for idxB = 1:size(V,2)
-
-                V{idxA,idxB}(edgemask_merged) = 0;
-
-            end       
-        end
-	end    
+        end    
+    end
     
     %%%
     %If there's a singularity, use arctan scaling on the magnitude of the
@@ -251,51 +255,65 @@ function plot_info = vfield_draw(s,p,plot_info,sys,shch,resolution)
         if n_dim == 2
             
             if numel(grid) == 2
-                quiver(ax,grid{:},V{field_number,1},V{field_number,2},'k','LineWidth',2)
+                q = quiver(ax,grid{:},V{field_number,1},V{field_number,2},'k','LineWidth',2);
             else
-                quiver3(ax,grid{:},V{field_number,1},V{field_number,2},V{field_number,3},'k','LineWidth',2)
+                q = quiver3(ax,grid{:},V{field_number,1},V{field_number,2},V{field_number,3},'k','LineWidth',2);
             end
             
             
         else
             idxt=cell(1,n_dim-3);
             idxt(1,:)={1};
-			quiver3(ax,grid{1}(:,:,:,idxt{:}),grid{2}(:,:,:,idxt{:}),grid{3}(:,:,:,idxt{:}),V{field_number,1}(:,:,:,idxt{:}),V{field_number,2}(:,:,:,idxt{:}),V{field_number,3}(:,:,:,idxt{:}),'k','LineWidth',2)
+			q = quiver3(ax,grid{1}(:,:,:,idxt{:}),grid{2}(:,:,:,idxt{:}),grid{3}(:,:,:,idxt{:}),V{field_number,1}(:,:,:,idxt{:}),V{field_number,2}(:,:,:,idxt{:}),V{field_number,3}(:,:,:,idxt{:}),'k','LineWidth',2);
         end
 			
-		% Make edges if coordinates have changed
-		if plot_info.stretch
+        % Make edges if coordinates have changed
+        if plot_info.stretch && (numel(s.grid.eval) == 2)
 
-			edgeres = 30;
+            edgeres = 30;
 
-			oldx_edge = [s.grid_range(1)*ones(edgeres,1);linspace(s.grid_range(1),s.grid_range(2),edgeres)';...
-				s.grid_range(2)*ones(edgeres,1);linspace(s.grid_range(2),s.grid_range(1),edgeres)'];
-			oldy_edge = [linspace(s.grid_range(3),s.grid_range(4),edgeres)';s.grid_range(4)*ones(edgeres,1);...
-				linspace(s.grid_range(4),s.grid_range(3),edgeres)';s.grid_range(3)*ones(edgeres,1)];
+            oldx_edge = [s.grid_range(1)*ones(edgeres,1);linspace(s.grid_range(1),s.grid_range(2),edgeres)';...
+                s.grid_range(2)*ones(edgeres,1);linspace(s.grid_range(2),s.grid_range(1),edgeres)'];
+            oldy_edge = [linspace(s.grid_range(3),s.grid_range(4),edgeres)';s.grid_range(4)*ones(edgeres,1);...
+                linspace(s.grid_range(4),s.grid_range(3),edgeres)';s.grid_range(3)*ones(edgeres,1)];
+
+            switch plot_info.stretch
+                
+                case 1 % 2-d stretch
             
-            if plot_info.stretch==1
-                [x_edge,y_edge] = s.convert.stretch.old_to_new_points(oldx_edge,oldy_edge);
-            end
-			
-            if plot_info.stretch==2
-                [x_edge,y_edge] = s.convert.surface.old_to_new_points(oldx_edge,oldy_edge);
-            end
-            
-			l_edge = line('Parent',ax,'Xdata',x_edge,'YData',y_edge,'Color','k','LineWidth',1); %#ok<NASGU>
+                    [x_edge,y_edge] = s.convert.stretch.old_to_new_points(oldx_edge,oldy_edge);
 
-		end
-				
+                    l_edge = line('Parent',ax,'Xdata',x_edge,'YData',y_edge,'Color','k','LineWidth',1);
+
+                case 2 % 3-d surface embedding
+            
+                    [x_edge,y_edge,z_edge] = s.convert.surface.old_to_new_points(oldx_edge,oldy_edge);
+
+                    l_edge = line('Parent',ax,'Xdata',x_edge,'YData',y_edge,'Zdata',z_edge,'Color','k','LineWidth',1);
+                    
+                    hold on
+                    [s_x,s_y,s_z] = s.convert.surface.old_to_new_points(s.grid.eval{:});
+                    s_backing = surf('Parent',ax,'XData',s_x,'YData',s_y,'ZData',s_z,'FaceColor','w','EdgeColor','none');
+                    hold off
+            end
+
+       end				
 		
 		if plot_info.stretch
 			axis(ax,'equal');
 			axis(ax,[min(grid{1}(:)) max(grid{1}(:)) min(grid{2}(:)) max(grid{2}(:))]);
+            if plot_info.stretch == 2
+                view(ax,3)
+            end
 		else
 			axis(ax,'equal');
 		end
 		%set the display range
 		if ~plot_info.stretch
 			axis(ax,s.grid_range);
-		end
+        end
+        
+        box(ax,'on')
         
         %Label the axes (two-dimensional)
         label_shapespace_axes(ax,[],plot_info.stretch);
