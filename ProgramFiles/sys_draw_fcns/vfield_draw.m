@@ -77,9 +77,17 @@ function plot_info = vfield_draw(s,p,plot_info,sys,shch,resolution)
 				% Multiply by the inverse transpose Jacobian (because V is a
 				% gradient, not a flow)
                 
-                J_exp = [Jac{j} cross(Jac{j}(:,1),Jac{j}(:,2))];
+                % Expand Jacobian if mapping 2 to 3 dimensions. Expansion
+                % is a vector normal to both columns, length does not
+                % matter
+                if size(Jac{j},1) == 3
+                    J_exp = [Jac{j} cross(Jac{j}(:,1),Jac{j}(:,2))];
+                    tempVin = [tempVin(:);0];
+                else
+                    J_exp = Jac{j};
+                end
                 
-				tempVout = (J_exp')\[tempVin(:);0];
+				tempVout = (J_exp')\tempVin(:);
 				
 				% Replace vector components
                 for k = 1:numel(tempVout)
@@ -166,7 +174,7 @@ function plot_info = vfield_draw(s,p,plot_info,sys,shch,resolution)
     
         %%%%
         % Trim any vectors that go outside the boundary
-        if ~plot_info.stretch
+        if plot_info.stretch < 2
             % Take the dot product of the connection vector fields and the
             % normal vector fields
             dprods = repmat({zeros(size(V_norm{1}))},size(V,1),size(V_norm,1));
@@ -291,10 +299,10 @@ function plot_info = vfield_draw(s,p,plot_info,sys,shch,resolution)
 
                     l_edge = line('Parent',ax,'Xdata',x_edge,'YData',y_edge,'Zdata',z_edge,'Color','k','LineWidth',1);
                     
-                    hold on
+                    hold(ax,'on')
                     [s_x,s_y,s_z] = s.convert.surface.old_to_new_points(s.grid.eval{:});
-                    s_backing = surf('Parent',ax,'XData',s_x,'YData',s_y,'ZData',s_z,'FaceColor','w','EdgeColor','none');
-                    hold off
+                    s_backing = surf('XData',s_x,'YData',s_y,'ZData',s_z,'Parent',ax,'FaceColor','w','EdgeColor','none');
+                    hold(ax,'off')
             end
 
        end				
@@ -323,18 +331,24 @@ function plot_info = vfield_draw(s,p,plot_info,sys,shch,resolution)
         
         %If there's a shape change involved, plot it
         if ~strcmp(shch,'null')
-			n_dim=length(s.grid_range)/2;
             if n_dim==2
-                if plot_info.stretch
-                    overlay_shape_change_2d(ax,p,1,s.convert); %% if stretch is metric surface this plots the wrong gait.
+                switch plot_info.stretch 
+                    case {0,1} % No stretch or 2-d stretch
+                        overlay_shape_change_2d(ax,p,plot_info.stretch,s.convert);
+                        
+                    case 2 % Surface-embedded stretch
+                        
+                        overlay_shape_change_metricsurf(ax,p,s.convert.surface.old_to_new_points,Colorset)
+                        %overlay_shape_change_3d_surf(ax,p,grid_extra,plot_info.stretch,s.convert,false)
+                        %overlay_shape_change_2d(ax,p,plot_info.stretch,s.convert);
                 end
-                
-            end            
+                        
+            end
             if n_dim>2
                 line('Parent',ax,'XData',p.phi_locus_full{i}.shape(:,1),'YData',p.phi_locus_full{i}.shape(:,2),'ZData',p.phi_locus_full{i}.shape(:,3),'Color',Colorset.spot,'LineWidth',6,'parent',ax);
             end
-            
         end
+
         
         
         %%%%
