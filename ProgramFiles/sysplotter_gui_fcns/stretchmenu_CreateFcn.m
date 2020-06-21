@@ -10,7 +10,7 @@ function stretchmenu_CreateFcn(hObject, eventdata, handles)
     
     
     % Set the menu options to be unstretched or metric-stretched
-    set(hObject,'String',{'No stretch';'Metric stretch'});
+    set(hObject,'String',{'No stretch';'Metric stretch';'Metric surface'});
     
 
   

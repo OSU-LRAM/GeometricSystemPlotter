@@ -384,7 +384,10 @@ h.pos = mat_to_vec_SE2(h_m);
 h.lengths = linklengths;
 
 
-
+if nargout > 5
+    % Get the partial derivative of the Jacobian
+    dJdq = mobile_jacobian_derivative(J_full);
+end
 
 
 end

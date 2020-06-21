@@ -87,7 +87,7 @@ for idx_baseframe = 1:numel(baseframe)
                 J_zero = zeros(size(J_temp{1}));
 
             % Places the reference frame at the *end* of the lowest-index link on the chain
-            case 'tail-tip'
+            case {'tail-tip','tail-end'}
 
                 % Identify the end link
                 link_zero = 1;

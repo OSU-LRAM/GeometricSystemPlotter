@@ -44,7 +44,6 @@ function output = sysf_diffdrive(input_mode,pathnames)
 			s.density.eval = [21 21];   %density for function evaluations
             s.density.finite_element=31;
 
-
 			%%%
 			%Display parameters
 
@@ -56,8 +55,12 @@ function output = sysf_diffdrive(input_mode,pathnames)
 			%Don't optimize the reference point (turn this off for
 			%non-carlike systems)
 			s.xy_no_opt = 1;
+            
+            % Set system type variable for gait optimization
+            s.system_type = 'inertia';
 
 			%%%%
+            
 			%Output the system properties
 			output = s;
 		

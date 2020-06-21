@@ -15,6 +15,8 @@ shch_names = get(handles.shapechangemenu,'UserData');
 
 current_shch = shch_names{shch_index};
 
+stretch = get(handles.stretchmenu,'Value')-1;
+
 % insert warning/adjustment if file doesn't exist here.
 % save(fullfile([sysplotter_inputpath '\Shape_Changes'],paramfilename),'alpha1','alpha2','t');
 
@@ -36,15 +38,15 @@ if exist(g2,'file') == 2
         if n_dim>=4
             alpha4 = a12(:,4);
         end       
-elseif exist(g1,'file') == 2
-    load(g1);
-    if exist('alpha4')==1
-        n_dim=4;
-    elseif exist('alpha3')==1
-        n_dim=3;
-    else
-        n_dim=2;
-    end
+    elseif exist(g1,'file') == 2
+        load(g1);
+        if exist('alpha4')==1
+            n_dim=4;
+        elseif exist('alpha3')==1
+            n_dim=3;
+        else
+            n_dim=2;
+        end
     else
         error('Selected gait file has more than one cycle. Optimizer only works on single cycles.')
     end
@@ -99,9 +101,18 @@ if n_dim==2
     % Calling the optimizer
     lb=0.95*[s.grid_range(1)*ones(n_plot+1,1);s.grid_range(3)*ones(n_plot+1,1)];%0.9 was points value
     ub=0.95*[s.grid_range(2)*ones(n_plot+1,1);s.grid_range(4)*ones(n_plot+1,1)];
-    y=optimalgaitgenerator(s,2,n_plot,alpha1_plot,alpha2_plot,lb,ub);
-    alpha1 = [y(1:100)',y(1)]';
-    alpha2 = [y(101:200)',y(101)]';
+%     if strcmpi(s.system_type,'drag')
+    y=optimalgaitgenerator(s,2,n_plot,alpha1_plot,alpha2_plot,lb,ub,stretch);
+%     elseif strcmpi(s.system_type,'inertia')
+%         % Need to take a subset of the space since the optimizer is too
+%         % slow for now; interpolate gait at n_interp points
+%         n_interp = 23;
+%         y = inertial_optimalgaitgenerator(s,2,n_plot,alpha1_plot,alpha2_plot,lb,ub,n_interp);
+%     else
+%         error('Unexpected system_type field in struct s.')
+%     end
+    alpha1 = [y(1:n_plot)',y(1)]';
+    alpha2 = [y(n_plot+1:2*n_plot)',y(n_plot+1)]';
     t=t_plot;
     tnew=t(1):(t(2)-t(1))/4:t(end);
     alpha12=interp1(t,alpha1,tnew,'spline');
@@ -111,9 +122,9 @@ elseif n_dim==3
     lb=0.95*[s.grid_range(1)*ones(n_plot+1,1);s.grid_range(3)*ones(n_plot+1,1);s.grid_range(5)*ones(n_plot+1,1)];%0.9 was points value
     ub=0.95*[s.grid_range(2)*ones(n_plot+1,1);s.grid_range(4)*ones(n_plot+1,1);s.grid_range(6)*ones(n_plot+1,1)];
     y=optimalgaitgenerator3(s,3,n_plot,alpha1_plot,alpha2_plot,alpha3_plot,lb,ub);
-    alpha1 = [y(1:100)',y(1)]';
-    alpha2 = [y(101:200)',y(101)]';
-    alpha3 = [y(201:300)',y(201)]';
+    alpha1 = [y(1:n_plot)',y(1)]';
+    alpha2 = [y(n_plot+1:2*n_plot)',y(n_plot+1)]';
+    alpha3 = [y(2*n_plot+1:3*n_plot)',y(2*n_plot+1)]';
     t=t_plot;
     tnew=t(1):(t(2)-t(1))/4:t(end);
     alpha12=interp1(t,alpha1,tnew,'spline');
@@ -123,10 +134,10 @@ elseif n_dim==4
     lb=0.95*[s.grid_range(1)*ones(n_plot+1,1);s.grid_range(3)*ones(n_plot+1,1);s.grid_range(5)*ones(n_plot+1,1);s.grid_range(7)*ones(n_plot+1,1)];%0.9 was points value
     ub=0.95*[s.grid_range(2)*ones(n_plot+1,1);s.grid_range(4)*ones(n_plot+1,1);s.grid_range(6)*ones(n_plot+1,1);s.grid_range(8)*ones(n_plot+1,1)];
     y=optimalgaitgenerator4(s,4,n_plot,alpha1_plot,alpha2_plot,alpha3_plot,alpha4_plot,lb,ub);
-    alpha1 = [y(1:100)',y(1)]';
-    alpha2 = [y(101:200)',y(101)]';
-    alpha3 = [y(201:300)',y(201)]';
-    alpha4 = [y(301:400)',y(301)]';
+    alpha1 = [y(1:n_plot)',y(1)]';
+    alpha2 = [y(n_plot+1:2*n_plot)',y(n_plot+1)]';
+    alpha3 = [y(2*n_plot+1:3*n_plot)',y(2*n_plot+1)]';
+    alpha4 = [y(3*n_plot+1:4*n_plot)',y(3*n_plot+1)]';
     t=t_plot;
     tnew=t(1):(t(2)-t(1))/4:t(end);
     alpha12=interp1(t,alpha1,tnew,'spline');
@@ -134,18 +145,28 @@ elseif n_dim==4
 end
 
 
-% Provide zdata to line if necessary
-maxZ = 0;
-hAxChildren = get(hAx,'Children');
-if ~isempty(hAxChildren)
-   for idx = 1:numel(hAxChildren)
-       if ~isempty(hAxChildren(idx).ZData)
-           maxZ = max(maxZ,max(hAxChildren(idx).ZData(:)));
+if stretch && isfield(s,'convert')
+    stretchnames = {'stretch','surface'};
+    stretchname = stretchnames{stretch};
+    
+    [x_temp,y_temp,z_temp] = s.convert.(stretchname).old_to_new_points(alpha12,alpha22);
+else
+    % Provide zdata to line if necessary
+    maxZ = 0;
+    hAxChildren = get(hAx,'Children');
+    if ~isempty(hAxChildren)
+       for idx = 1:numel(hAxChildren)
+           if ~isempty(hAxChildren(idx).ZData)
+               maxZ = max(maxZ,max(hAxChildren(idx).ZData(:)));
+           end
        end
-   end
+    end
+    x_temp = alpha12;
+    y_temp = alpha22;
+    z_temp = maxZ*ones(size(alpha12));
 end
 
-gaitline = line('Parent',hAx,'XData',alpha12,'YData',alpha22,'ZData',maxZ*ones(size(alpha12)),'Color',Colorset.spot,'LineWidth',5);
+gaitline = line('Parent',hAx,'XData',x_temp,'YData',y_temp,'ZData',z_temp,'Color',Colorset.spot,'LineWidth',5);
 
 %%%% Ask the user for a filename
 current_dir = pwd; % Remember where we started

@@ -130,7 +130,7 @@ function plot_info = disp_draw(s,p,plot_info,sys,shch,convert,resolution) %#ok<I
 			%set the button down callback on the plot to be sys_draw with
 			%the argument list for the current plot, and set the button
 			%down callback for the mesh to the same
-			set(ax,'ButtonDownFcn',{@sys_draw_dummy_callback,plot_info_specific,sys,shch});
+			set(ax,'ButtonDownFcn',{@sys_draw_dummy_callback,plot_info_specific,sys,shch,plot_info.stretch_name});
 
 		else
 

@@ -55,16 +55,16 @@ function plot_info = beta_draw(s,p,plot_info,sys,shch,resolution)
         % Convert the function to the plotting grid specified in the gui
         [B,grid] = plotting_interp(B,grid,resolution,'scalar');
 
-        %%%%%
-        % No need to change the value of the beta function for stretching,
-        % because it is a zero-form, not a 2-form
-
-        if plot_info.stretch && (numel(s.grid.eval) == 2)
-
-            % Convert the grid points to their new locations
-            [grid{:}] = s.convert.old_to_new_points(grid{:});
-
-        end
+%         %%%%%
+%         % No need to change the value of the beta function for stretching,
+%         % because it is a zero-form, not a 2-form
+% 
+%         if plot_info.stretch && (numel(s.grid.eval) == 2)
+% 
+%             % Convert the grid points to their new locations
+%             [grid{:}] = s.convert.old_to_new_points(grid{:});
+% 
+%         end
 
 
 
@@ -119,21 +119,21 @@ function plot_info = beta_draw(s,p,plot_info,sys,shch,resolution)
                     end
 
 
-                    % Make edges if coordinates have changed
-                    if plot_info.stretch && (numel(s.grid.eval) == 2)
-
-                        edgeres = 30;
-
-                        oldx_edge = [s.grid_range(1)*ones(edgeres,1);linspace(s.grid_range(1),s.grid_range(2),edgeres)';...
-                            s.grid_range(2)*ones(edgeres,1);linspace(s.grid_range(2),s.grid_range(1),edgeres)'];
-                        oldy_edge = [linspace(s.grid_range(3),s.grid_range(4),edgeres)';s.grid_range(4)*ones(edgeres,1);...
-                            linspace(s.grid_range(4),s.grid_range(3),edgeres)';s.grid_range(3)*ones(edgeres,1)];
-
-                        [x_edge,y_edge] = s.convert.old_to_new_points(oldx_edge,oldy_edge);
-
-                        l_edge = line('Parent',ax,'Xdata',x_edge,'YData',y_edge,'Color','k','LineWidth',1);
-
-                    end
+%                     % Make edges if coordinates have changed
+%                     if plot_info.stretch && (numel(s.grid.eval) == 2)
+% 
+%                         edgeres = 30;
+% 
+%                         oldx_edge = [s.grid_range(1)*ones(edgeres,1);linspace(s.grid_range(1),s.grid_range(2),edgeres)';...
+%                             s.grid_range(2)*ones(edgeres,1);linspace(s.grid_range(2),s.grid_range(1),edgeres)'];
+%                         oldy_edge = [linspace(s.grid_range(3),s.grid_range(4),edgeres)';s.grid_range(4)*ones(edgeres,1);...
+%                             linspace(s.grid_range(4),s.grid_range(3),edgeres)';s.grid_range(3)*ones(edgeres,1)];
+% 
+%                         [x_edge,y_edge] = s.convert.old_to_new_points(oldx_edge,oldy_edge);
+% 
+%                         l_edge = line('Parent',ax,'Xdata',x_edge,'YData',y_edge,'Color','k','LineWidth',1);
+% 
+%                     end
 
                     %Put an outline box around the plot
                     box(ax,'on')
@@ -206,8 +206,8 @@ function plot_info = beta_draw(s,p,plot_info,sys,shch,resolution)
                 %set the button down callback on the plot to be sys_draw with
                 %the argument list for the current plot, and set the button
                 %down callback for the mesh to the same
-                set(plot_info.axes(i),'ButtonDownFcn',{@sys_draw_dummy_callback,plot_info_specific,sys,shch});
-                set(meshhandle,'ButtonDownFcn',{@sys_draw_dummy_callback,plot_info_specific,sys,shch});
+                set(plot_info.axes(i),'ButtonDownFcn',{@sys_draw_dummy_callback,plot_info_specific,sys,shch,plot_info.stretch_name});
+                set(meshhandle,'ButtonDownFcn',{@sys_draw_dummy_callback,plot_info_specific,sys,shch,plot_info.stretch_name});
 
             else
 
