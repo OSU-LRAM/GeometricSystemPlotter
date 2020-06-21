@@ -23,7 +23,6 @@ function [update, dep_update] = refresh_runinfo_Callback(hObject, eventdata, han
 
 	shch = shchlist{shchval};
 	
-	
 	placeholders = {'default','start_recent','end_recent'};
 	
 	if any(strcmp(sys,placeholders))
@@ -39,7 +38,7 @@ function [update, dep_update] = refresh_runinfo_Callback(hObject, eventdata, han
 	
 	% Set the dependency and update markers
 	components = fieldnames(dep_update);
-	for i = 1:length(components),
+	for i = 1:length(components)
 		
 		if dep_update.(components{i})
 			set(handles.([components{i} '_dep_indicator']),'BackgroundColor',Colorset.spot)
@@ -53,6 +52,6 @@ function [update, dep_update] = refresh_runinfo_Callback(hObject, eventdata, han
 			set(handles.([components{i} '_run_indicator']),'BackgroundColor','w')
 		end
 		
-	end
-
+    end
+  
 end

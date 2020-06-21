@@ -1,4 +1,4 @@
-function [A, h, J, J_full, omega] = Inertial_connection_discrete(geometry,physics,jointangles)
+function [A, h, J, J_full, omega, M_full, local_inertias] = Inertial_connection_discrete(geometry,physics,jointangles)
 % Calculate the local connection for for an inertial system (floating in space or
 % ideal high-Re fluid)
 %
@@ -57,6 +57,10 @@ function [A, h, J, J_full, omega] = Inertial_connection_discrete(geometry,physic
 %       A is calculated. This matrix is a linear map from system body and
 %       shape velocities to net external forces acting on the base frame,
 %       which must be zero for all achievable motions of the system
+%
+%   local_inertias: The inertia tensor of the link as measured in its fixed
+%       coordinate frame, which includes the added mass from the surrounding
+%       fluid.
 
 
     %%%%
@@ -92,13 +96,13 @@ function [A, h, J, J_full, omega] = Inertial_connection_discrete(geometry,physic
     % x,y,theta motion, and one column per joint), and there is one
     % contribution per link. This structure is of the same dimensions as
     % J_full, so we use it as a template.
-    link_inertias = J_full;
+    link_force_maps = J_full;
     
     % Now iterate over each link, calculating the map from system body and
     % shape velocities to forces acting on the body
-    for idx = 1:numel(link_inertias)
+    for idx = 1:numel(link_force_maps)
         
-        link_inertias{idx} = Inertia_link(h.pos(idx,:),...            % Position of this link relative to the base frame
+        [link_inertias{idx},local_inertias{idx}] = Inertia_link(h.pos(idx,:),...            % Position of this link relative to the base frame
                                                     J_full{idx},...             % Jacobian from body velocity of base link and shape velocity to body velocity of this link
                                                     h.lengths(idx),...          % Length of this link
                                                     geometry.link_shape{idx},...         % Shape type of this link
@@ -107,9 +111,20 @@ function [A, h, J, J_full, omega] = Inertial_connection_discrete(geometry,physic
   
     end
 
-    % Sum the force-maps for each link to find the total map from system
-    % body and shape velocities to force actign on the body
-    M_full = sum(cat(3,link_inertias{:}),3);
+    if isa(link_inertias{1},'sym')
+        M_full = sym(zeros(size(link_inertias{1})));
+        inertia_stack = cat(3,link_inertias{:});
+        for i = 1:size(inertia_stack,1)
+            for j = 1:size(inertia_stack,2)
+                temp = inertia_stack(i,j,:);
+                M_full(i,j) = sum(temp(:));
+            end
+        end
+    else
+        % Sum the force-maps for each link to find the total map from system
+        % body and shape velocities to force actign on the body
+        M_full = sum(cat(3,link_inertias{:}),3);
+    end
 
     
     % Pfaffian is first three rows of M_full
@@ -117,35 +132,4 @@ function [A, h, J, J_full, omega] = Inertial_connection_discrete(geometry,physic
     
     % Build the local connection
     A = omega(:,1:3)\omega(:,4:end);
-
-
-end
-
-
-function Inertia_link_system = Inertia_link(h,J_full,L,link_shape,link_shape_parameters,fluid_density)
-% Calculate the matrix that maps from system body and shape velocities to
-% forces acting on the base frame of the system
-
-    % These are for an elliptical link. Can be generalized to other shapes
-
-    % length and width of an elliptical link
-    a = L/2;
-    b = link_shape_parameters.aspect_ratio * a;
-    
-	mass_link = pi*a*b;
-    
-    rotational_inertia_link = mass_link*(a^2+b^2)/4;
-    
-    added_mass = fluid_density * diag([pi*b^2, pi*a^2, (a^2-b^2)^2]);
-    
-    Inertia_link_local = diag([mass_link,mass_link,rotational_inertia_link]) + added_mass;
-    
-    
-    % Pullback of local inertia to body velocity/shape velocity coordinates
-    
-    Inertia_link_system = J_full' * Inertia_link_local * J_full;
-
-
-
-
 end

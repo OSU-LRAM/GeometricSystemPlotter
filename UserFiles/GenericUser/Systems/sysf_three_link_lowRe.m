@@ -30,7 +30,6 @@ function output = sysf_three_link_lowRe(input_mode,pathnames)
             s.geometry.baseframe = 'center';
             s.geometry.length = 1;
             
-            
             %%%
             % Define properties for visualizing the system
             
@@ -38,14 +37,13 @@ function output = sysf_three_link_lowRe(input_mode,pathnames)
             % illustrate_shapespace. (Use a cell of gridpoints along each
             % axis to use different spacings for different axes)
             s.visual.grid_spacing = [-1  0  1];
-            
+
             %%%
             %%%%%%
             % Define system physics
             s.physics.drag_ratio = 2;
             s.physics.drag_coefficient = 1;
            
- 
             %Functional Local connection and dissipation metric
 
             s.A = @(alpha1,alpha2) LowRE_local_connection( ...
@@ -57,9 +55,9 @@ function output = sysf_three_link_lowRe(input_mode,pathnames)
                         s.geometry,...                           % Geometry of body
                         s.physics,...                            % Physics properties
                         [alpha1,alpha2]);                        % Joint angles
-
-                    
+     
 			%%%
+            
 			%Processing details
 
 			%Range over which to evaluate connection
@@ -72,12 +70,13 @@ function output = sysf_three_link_lowRe(input_mode,pathnames)
             s.density.metric_eval = [11 11]; %density for metric evaluation
             s.density.finite_element=31;
 
-
 			%shape space tic locations
 			s.tic_locs.x = [-1 0 1]*1;
 			s.tic_locs.y = [-1 0 1]*1;
 
-
+            % Set system type variable for gait optimization
+            s.system_type = 'drag';
+            
 			%%%%
 			%Save the system properties
 			output = s;

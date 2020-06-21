@@ -1,8 +1,8 @@
-function plot_info = sys_draw(plot_structure,sys,shch,progress,update,resolution,handles)
+function plot_info = sys_draw(plot_structure,sys,shch,stretch2,progress,update,resolution,handles)
 
 	%make sure plot data file is up to date
 	if update
-		sys_update(sys,shch,progress,handles)
+		sys_update(sys,shch,stretch2,progress,handles)
         set_plot_resolution_from_file(handles)
         
         %%%%%%%%%%%%%%

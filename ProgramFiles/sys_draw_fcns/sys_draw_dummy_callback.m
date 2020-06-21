@@ -1,4 +1,4 @@
-function sys_draw_dummy_callback(hObject, eventdata, plot_structure,sys,shch)
+function sys_draw_dummy_callback(hObject, eventdata, plot_structure,sys,shch,stretch)
 %strip out extra callback info
 
 	handles = guidata(hObject);
@@ -10,6 +10,6 @@ function sys_draw_dummy_callback(hObject, eventdata, plot_structure,sys,shch)
 	resolution.vector_range = get(handles.vectorresolution,'UserData');
 	resolution.scalar_range = get(handles.scalarresolution,'UserData');
 
-    sys_draw(plot_structure,sys,shch,handles.progresspanel,0,resolution,handles);
+    sys_draw(plot_structure,sys,shch,stretch,handles.progresspanel,0,resolution,handles);
 
 end

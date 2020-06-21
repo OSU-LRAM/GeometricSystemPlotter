@@ -1,4 +1,4 @@
-function output = sys_calcsystem(input_mode,systemfilename)
+function output = sys_calcsystem(input_mode,systemfilename,stretch)
 %Numerically evaluate the local connection and height function from the
 %symbolic defination, including special accounting for singularities.
 
@@ -37,7 +37,9 @@ function output = sys_calcsystem(input_mode,systemfilename)
 			%grid for vector display
 			s = evaluate_connection(s);
             s = evaluate_metric(s);
-			
+            if isfield(s,'system_type') && strcmpi(s.system_type,'inertia')
+                s = evaluate_inertial_properties(s);
+            end
 			
 			%Merge components of evaluated connection and metric
 			s = merge_connection(s);
@@ -53,6 +55,18 @@ function output = sys_calcsystem(input_mode,systemfilename)
             %the system is 2 dimensional
             if length(s.grid_range)/2<3
                 s = calc_stretch_functions(s);
+            end
+            
+            % Check for whether system type variable exists in structure; default to
+            % 'drag' type if non-existent and throw an error if an unsuitable value is
+            % present
+            if isfield(s,'system_type')
+                if ~( strcmpi(s.system_type,'drag') || strcmpi(s.system_type,'inertia') )
+                    error('Invalid system_type flag in system struct; must be ''drag'' or ''inertia''')
+                end
+            else
+                disp('No system_type flag set in system struct, defaulting to ''drag''')
+                s.system_type = 'drag';
             end
 						
 			%Save out the updated system properties
