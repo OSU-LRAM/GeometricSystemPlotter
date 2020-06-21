@@ -19,7 +19,7 @@ function contours_on_surface(convert,h,grid)
 
     end
 
-    if isfield(h,'EdgeLoopPrims')
+    try
         for idx = 1:numel(h.EdgeLoopPrims)
 
             v = h.EdgeLoopPrims(idx).VertexData;
@@ -29,6 +29,7 @@ function contours_on_surface(convert,h,grid)
             h.EdgeLoopPrims(idx).VertexData = single(c);
 
         end
+    catch
     end
     
     for idx = 1:numel(h.FacePrims)

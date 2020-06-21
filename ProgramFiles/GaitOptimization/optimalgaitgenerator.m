@@ -21,7 +21,7 @@ function y=optimalgaitgenerator(s,dimension,npoints,a1,a2,lb,ub,stretch)
 % y: Matrix whose values indicate coordinates of points which form the optimal gait
 %%%%%%%%%%%%
 
-n=npoints;
+% n=npoints;
 % for i=1:1:npoints
 %     a1(1,i)=1*cos(2*pi*(i-1)/n);
 %     a2(1,i)=1*cos(2*pi*(i-1)/n+pi/2);
@@ -68,6 +68,7 @@ nu={'a0';'a1';'b1';'a2';'b2';'a3';'b3';'a4';'b4';'w'};%
  lb1=[];
  ub1=[];
 
+ y0 = zeros(length(nu),dimension);
 for i=1:dimension
     for j=1:length(nu)
         y0(j,i)=fa{i}.(nu{j});
@@ -88,8 +89,12 @@ writerObj = [];
 % axis square
 % hold on
 
+try
  options = optimoptions('fmincon','SpecifyObjectiveGradient',true,'Display','iter','Algorithm','sqp','CheckGradients',false,'FiniteDifferenceType','central','MaxIter',4000,'MaxFunEvals',20000,'TolCon',10^-2,'OutputFcn', @(y,optimValues,state) outfun(y,optimValues,state,stretch,s));
- [yf fval exitflag output]=fmincon(@(y) solvedifffmincon(y,s,n,dimension,lb,ub,writerObj),y0,A,b,Aeq,beq,lb1,ub1,@(y) nonlcon(y,s,n,dimension,lb,ub),options);
+catch
+   error('This code requires the global optimization toolbox to run') 
+end
+ [yf, ~,~,~]=fmincon(@(y) solvedifffmincon(y,s,n,dimension,lb,ub,writerObj),y0,A,b,Aeq,beq,lb1,ub1,@(y) nonlcon(y,s,n,dimension,lb,ub),options);
 
 % % Uncomment this if you uncommented the section above so that the video
 % % writer object is closed appropriately.
@@ -123,7 +128,7 @@ y=y1(:);
 
 end
 
-function [f,g]=solvedifffmincon(y,s,n,dimension,lb,ub,writerObj)
+function [f,g]=solvedifffmincon(y,s,n,dimension,~,~,~)%,lb,ub,writerObj)
 %%%%%%%%%%%%%
 % This function calculates efficiency (or displacement, if
 % that is the objective function) and its gradient with respect to the coefficients obtained
@@ -207,7 +212,7 @@ clear y1;
 % Note that, for inertial cost, cost is returned as the integral of torque
 % squared, while for drag-based systems, cost is the path length of the
 % gait
-[net_disp_orig, net_disp_opt, cost] = evaluate_displacement_and_cost1(s,p,[0, T],'interpolated','ODE');
+[~, net_disp_opt, cost] = evaluate_displacement_and_cost1(s,p,[0, T],'interpolated','ODE');
 lineint=net_disp_opt(1); % displacement produced in the x-direction produced on executing the gait measured in the optimal coordinates 
 
 % Assign value for totalstroke, i.e. the cost metric used for efficiency
@@ -277,6 +282,7 @@ for i=1:n
     end
 end
 
+y2 = zeros(size(y));
 for l=1:1:dimension
     for m=1:1:dimension
         if m==l
@@ -599,15 +605,17 @@ function jacobianstroke = jacobianstrokecalculator(y,n,dimension,metric,metricgr
     
     %l is the vector containing metric weighted distances between neighbouring
     %points
-    for i=1:1:n-1
+    l = zeros(1,n);
+    for i=1:(numel(l)-1)
         l(i)=sqrt((y(i+1,:)-y(i,:))*((metric{i}+metric{i+1})/2)*(y(i+1,:)-y(i,:))');
     end
-    l(n)=sqrt((y(1,:)-y(n,:))*((metric{n}+metric{1})/2)*(y(1,:)-y(n,:))');
+    l(end)=sqrt((y(1,:)-y(n,:))*((metric{n}+metric{1})/2)*(y(1,:)-y(n,:))');
     
-    for i=1:n-1
+    delp = cell(1,n);
+    for i=1:(numel(delp)-1)
         delp{i}=y(i+1,:)-y(i,:); % delp{i} is the vector joining the (i+1)th point to the ith point 
     end
-    delp{n}=y(1,:)-y(n,:);
+    delp{end}=y(1,:)-y(n,:);
 
     jacobianstroke = zeros(n,dimension);
     contrigrad=zeros(n,dimension);
@@ -650,10 +658,11 @@ function jacobianeqi = jacobianeqicalculator(y,n,dimension,metric)
     
     %l is the vector containing metric weighted distances between neighbouring
     %points
-    for i=1:1:n-1
+    l = zeros(1,n);
+    for i=1:(numel(l)-1)
         l(i)=sqrt((y(i+1,:)-y(i,:))*((metric{i}+metric{i+1})/2)*(y(i+1,:)-y(i,:))');
     end
-    l(n)=sqrt((y(1,:)-y(n,:))*((metric{n}+metric{1})/2)*(y(1,:)-y(n,:))');
+    l(end)=sqrt((y(1,:)-y(n,:))*((metric{n}+metric{1})/2)*(y(1,:)-y(n,:))');
     
     for i=2:n-1
         len=sqrt((y(i+1,:)-y(i-1,:))*((metric{i-1}+metric{i+1})/2)*(y(i+1,:)-y(i-1,:))'); % metric weighted length between point (i-1) and (i+1)
@@ -681,20 +690,22 @@ function a=jacobiandispcalculator3(p1,p2,p3,ccf,dimension)
 %
 % jacobiandispcalculator3 is the function that calculates the gradient of 
 % displacement for the ith point. 
-% It's input arguments are the coordinates of the (i-1)th, ith and (i+1)th point,     
+% Its input arguments are the coordinates of the (i-1)th, ith and (i+1)th point,     
 % CCF value at point i(ccf) and the dimension of the shape space (dimension)
 %
 %%%%%%%%%
 
 l1=0; % variable for calculating length of the line segment joining the (i-1)th point with the (i+1)th point
-for i=1:1:dimension
+base = zeros(1,dimension);
+for i=1:numel(base)
     l1=l1+(p1(i)-p3(i))^2;
     base(1,i)=p3(i)-p1(i); % vector connecting the (i-1)th point and (i+1)th point  
 end
-l=sqrt(l1); % length of the line segment joining the (i-1)th point with the (i+1)th point
+%l=sqrt(l1); % length of the line segment joining the (i-1)th point with the (i+1)th point
 
-for i=1:1:dimension
-    jacobian(1,i)=0;
+jacobian = zeros(1,dimension);
+for i=1:dimension
+%    jacobian(1,i)=0;
     perp1=zeros(1,dimension);
     perp1(i)=1;
     %parcomp=base*perp1'/norm(base);
@@ -741,7 +752,7 @@ function [A,Aeq]=nonlcon(y,s,n,dimension,lb,ub)
 y1 = path_from_fourier(y,n,dimension);
 y2=y1(:);
 
-b=length(y2);
+%b=length(y2);
 
 % A1 and A2 together impose the constraint that all the points forming the gait stay in bounds
 A1=y2+lb;
@@ -849,7 +860,7 @@ if optimValues.iteration>0
         y_temp = y1(:,2);
         z_temp = zeros(size(y1(:,1)));
     end
-    handle1=line('XData',x_temp,'YData',y_temp,'ZData',z_temp,'color','k','linewidth',3,'UserData',{'OptimizeTracer',2});
+    handle1=line('XData',x_temp,'YData',y_temp,'ZData',z_temp,'color','k','linewidth',3,'UserData',{'OptimizeTracer',2}); %#ok<NASGU>
     %plot_dir_arrows(y1(:,1),y1(:,2),2,'Color',[0 0 0],'LineWidth',3);
 else
 end
@@ -1032,7 +1043,7 @@ function [xi, dcost] = get_velocities(t,s,gait,ConnectionEval)
 	end
 	
 	% Get the body velocity at the current time
-	t;
+	%t;
     xi = - A * dshape(:);
 
 	% get the cost velocity
@@ -1076,7 +1087,7 @@ function [net_disp_orig, cost] = fixed_step_integrator(s,gait,tspan,ConnectionEv
 	default_res = 100;
 	if isnumeric(resolution)
 		res = resolution;
-	elseif isstr(resolution) && strcmp(resolution,'autoconverge')
+	elseif ischar(resolution) && strcmp(resolution,'autoconverge')
 		res = default_res;
 	else
 		error('Unexpected value for resolution');
@@ -1166,29 +1177,29 @@ function expXi = se2exp(xi)
 
 end
 
-function [g_end_orig,g_end_opt, cost_end] = extract_displacement_and_cost(datafile)
-% Extract the displacement and cost data from a sysf_...shchf_....mat file
-
-% Load the target file
-load(datafile,'p')
-
-% Prime arrays to hold the net displacement (in original and optimal
-% coordinates) and cost from each shape change in the file. p.G_locus_full is
-% single-level cell array of structures, each of which holds the
-% information for one gait (with all segments concatenated)
-g_end_orig = zeros(numel(p.G_locus_full),3);
-g_end_opt = g_end_orig;
-cost_end = zeros(numel(p.G_locus_full,1)); % If distance metric was not specified, euclidean metric in the parameters was assumed
-
-% Loop over each shape change
-for i = 1:numel(p.G_locus_full)
-	
-	% Extract the final values for the relevant parameters
-	g_end_orig(i,:) = p.G_locus_full{i}.G(end,:); 
-	g_end_opt(i,:) = p.G_locus_full{i}.G_opt(end,:); 
-	cost_end(i) = p.G_locus_full{i}.S(end);
-end
-end
+% function [g_end_orig,g_end_opt, cost_end] = extract_displacement_and_cost(datafile)
+% % Extract the displacement and cost data from a sysf_...shchf_....mat file
+% 
+% % Load the target file
+% load(datafile,'p')
+% 
+% % Prime arrays to hold the net displacement (in original and optimal
+% % coordinates) and cost from each shape change in the file. p.G_locus_full is
+% % single-level cell array of structures, each of which holds the
+% % information for one gait (with all segments concatenated)
+% g_end_orig = zeros(numel(p.G_locus_full),3);
+% g_end_opt = g_end_orig;
+% cost_end = zeros(numel(p.G_locus_full,1)); % If distance metric was not specified, euclidean metric in the parameters was assumed
+% 
+% % Loop over each shape change
+% for i = 1:numel(p.G_locus_full)
+% 	
+% 	% Extract the final values for the relevant parameters
+% 	g_end_orig(i,:) = p.G_locus_full{i}.G(end,:); 
+% 	g_end_opt(i,:) = p.G_locus_full{i}.G_opt(end,:); 
+% 	cost_end(i) = p.G_locus_full{i}.S(end);
+% end
+% end
 
 function [grad_alphaddot,grad_alphadot,grad_alpha] = shape_grad(n,y,g)
 % Calculates the gradient of the shape position, velocity, and acceleration
@@ -1323,7 +1334,7 @@ function cost_grad = inertia_cost_gradient(s,n,y,g,p,EvaluationMethod)
     end
 end
 
-function validate_shape_gradient(n,y,g,grad_alphaddot,grad_alphadot,grad_alpha)
+function validate_shape_gradient(n,y,g,grad_alphaddot,grad_alphadot,grad_alpha) %#ok<DEFNU>
 % Function that helps validate that the gradient of shape position,
 % velocity, and acceleration are correctly calculated. Difference between
 % the input gradients and calculation-verified gradients are printed to the

@@ -55,21 +55,16 @@ function output = sysf_three_link_floating_ellipse(input_mode,pathnames)
                         s.physics,...                            % Physics properties
                         [alpha1,alpha2]);                        % Joint angles
             
-% TODO: Something isn't right when the CCF is plotted; is it a problem with
-% the metric somehow?
-            s.metric = @(alpha1,alpha2) mass_matrix(s.geometry,s.physics,[alpha1,alpha2]);
-
-            
-% TODO: These functions should be used to create the mass and partial mass
-% matrix for the system because it is inertial, but something doesn't seem
-% to be right when the CCF is plotted.
-%             s.M_alpha = @(alpha1,alpha2) mass_matrix(s.geometry,s.physics,[alpha1,alpha2]);
-%             s.dM_alphadalpha = @(alpha1,alpha2,A_eval,A_grid) shape_partial_mass(s.geometry,s.physics,[alpha1,alpha2],A_eval,A_grid);
-
-%              s.metric = @(alpha1,alpha2)eye(2);%@(alpha1,alpha2) LowRE_dissipation_metric(...
-%                         s.geometry,...                           % Geometry of body
-%                         s.physics,...                            % Physics properties
-%                         [alpha1,alpha2]);                        % Joint angles
+             s.metric = @(alpha1,alpha2) mass_matrix(s.geometry,s.physics,[alpha1,alpha2]);
+             
+            % TODO: These should probably be calculated as part of a larger
+            % wrapping function that's meant to return M and C matrices for
+            % a set of points
+%             s.dJdq = @(alpha1,alpha2) mobile_jacobian_derivative(s.J_full);
+%             s.dMdq = @(alpha1,alpha2) partial_mass_matrix(s.J,s.dJdq,local_inertias,'mobile');
+            s.M_alpha = @(alpha1,alpha2) mass_matrix(s.geometry,s.physics,[alpha1,alpha2]);
+            s.dM_alphadalpha = @(alpha1,alpha2,A_eval,A_grid) shape_partial_mass(s.geometry,s.physics,[alpha1,alpha2],A_eval,A_grid);
+ 
 
 			%%%
 			%Processing details
