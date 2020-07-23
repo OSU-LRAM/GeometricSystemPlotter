@@ -71,6 +71,24 @@ function [A, h, J, J_full, omega, M_full, local_inertias] = Inertial_connection_
     else
         [h, J, J_full] = N_link_chain(geometry,jointangles);
     end
+    
+    %If examining inter-panel interaction
+    if isfield(physics,'interaction')
+        s.geometry = geometry;
+        s.physics = physics;
+
+        %Then, get added mass metric using flat-plate panel method
+        [M_full,J,J_full,h,local_inertias] = getAddedMass_NLinkChain(jointangles',s);
+
+        % Pfaffian is first three rows of M_full
+        omega = M_full(1:3,:);
+
+        % Build the local connection
+        A = omega(:,1:3)\omega(:,4:end);
+        
+        return
+    end
+    
 
     %%%%%%%%
     % We are modeling low Reynolds number physics as being resistive
