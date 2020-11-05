@@ -50,5 +50,29 @@ function s = create_grids(s)
         [s.grid.(grid_list{i}){:}] = ndgrid(gridprim{:});
         
     end
+    
+    %%%%%%%
+    % Create visualization grid if not specified elsewhere
+    
+    if ~isfield(s.visual,'grid')
+    
+        % Get the number of shape variables
+        n_shape = nargin(s.A_num);
+
+        % Create a cell to hold the grid elements
+        s.visual.grid = cell(n_shape,1);
+
+        % Fill in the grid points using ndgrid. If only one set of grid points
+        % is supplied, use them for all dimensions. Otherwise, use the ith set
+        % of grid values for the ith shape dimension
+
+        if isa(s.visual.grid_spacing,'numeric')
+            s.visual.grid_spacing = {s.visual.grid_spacing};
+        end
+
+        [s.visual.grid{:}] = ndgrid(s.visual.grid_spacing{:});
+    
+    end
+
 
 end

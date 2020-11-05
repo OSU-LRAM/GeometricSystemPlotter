@@ -188,10 +188,16 @@ function omega = LowRE_body_drag_link(h,J_full,L,drag_ratio,c)
     % Drag matrix with terms as describe above.
     % gcirc_local is the body velocity of the link
     % F_local is the body force acting on the link
+    if ~isstruct(drag_ratio)
+        drag_ratio.longitudinal = drag_ratio;
+        drag_ratio.lateral = drag_ratio;
+        drag_ratio.rotational = drag_ratio;
+    end
+    
     gcirc_local_to_F_local = ...
-        [-L      0               0;
-        0    -drag_ratio*L       0;
-        0        0           -drag_ratio/12*L^3]*c;
+        [-drag_ratio.longitudinal      0               0;
+        0    -drag_ratio.lateral*L       0;
+        0        0           -drag_ratio.rotational/12*L^3]*c;
 	
     
     

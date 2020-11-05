@@ -1,4 +1,4 @@
-function output = shchf_purcell_family_loose(input_mode,pathnames)
+function output = shchf_halfcircle_family(input_mode,pathnames)
  %[r1,r2] = convert.old_to_new_points(alpha1,alpha2);
 	% Default argument
 	if ~exist('input_mode','var')
@@ -11,7 +11,7 @@ function output = shchf_purcell_family_loose(input_mode,pathnames)
 		
 		case 'name'
 			
-			output = 'Family of square ''Purcell strokes''';
+			output = 'Family of half-circles';
 			
 		case 'dependency'
 			
@@ -24,7 +24,7 @@ function output = shchf_purcell_family_loose(input_mode,pathnames)
 			%Path definitions
 			
 			%path definition
-			A=linspace(0.5, 2, 5); % Amplitdude of circle
+			A=linspace(0.5, 2, 10); % Amplitdude of circle
 			
             
             % Multiple gaits (or piecewise definitions of gaits) can be
@@ -42,9 +42,8 @@ function output = shchf_purcell_family_loose(input_mode,pathnames)
 			for i = 1:numel(A)
 				p.phi_def{i} = {...                 ith gait in family
                     @(t) strokedef1(t,A(i));...     first segment
-                    @(t) strokedef2(t,A(i));...     second segment
-                    @(t) strokedef3(t,A(i));...     third segment
-                    @(t) strokedef4(t,A(i))};%      fourth segment		
+                    @(t) strokedef2(t,A(i))};%       second segment
+                    	
 				
 				% Calculate the cBVI for this gait
 				p.cBVI_method{i}{1} = 'simple';
@@ -79,7 +78,7 @@ function [stroke] = strokedef1(t,A)
 
 	t = t(:);
 	
-	stroke = A*[ones(size(t)), (1-2*t)];
+	stroke = A*[zeros(size(t)), (1-2*t)];
 	
 	
 end
@@ -88,25 +87,7 @@ function [stroke] = strokedef2(t,A)
 
 	t = t(:);
 	
-	stroke = A*[(1-2*t), -ones(size(t))];
-	
-	
-end
-
-function [stroke] = strokedef3(t,A)
-
-	t = t(:);
-	
-	stroke = A*[-ones(size(t)), -(1-2*t)];
-	
-	
-end
-
-function [stroke] = strokedef4(t,A)
-
-	t = t(:);
-	
-	stroke = A*[-(1-2*t), ones(size(t))];
+	stroke = A*[sin(t*pi), -cos(t*pi)];
 	
 	
 end

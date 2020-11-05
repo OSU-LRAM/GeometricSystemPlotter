@@ -35,19 +35,15 @@ function output = sysf_constantcurv3_lowRe(input_mode,pathnames)
             % along the backbone
             s.geometry.type = 'curvature basis';                
 
-            % The specific basis functions are those for a serpenoid curve,
-            % in which the curvature varies sinusoidally along the length
-            % of the body. This function is normalized such that the body length
-            % is taken as one unit long. For this system, we use a
-            % wavelength equal to the body length.
-            n_waves = 1;
+            % The specific basis functions are those for a
+            % piecewise-constant curvature system
             s.geometry.function = {@(s)constant_curvature_3_1(s);@(s)constant_curvature_3_2(s);@(s)constant_curvature_3_3(s)};
 
             % Total length of the swimmer, in real units
             s.geometry.length = 1;
             
             % base the system off of its center frame
-            s.geometry.baseframe = 'center';
+            s.geometry.baseframe = 'tail';
 
             %%%
             
@@ -55,12 +51,9 @@ function output = sysf_constantcurv3_lowRe(input_mode,pathnames)
             % Define properties for visualizing the system
             
             % Make a grid of values at which to visualize the system in
-            % illustrate_shapespace. The code below uses properties of cell
-            % arrays to automatically match the dimensionality of the grid
-            % with the number of shape basis functions in use
-            s.visual.grid = cell(size(s.geometry.function));
-            [s.visual.grid{:}] = ndgrid([-1 -0.5 0 0.5 1]*6);
-
+            % illustrate_shapespace. (Use a cell of gridpoints along each
+            % axis to use different spacings for different axes)
+            s.visual.grid_spacing = [-0.75 0 0.75]*5%[-1 -0.5 0 0.5 1]*5;
             
             %%%
 
@@ -89,10 +82,10 @@ function output = sysf_constantcurv3_lowRe(input_mode,pathnames)
             s.grid_range = [-1,1,-1,1,-1,1]*6;
 
             %densities for various operations
-            s.density.vector = [21 21 21]; %density to display vector field
-            s.density.scalar = [21 21 21]; %density to display scalar functions
-            s.density.eval = [21 21 21];   %density for function evaluations
-            s.density.metric_eval = [1 1 1]*15;
+            s.density.vector = [11 11 11]; %density to display vector field
+            s.density.scalar = [11 11 11]; %density to display scalar functions
+            s.density.eval = [11 11 21];   %density for function evaluations
+            s.density.metric_eval = [1 1 1]*11;
             s.density.finite_element=11;
 
             %shape space tic locations

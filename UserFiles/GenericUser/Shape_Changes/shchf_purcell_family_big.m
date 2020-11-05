@@ -1,4 +1,4 @@
-function output = shchf_purcell_family_loose(input_mode,pathnames)
+function output = shchf_purcell_family_big(input_mode,pathnames)
  %[r1,r2] = convert.old_to_new_points(alpha1,alpha2);
 	% Default argument
 	if ~exist('input_mode','var')
@@ -11,7 +11,7 @@ function output = shchf_purcell_family_loose(input_mode,pathnames)
 		
 		case 'name'
 			
-			output = 'Family of square ''Purcell strokes''';
+			output = 'Large square ''Purcell stroke''';
 			
 		case 'dependency'
 			
@@ -24,7 +24,7 @@ function output = shchf_purcell_family_loose(input_mode,pathnames)
 			%Path definitions
 			
 			%path definition
-			A=linspace(0.5, 2, 5); % Amplitdude of circle
+			A=2;%linspace(0.5, 2, 5); % Amplitdude of circle
 			
             
             % Multiple gaits (or piecewise definitions of gaits) can be

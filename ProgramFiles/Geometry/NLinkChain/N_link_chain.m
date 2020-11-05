@@ -1,4 +1,4 @@
-function [h, J, J_full,frame_zero,J_zero] = N_link_chain(geometry,jointangles)
+function [h, J, J_full,frame_zero,J_zero] = N_link_chain(geometry,shapeparams)
 % Build a backbone for a chain of links, specified as a vector of link
 % lengths and the joint angles between them.
 %
@@ -92,20 +92,20 @@ end
 
 % If no modes are specified, use an identity mapping for the modes
 if ~isfield(geometry,'modes') || isempty(geometry.modes)
-    modes = eye(numel(jointangles));
+    modes = eye(numel(shapeparams));
 else
     modes = geometry.modes;
 end
 
-% Force linklength and jointangle vectors to be columns, and normalize link
+% Force linklength and shapeparam vectors to be columns, and normalize link
 % lengths for a total length of 1.
 linklengths = geometry.linklengths(:)/sum(geometry.linklengths)*L;
-jointangles = jointangles(:);
+shapeparams = shapeparams(:);
 
 
 % Expand jointangles from specified shape variables to actual joint angles
 % by multiplying in the modal function
-jointangles = modes*jointangles(:);
+jointangles = modes*shapeparams;
 
 %%%%%%%%%%%%
 
@@ -302,6 +302,9 @@ for idx = 1:N_links
 
     end
     
+    % Convert joint-angle Jacobian into shape-mode coordinates
+    J_temp{idx} = J_temp{idx} * modes;
+    
 end
 
 
@@ -329,6 +332,8 @@ end
                                                 joints_v,...
                                                 jointangles,...
                                                 linklengths,...
+                                                shapeparams,...
+                                                modes,...
                                                 J_temp,...
                                                 baseframe);        
 
@@ -337,12 +342,16 @@ end
 % Jacobian so that they are refefenced off of the new base frame
 [h_m,J,J_full] = N_link_conversion(chain_m,J_temp,frame_zero,J_zero); 
 
-%%%%%%%
-% Multiply the Jacobians by the modal matrices to produce Jacobians that
-% act from the modal coefficients rather than the full joint space
-J = cellfun(@(j) j*modes,J,'UniformOutput',false);
-full_mode_conversion = [eye(size(J{1},1)), zeros(size(J{1},1),size(modes,2)); zeros(size(modes,2),size(J{1},1)),modes];
-J_full = cellfun(@(j) j*full_mode_conversion,J_full,'UniformOutput',false);
+
+
+
+% %%%%%%%
+% % Multiply the Jacobians by the modal matrices to produce Jacobians that
+% % act from the modal coefficients rather than the full joint space
+% J = cellfun(@(j) j*modes,J,'UniformOutput',false);
+% full_mode_conversion = [eye(size(J{1},1)), zeros(size(J{1},1),size(modes,2));
+%                         zeros(size(modes,1),size(J{1},1)),modes];
+% J_full = cellfun(@(j) j*full_mode_conversion,J_full,'UniformOutput',false);
 
 % For output, convert h into row form. Save this into a structure, with
 % link lengths included

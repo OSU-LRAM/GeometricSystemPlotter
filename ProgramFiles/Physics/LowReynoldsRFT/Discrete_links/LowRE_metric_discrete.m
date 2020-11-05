@@ -104,9 +104,16 @@ function link_metric = LowRE_link_metric(J_full,A,L,drag_ratio,c)
     
     % (Note that drag terms need to be positive here to make this a
     % positive-definite matrix that we can use as a metric)
-     drag_matrix =     [L       0                0;
-                        0    drag_ratio*L       0;
-                        0        0           drag_ratio/12*L^3]*c;
+    if ~isstruct(drag_ratio)
+        drag_ratio.longitudinal = drag_ratio;
+        drag_ratio.lateral = drag_ratio;
+        drag_ratio.rotational = drag_ratio;
+    end
+
+     drag_matrix = [    
+        drag_ratio.longitudinal      0               0;
+        0    drag_ratio.lateral*L       0;
+        0        0           drag_ratio.rotational/12*L^3]*c;
                     
                     
     %%%%%%%%%%%

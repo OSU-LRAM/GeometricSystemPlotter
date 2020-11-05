@@ -1,4 +1,4 @@
-function output = shchf_circle_family_loose(input_mode,pathnames)
+function output = shchf_circle_family_loose_serpenoid(input_mode,pathnames)
 
 
 	% Default argument
@@ -12,7 +12,7 @@ function output = shchf_circle_family_loose(input_mode,pathnames)
 		
 		case 'name'
 			
-			output = 'Family of circular strokes for three-link swimmers';
+			output = 'Family of circular strokes for serpenoid swimmers';
 			
 		case 'dependency'
 			
@@ -25,7 +25,7 @@ function output = shchf_circle_family_loose(input_mode,pathnames)
 			%Path definitions
 			
 			%path definition
-			A=.25:.25:2.25; % Amplitdude of circle
+			A=linspace(1,10,9); % Amplitdude of circle
 			
             % Multiple gaits (or piecewise definitions of gaits) can be
             % specified in a single file by making a nested

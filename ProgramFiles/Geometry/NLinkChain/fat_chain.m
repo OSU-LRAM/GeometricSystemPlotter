@@ -1,4 +1,4 @@
-function [B,h,J, J_full] = fat_chain(geometry, jointangles, display)
+function [B,h,J, J_full,B_individual] = fat_chain(geometry, jointangles, display)
 % Generate a set of rounded-end links based on link lengths and joint angles in
 % a kinematic chain
 %
@@ -66,6 +66,8 @@ function [B,h,J, J_full] = fat_chain(geometry, jointangles, display)
 %           angle velocities to body velocity of each link relative to a
 %           non-moving frame.
 %
+%   B_individual : individual link loci
+%
 %   frame_zero : The transformation from the first link to the selected
 %           baseframe
 %
@@ -95,6 +97,7 @@ function [B,h,J, J_full] = fat_chain(geometry, jointangles, display)
     points = 50;             % Number of points per link
     N_links = size(g,3);      % Number of links in the chain
     B = [];                   % Array to hold points on chain
+    B_individual = {};        % Array to individually hold points on the chain
     
     % Generate the width of the links from the aspect ratio multiplied
     % by the total length of the system
@@ -123,7 +126,11 @@ function [B,h,J, J_full] = fat_chain(geometry, jointangles, display)
         
         % Append C onto the end of B, and add a NaN so that the links will
         % plot discontinuously
+        B_individual = [B_individual,{C}];
+        
         B = [B, C, NaN(3,1)];
+        
+
         
     end
 
