@@ -79,6 +79,7 @@ function output = sysf_three_link_floating_ellipse(input_mode,pathnames)
             s.density.metric_eval = [11 11]; %density for metric evaluation
             s.density.mass_eval = [31 31]; % density for mass matrix evaluation
             s.density.coriolis_eval = [31 31];
+            s.density.metric_display = [7 7];
             s.density.finite_element=31;
 
 

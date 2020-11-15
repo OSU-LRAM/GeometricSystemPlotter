@@ -78,7 +78,8 @@ function dmdalpha = pull_back_partial_mass(M,dMdq,A,A_grid,jointangles)
     dMdalpha = dMdq(4:end); % Get the partials for the joints, skipping the first three terms
                             % (Since these are the g-circ terms)
     % Get the local connection at the given joint angles
-    A_interp = cellfun(@(C) interpn(A_grid{:},C,jointangles(1),jointangles(2),'spline'),A);
+    ja = num2cell(jointangles);
+    A_interp = cellfun(@(C) interpn(A_grid{:},C,ja{:},'spline'),A);
     % Get dA/dalpha at the given jointangles
     dA_interp = cell(num_joints,1);
     % TODO: Need some way to make this number-of-joints-agnostic. Note
@@ -86,9 +87,28 @@ function dmdalpha = pull_back_partial_mass(M,dMdq,A,A_grid,jointangles)
     % first term is difference in horizontal direction and second is
     % difference in vertical direction; the grid has alpha1 vary by
     % column and alpha2 vary by row.
-    [dA2, dA1] = cellfun(@(C) gradient(C,A_grid{2}(1,:),A_grid{1}(:,1)),A,'UniformOutput',false);
-    dA_interp{1} = cellfun(@(C) interpn(A_grid{:},C,angle_cells{:},'spline'),dA1);
-    dA_interp{2} = cellfun(@(C) interpn(A_grid{:},C,angle_cells{:},'spline'),dA2);
+    
+    A_grid_mesh = A_grid([2,1,3:numel(A_grid)]);
+    
+    grid_baseline = cell(size(A_grid_mesh));
+    callout_template = num2cell(ones(size(grid_baseline)));
+    for idx = 1:numel(grid_baseline)
+        callout = callout_template;
+        callout{idx} = ':';
+        grid_baseline{idx} = squeeze(A_grid{idx}(callout{:}));
+    end
+
+    dA = repmat({cell(size(A))},1,numel(jointangles));
+    [dA{[2,1,3:numel(A_grid)]}] = cellfun(@(C) gradient(C,grid_baseline{[2,1,3:numel(A_grid)]}),A,'UniformOutput',false);
+    
+    for idx = 1:numel(dA)
+        dA_interp{idx} = cellfun(@(C) interpn(A_grid{:},C,angle_cells{:},'spline'),dA{idx});
+    end
+%     dA_interp{2} = cellfun(@(C) interpn(A_grid{:},C,angle_cells{:},'spline'),dA2);
+
+%     [dA2, dA1] = cellfun(@(C) gradient(C,A_grid{2}(1,:),A_grid{1}(:,1)),A,'UniformOutput',false);
+%     dA_interp{1} = cellfun(@(C) interpn(A_grid{:},C,angle_cells{:},'spline'),dA1);
+%     dA_interp{2} = cellfun(@(C) interpn(A_grid{:},C,angle_cells{:},'spline'),dA2);
     
     dmdalpha = cell(num_joints,1);
     % The pulled-back mass matrix m_alpha is given by the matrix product:

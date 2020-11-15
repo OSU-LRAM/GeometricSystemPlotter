@@ -49,12 +49,22 @@ function s = evaluate_mass_second_derivative_numerical(s)
     % vector, since dimension is augmented
     num_joints = length(s.coriolisfield.coriolis_eval.content.dM_alphadalpha);
     grid = s.grid.coriolis_eval;
+    
+    grid_baseline = cell(size(grid));
+    callout_template = num2cell(ones(size(grid_baseline)));
+    for idx = 1:numel(grid_baseline)
+        callout = callout_template;
+        callout{idx} = ':';
+        grid_baseline{idx} = squeeze(grid{idx}(callout{:}));
+    end
+
+    
     ddM_alphadalpha = cell(num_joints);
     for first_partial = 1:num_joints
         dM_first_partial = s.coriolisfield.coriolis_eval.content.dM_alphadalpha{first_partial};
-        [dA2, dA1] = cellfun(@(C) gradient(C,grid{2}(1,:),grid{1}(:,1)),dM_first_partial,'UniformOutput',false);
-        ddM_alphadalpha{first_partial,1} = dA1;
-        ddM_alphadalpha{first_partial,2} = dA2;
+        [ddM_alphadalpha{[2,1,3:num_joints]}] = cellfun(@(C) gradient(C,grid_baseline{[2,1,3:num_joints]}),dM_first_partial,'UniformOutput',false);
+%         ddM_alphadalpha{first_partial,1} = dA1;
+%         ddM_alphadalpha{first_partial,2} = dA2;
     end
     s.coriolisfield.coriolis_eval.content.ddM_alphadalpha = ddM_alphadalpha;
 end
