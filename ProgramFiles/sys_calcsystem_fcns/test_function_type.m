@@ -1,6 +1,6 @@
 % Test whether the a function can be called on a grid of points, and
 % if so, whether it produces block- or woven-style output
-function tensorfunctiontype = test_function_type(tensorfunction,grid_range,ignore_singular_warning,A_eval,A_grid)
+function tensorfunctiontype = test_function_type(s,tensorfunction,grid_range,ignore_singular_warning,A_eval,A_grid)
 
 %%%%%%%
 % Allow user to specify that singular matrix warnings can be ignored
@@ -26,13 +26,24 @@ range_mid = num2cell((range_start+range_end)/2);
 double_midpoint = mat2tiles([range_mid{:} range_mid{:}],size(range_mid));
 vector_input = 1;
 if exist('A_eval','var') && ~isempty(A_eval)
-    A_test_single = tensorfunction(range_mid{:},A_eval,A_grid); % This is to make the system throw an error if tensorfunction is bad, because the try line on double_midpoint will treat an error as indicating a non-vector function
+    try
+        J1 = s.evaluated_vals.J_full{1};
+        li1 = s.evaluated_vals.local_inertias{1};
+        Mf1 = s.evaluated_vals.M_full{1};
+        A_test_single = tensorfunction(Mf1,J1,li1,cell2mat(range_mid)); % This is to make the system throw an error if tensorfunction is bad, because the try line on double_midpoint will treat an error as indicating a non-vector function
+    catch
+        A_test_single = tensorfunction(range_mid{:},A_eval,A_grid);
+    end
 else
     A_test_single = tensorfunction(range_mid{:});
 end
+
 try
     if exist('A_eval','var') && ~isempty(A_eval)
-        A_test = tensorfunction(double_midpoint{:},A_eval,A_grid); %#ok<NASGU>
+        J1 = s.evaluated_vals.J_full{1};
+        li1 = s.evaluated_vals.local_inertias{1};
+        Mf1 = s.evaluated_vals.M_full{1};
+        A_test = tensorfunction(Mf1,J1,li1,cell2mat(double_midpoint)); %#ok<NASGU>
     else
         A_test = tensorfunction(double_midpoint{:}); %#ok<NASGU>
     end

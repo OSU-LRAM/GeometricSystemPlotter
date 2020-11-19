@@ -29,6 +29,9 @@ function output = sysf_three_link_lowRe(input_mode,pathnames)
             s.geometry.linklengths = [1 1 1];
             s.geometry.baseframe = 'center';
             s.geometry.length = 1;
+            s.geometry.link_shape = {'ellipse','ellipse','ellipse'};
+                st = struct('aspect_ratio',0.1);
+            s.geometry.link_shape_parameters = {st,st,st};
             
             %%%
             % Define properties for visualizing the system
@@ -43,6 +46,7 @@ function output = sysf_three_link_lowRe(input_mode,pathnames)
             % Define system physics
             s.physics.drag_ratio = 2;
             s.physics.drag_coefficient = 1;
+            s.physics.fluid_density = 1;
            
             %Functional Local connection and dissipation metric
 
@@ -69,6 +73,8 @@ function output = sysf_three_link_lowRe(input_mode,pathnames)
 			s.density.eval = [31 31 ];   %density for function evaluations
             s.density.metric_eval = [11 11]; %density for metric evaluation
             s.density.finite_element=31;
+            s.density.coriolis_eval = [31 31];
+            s.density.mass_eval = [31 31]; % density for mass matrix evaluation
 
 			%shape space tic locations
 			s.tic_locs.x = [-1 0 1]*1;
