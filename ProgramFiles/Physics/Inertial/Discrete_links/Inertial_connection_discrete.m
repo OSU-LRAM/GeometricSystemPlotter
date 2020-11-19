@@ -1,4 +1,4 @@
-function [A, h, J, J_full, omega, M_full, local_inertias] = Inertial_connection_discrete(geometry,physics,jointangles)
+function [A, h, J, J_full, omega, M_full, local_inertias, T] = Inertial_connection_discrete(geometry,physics,jointangles)
 % Calculate the local connection for for an inertial system (floating in space or
 % ideal high-Re fluid)
 %
@@ -62,7 +62,6 @@ function [A, h, J, J_full, omega, M_full, local_inertias] = Inertial_connection_
 %       coordinate frame, which includes the added mass from the surrounding
 %       fluid.
 
-
     %%%%
     % First, get the positions of the links in the chain and their
     % Jacobians with respect to the system parameters
@@ -85,6 +84,7 @@ function [A, h, J, J_full, omega, M_full, local_inertias] = Inertial_connection_
 
         % Build the local connection
         A = omega(:,1:3)\omega(:,4:end);
+        T = A;
         
         return
     end
@@ -123,7 +123,6 @@ function [A, h, J, J_full, omega, M_full, local_inertias] = Inertial_connection_
         [link_inertias{idx},local_inertias{idx}] = Inertia_link(h.pos(idx,:),...            % Position of this link relative to the base frame
                                                     J_full{idx},...             % Jacobian from body velocity of base link and shape velocity to body velocity of this link
                                                     h.lengths(idx),...          % Length of this link
-                                                    geometry.link_shape{idx},...         % Shape type of this link
                                                     geometry.link_shape_parameters{idx},...  % Shape parametes for this link
                                                     physics.fluid_density);      % Fluid density relative to link
   
@@ -150,4 +149,5 @@ function [A, h, J, J_full, omega, M_full, local_inertias] = Inertial_connection_
     
     % Build the local connection
     A = omega(:,1:3)\omega(:,4:end);
+    T = A;
 end

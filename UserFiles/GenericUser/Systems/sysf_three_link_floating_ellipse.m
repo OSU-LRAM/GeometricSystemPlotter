@@ -40,7 +40,7 @@ function output = sysf_three_link_floating_ellipse(input_mode,pathnames)
             % Make a grid of values at which to visualize the system in
             % illustrate_shapespace. (Use a cell of gridpoints along each
             % axis to use different spacings for different axes)
-            s.visual.grid_spacing = [-1  0  1];
+            s.visual.grid_spacing = [-1  0  1]*1;
             
             %%%
             %%%%%%
@@ -55,7 +55,7 @@ function output = sysf_three_link_floating_ellipse(input_mode,pathnames)
                         s.physics,...                            % Physics properties
                         [alpha1,alpha2]);                        % Joint angles
             
-             s.metric = @(alpha1,alpha2) mass_matrix(s.geometry,s.physics,[alpha1,alpha2]);
+            s.metric = @(alpha1,alpha2) mass_matrix(s.geometry,s.physics,[alpha1,alpha2]);
              
             % TODO: These should probably be calculated as part of a larger
             % wrapping function that's meant to return M and C matrices for
@@ -70,7 +70,7 @@ function output = sysf_three_link_floating_ellipse(input_mode,pathnames)
 			%Processing details
 
 			%Range over which to evaluate connection
-			s.grid_range = [-1,1,-1,1]*2.5;
+			s.grid_range = [-1,1,-1,1]*2*pi/3;
 
 			%densities for various operations
 			s.density.vector = [21 21 ]; %density to display vector field
