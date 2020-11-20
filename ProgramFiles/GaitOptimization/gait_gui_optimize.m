@@ -3,6 +3,9 @@ function gait_gui_optimize(hAx,hObject,eventdata,handles)
 % Load the sysplotter configuration information
 load sysplotter_config
 
+optimization_handles = handles;
+handles = handles.main_gui;
+
 % Upsample and plot to show gait to user
 
 system_index = get(handles.systemmenu,'Value');
@@ -93,6 +96,40 @@ elseif n_dim==4
     alpha3_plot = ppval(spline_alpha3,t_plot);
     alpha4_plot = ppval(spline_alpha4,t_plot);
 end
+
+%Direction to optimize: 1-x, 2-y, 3-theta
+direction = 0;
+if optimization_handles.xbutton.Value
+    direction = 1;
+elseif optimization_handles.ybutton.Value
+    direction = 2;
+elseif optimization_handles.thetabutton.Value
+    direction = 3;
+end
+
+%Cost function to optimize over
+costfunction = 'none';
+if optimization_handles.pathlengthmetricbutton.Value
+    costfunction = 'pathlength metric';
+elseif optimization_handles.torquebutton.Value
+    costfunction = 'torque';
+elseif optimization_handles.covaccbutton.Value
+    costfunction = 'covariant acceleration';
+elseif optimization_handles.pathlengthcoordinatebutton.Value
+    costfunction = 'pathlength coord';
+elseif optimization_handles.accelerationbutton.Value
+    costfunction = 'acceleration coord';
+elseif optimization_handles.pathlengthmetric2button.Value
+    costfunction = 'pathlength metric2';
+elseif optimization_handles.powerqualitybutton.Value
+    costfunction = 'power quality';
+end
+
+%Sanity check radiobutton selection
+if strcmpi(costfunction,'none')
+    error('Something went wrong with the costfunction selection');
+end
+
 % loading sysf file 
 f=fullfile(datapath,strcat(current_system,'_calc.mat'));
 load(f);
@@ -102,7 +139,7 @@ if n_dim==2
     lb=0.95*[s.grid_range(1)*ones(n_plot+1,1);s.grid_range(3)*ones(n_plot+1,1)];%0.9 was points value
     ub=0.95*[s.grid_range(2)*ones(n_plot+1,1);s.grid_range(4)*ones(n_plot+1,1)];
 %     if strcmpi(s.system_type,'drag')
-    y=optimalgaitgenerator(s,2,n_plot,alpha1_plot,alpha2_plot,lb,ub,stretch);
+    y=optimalgaitgenerator(s,2,n_plot,alpha1_plot,alpha2_plot,lb,ub,stretch,direction,costfunction,handles);
 %     elseif strcmpi(s.system_type,'inertia')
 %         % Need to take a subset of the space since the optimizer is too
 %         % slow for now; interpolate gait at n_interp points
@@ -121,7 +158,7 @@ elseif n_dim==3
     % Calling the optimizer
     lb=0.95*[s.grid_range(1)*ones(n_plot+1,1);s.grid_range(3)*ones(n_plot+1,1);s.grid_range(5)*ones(n_plot+1,1)];%0.9 was points value
     ub=0.95*[s.grid_range(2)*ones(n_plot+1,1);s.grid_range(4)*ones(n_plot+1,1);s.grid_range(6)*ones(n_plot+1,1)];
-    y=optimalgaitgenerator3(s,3,n_plot,alpha1_plot,alpha2_plot,alpha3_plot,lb,ub);
+    y=optimalgaitgenerator3(s,3,n_plot,alpha1_plot,alpha2_plot,alpha3_plot,lb,ub,direction,costfunction,handles);
     alpha1 = [y(1:n_plot)',y(1)]';
     alpha2 = [y(n_plot+1:2*n_plot)',y(n_plot+1)]';
     alpha3 = [y(2*n_plot+1:3*n_plot)',y(2*n_plot+1)]';
@@ -133,7 +170,7 @@ elseif n_dim==4
     % Calling the optimizer
     lb=0.95*[s.grid_range(1)*ones(n_plot+1,1);s.grid_range(3)*ones(n_plot+1,1);s.grid_range(5)*ones(n_plot+1,1);s.grid_range(7)*ones(n_plot+1,1)];%0.9 was points value
     ub=0.95*[s.grid_range(2)*ones(n_plot+1,1);s.grid_range(4)*ones(n_plot+1,1);s.grid_range(6)*ones(n_plot+1,1);s.grid_range(8)*ones(n_plot+1,1)];
-    y=optimalgaitgenerator4(s,4,n_plot,alpha1_plot,alpha2_plot,alpha3_plot,alpha4_plot,lb,ub);
+    y=optimalgaitgenerator4(s,4,n_plot,alpha1_plot,alpha2_plot,alpha3_plot,alpha4_plot,lb,ub,direction,costfunction,handles);
     alpha1 = [y(1:n_plot)',y(1)]';
     alpha2 = [y(n_plot+1:2*n_plot)',y(n_plot+1)]';
     alpha3 = [y(2*n_plot+1:3*n_plot)',y(2*n_plot+1)]';

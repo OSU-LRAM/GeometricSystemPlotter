@@ -1,4 +1,4 @@
-function [A, h, J,J_full,Omega,M_full] = Inertial_local_connection(geometry,physics,shapeparams)
+function [A, M_a,J_full, local_inertias,M_full] = Inertial_local_connection(geometry,physics,shapeparams)
 % Calculate the local connection for an inertial system.
 %
 % Inputs:
@@ -24,11 +24,12 @@ switch geometry.type
         physics_function = @Inertial_connection_continuous;
         
     case {'n-link chain'}
-        physics_function = @Inertial_connection_discrete;
+        
+        physics_function = @Inertial_tensors_discrete;
         
 end
 
 % Call the physics function identified for the system
-[A, h, J,J_full,Omega,M_full] = physics_function(geometry,physics,shapeparams);
+[A, M_a,J_full, local_inertias,M_full] = physics_function(geometry,physics,shapeparams);
 
 end

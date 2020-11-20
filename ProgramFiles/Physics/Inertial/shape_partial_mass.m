@@ -1,4 +1,4 @@
-function dmdalpha = shape_partial_mass(geometry,physics,jointangles,A_eval,A_grid)
+function dmdalpha = shape_partial_mass(M_full,J_full,local_inertias,jointangles,A_eval,A_grid)
 % Calculates the partial of the pulled-back mass matrix with respect to the
 % shape variables alpha_i. This is done by calculating the partial of the
 % full mass matrix with respect to the full set of configuration variables
@@ -32,7 +32,7 @@ function dmdalpha = shape_partial_mass(geometry,physics,jointangles,A_eval,A_gri
 
 % Get the full jacobian and mass matrices as well as the links' local
 % inertia tensors
-[~, ~, ~, J_full, ~, M_full, local_inertias] = Inertial_connection_discrete(geometry,physics,jointangles);
+
 % Obtain the derivative of the Jacobian with respect to the configuration
 dJdq = mobile_jacobian_derivative(J_full);
 % Get the partial of the mass matrix with respect to the configuration
