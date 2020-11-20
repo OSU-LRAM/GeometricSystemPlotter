@@ -40,7 +40,7 @@ if n_dim==2
     % Get the vector field and interpolate into the specified grid
 
     % Extract the plotting grid
-    grid = s.grid.metric_eval;
+    grid = s.grid.metric_display;
 
 
     % metric for evaluating ellipse field
@@ -164,7 +164,7 @@ if n_dim==2
         % metricellipsefield(s.grid.metric_display{:},celltensorconvert(s.metricfield.metric_display.content.metric),'tissot',{'edgecolor','k’})
 
         %metricellipsefield(grid{:},celltensorconvert(M),'tissot-cross',{'edgecolor','k','parent',ax},{'color',Colorset.secondary,'parent',ax});
-        metricellipsefield_convert(grid{:},celltensorconvert(M),'tissot-cross',s.convert,plot_info.stretch,{'edgecolor','k','parent',ax},{'color',Colorset.secondary,'parent',ax});
+        metricellipsefield_convert(grid{:},celltensorconvert(M),'tissot-cross',s.convert,plot_info.stretch,{'linewidth',1,'edgecolor',Colorset.spot,'parent',ax},{'color',Colorset.secondary,'parent',ax});
         
         
         box(ax,'on');
