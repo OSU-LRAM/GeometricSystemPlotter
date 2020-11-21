@@ -1,4 +1,4 @@
-function y=optimalgaitgenerator(s,dimension,npoints,a1,a2,lb,ub,stretch)
+function y=optimalgaitgenerator(s,dimension,npoints,a,lb,ub,stretch)
 %%%%%%%%%%%%%%
 % This function takes an input gait and runs fmincon to find the neareast locally 
 % optimal gait
@@ -10,8 +10,7 @@ function y=optimalgaitgenerator(s,dimension,npoints,a1,a2,lb,ub,stretch)
 %dimension: Indicates the number of shape variables of the system
 %n: Number of points used to parametrize the gaits in a direct
 %   transcription method
-% a1: Values of the points forming the gait along the first shape dimension
-% a2: Values of the points forming the gait along the second shape dimension
+% a: n x m array, for n waypoints in m dimensions
 % lb: Lower bound of shape variables for each point which is obtained from the grid inside which an optimal gait is desired
 % ub: Upper bound of shape variables for each point which is obtained from the grid inside which an optimal gait is desired
 % 
@@ -27,10 +26,19 @@ function y=optimalgaitgenerator(s,dimension,npoints,a1,a2,lb,ub,stretch)
 %     a2(1,i)=1*cos(2*pi*(i-1)/n+pi/2);
 % end
 
-n=npoints;
-P1(:,1)=a1(1,1:n)';
-P1(:,2)=a2(1,1:n)';
-P1(end+1,:) = P1(1,:); % Close the loop on the gait
+% n=npoints;
+% P1(:,1)=a1(1,1:n)';
+% P1(:,2)=a2(1,1:n)';
+% P1(end+1,:) = P1(1,:); % Close the loop on the gait
+
+% For minimal refactoring, mapping a -> P1
+P1 = a;
+
+% Close the loop of the gait if necessary
+if P1(end,:) ~= P1(1,:)
+    P1(end+1,:) = P(1,:);
+end
+
 
 %% Finding fourier coeffecients.
 % The first step is to go from a direct transcription of the initial gait
