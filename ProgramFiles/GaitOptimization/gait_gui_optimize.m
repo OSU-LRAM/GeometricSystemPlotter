@@ -193,7 +193,7 @@ lb = lb(:);
 ub = ub(:);
 
 %%%%% Call the optimizer
-y = optimalgaitgenerator(s,n_dim,n_plot,alpha,lb,ub,stretch,direction,costfunction,handles);
+y = optimalgaitgenerator(s,n_dim,n_plot,alpha_plot,lb,ub,stretch,direction,costfunction,handles);
 
 % reshape the output and add the start point to the end to close the loop
 alpha_out = reshape(y,[numel(y)/n_dim,n_dim]);

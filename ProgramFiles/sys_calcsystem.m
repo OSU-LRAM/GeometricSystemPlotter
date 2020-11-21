@@ -37,7 +37,7 @@ function output = sys_calcsystem(input_mode,systemfilename,stretch)
 			%grid for vector display
 			s = evaluate_connection(s);
             s = evaluate_metric(s);
-            s = evaluate_mass_second_derivative_numerical(s);
+            s = evaluate_metric_derivatives(s);
 			
 			%Merge components of evaluated connection and metric
 			s = merge_connection(s);
