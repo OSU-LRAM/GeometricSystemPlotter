@@ -32,14 +32,12 @@ function output = sys_calcsystem(input_mode,systemfilename,stretch)
                         
 			%Create grids for evaluating the connection functions
 			s = create_grids(s);
-			
+            
 			%Evaluate the connection and metric over the fine grid for calculations and the coarse
 			%grid for vector display
 			s = evaluate_connection(s);
             s = evaluate_metric(s);
-            if isfield(s,'system_type') && strcmpi(s.system_type,'inertia')
-                s = evaluate_inertial_properties(s);
-            end
+            s = evaluate_mass_second_derivative_numerical(s);
 			
 			%Merge components of evaluated connection and metric
 			s = merge_connection(s);

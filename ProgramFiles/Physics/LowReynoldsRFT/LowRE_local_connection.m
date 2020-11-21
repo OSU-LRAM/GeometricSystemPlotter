@@ -1,4 +1,4 @@
-function [A, h, J,Omega] = LowRE_local_connection(geometry,physics,shapeparams)
+function [A, M_a,J_full, local_inertias,M_full,h,J] = LowRE_local_connection(geometry,physics,shapeparams)
 % Calculate the local connection for a set of curvature bases
 %
 % Inputs:
@@ -22,14 +22,20 @@ switch geometry.type
     
     case {'curvature basis','curvature bases','general curvature'}
         physics_function = @LowRE_connection_continuous;
+        %ForDebugging
+        M_a = eye(2);
+        local_inertias = eye(3);
+        M_full = eye(5);
         
     case {'n-link chain','branched chain'}
         physics_function = @LowRE_connection_discrete;
+        %Get inertial properties for calculating inertial metric
+        [A, M_a,J_full, local_inertias,M_full] = Inertial_tensors_discrete(geometry,physics,shapeparams);
         
 end
 
 % Call the physics function identified for the system
-[A, h, J,Omega] = physics_function(geometry,physics,shapeparams);
+[A, h, J,J_full,Omega] = physics_function(geometry,physics,shapeparams);
 
 end
 

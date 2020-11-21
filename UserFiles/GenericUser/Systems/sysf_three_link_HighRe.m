@@ -56,7 +56,8 @@ function output = sysf_three_link_HighRe(input_mode,pathnames)
                         s.physics,...                            % Physics properties
                         [alpha1,alpha2]);                        % Joint angles
 
-             s.metric = @(alpha1,alpha2) mass_matrix(s.geometry,s.physics,[alpha1,alpha2]);
+            s.metric = @(alpha1,alpha2) mass_matrix(s.geometry,s.physics,[alpha1,alpha2]);
+            %s.metric = @(alpha1,alpha2) eye(2);
              
             % TODO: These should probably be calculated as part of a larger
             % wrapping function that's meant to return M and C matrices for
