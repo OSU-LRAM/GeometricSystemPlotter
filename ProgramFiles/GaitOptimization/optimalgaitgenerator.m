@@ -41,7 +41,7 @@ P1 = a;
 
 % Close the loop of the gait if necessary
 if P1(end,:) ~= P1(1,:)
-    P1(end+1,:) = P(1,:);
+    P1(end+1,:) = P1(1,:);
 end
 
 
@@ -115,7 +115,7 @@ try
 catch
    error('This code requires the global optimization toolbox to run') 
 end
- [yf, ~,~,~]=fmincon(@(y) solvedifffmincon(y,s,n,dimension,direction,lb,ub,writerObj),y0,A,b,Aeq,beq,lb1,ub1,@(y) nonlcon(y,s,n,dimension,lb,ub),options);
+ [yf, ~,~,~]=fmincon(@(y) solvedifffmincon(y,s,npoints,dimension,direction,lb,ub,writerObj),y0,A,b,Aeq,beq,lb1,ub1,@(y) nonlcon(y,s,npoints,dimension,lb,ub),options);
 
 % % Uncomment this if you uncommented the section above so that the video
 % % writer object is closed appropriately.
@@ -126,7 +126,7 @@ end
 % of the optimal gait from a fourier series parametrization. y is a column vector
 % that contains coordinates of all points forming the optimized gait
 
-y1 = path_from_fourier(yf,n,dimension);
+y1 = path_from_fourier(yf,npoints,dimension);
 % path_from_fourier returns a self-connected gait, so remove the last point
 % to give what optimalgaitgenerator expects to return
 y1 = y1(1:end-1,:);
