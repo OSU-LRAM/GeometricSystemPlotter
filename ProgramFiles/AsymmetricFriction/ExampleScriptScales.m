@@ -148,3 +148,174 @@ A_sparse = get_A_of_alpha(s, a_grid(1:2:31));
 slope_plot(a_grid(1:2:31),A_sparse,true)
 slope_plot(a_grid(1:2:31),A_sparse,false)
 
+%% compare a bunch of tiny gaits with different offsets: experimenting with
+% lie brackets, essentially. Probably not something to put into the paper,
+% but hey I did it.
+%%%%%%%%%%%%%%%%%%%
+
+amp = 0.1;
+step = 0.1;
+off_grid = -pi+amp : step : pi-amp;
+
+displacements = zeros([length(off_grid),3]);
+for i = 1:length(off_grid)
+    off = off_grid(i);
+    gait = generate_1D_gait(amp, off, 1);
+    sol = asym_solve_gait(s, gait, system_map);
+    displacements(i,:) = deval(sol, 2*pi);
+end
+% figure()
+% tiledlayout(3,1)
+% ax = nexttile;
+% plot(ax, off_grid, displacements(:,1))
+% ax = nexttile;
+% plot(ax, off_grid, displacements(:,2))
+% ax = nexttile;
+% plot(ax, off_grid, displacements(:,3))
+
+% the backwards version:
+displacements_bw = zeros([length(off_grid),3]);
+for i = 1:length(off_grid)
+    off = off_grid(i);
+    gait = generate_1D_gait(0.5, off, -1);
+    sol = asym_solve_gait(s, gait, system_map);
+    displacements_bw(i,:) = deval(sol, 2*pi);
+end
+% figure()
+% tiledlayout(3,1)
+% ax = nexttile;
+% plot(ax, off_grid, displacements_bw(:,1))
+% ax = nexttile;
+% plot(ax, off_grid, displacements_bw(:,2))
+% ax = nexttile;
+% plot(ax, off_grid, displacements_bw(:,3))
+
+% compare forwards and then backwards to backwards and then forwards
+difference = zeros([length(off_grid),3]);
+for i = 1:length(off_grid)
+    fw = vec_to_mat_SE2(displacements(i, :));
+    bw = vec_to_mat_SE2(displacements_bw(i, :));
+    fw_then_bw = fw * bw;
+    bw_then_fw = bw * fw;
+    difference(i,:) = mat_to_vec_SE2(fw_then_bw) - mat_to_vec_SE2(bw_then_fw);
+end
+amp
+figure()
+tiledlayout(3,1)
+ax = nexttile;
+plot(ax, off_grid, difference(:,1))
+ax = nexttile;
+plot(ax, off_grid, difference(:,2))
+ax = nexttile;
+plot(ax, off_grid, difference(:,3))
+
+amp
+figure()
+tiledlayout(3,1)
+ax = nexttile;
+plot(ax, off_grid, difference(:,1))
+ax = nexttile;
+plot(ax, off_grid, difference(:,2))
+ax = nexttile;
+plot(ax, off_grid, difference(:,3))
+
+
+%% Looking at a spread of gaits, holding one variable constant, and seeing
+% how the trajectory changes.
+%%%%%%%%%%%%%%%%%%%
+
+% testing out trajectory plots
+figure()
+hold on
+
+amp = 0.5;
+for off = -2:0.5:2
+
+gait = generate_1D_gait(amp, off, 0);
+sol = asym_solve_gait(s, gait, system_map);
+trajectory_plot(sol);
+end
+
+hold off
+axis equal
+
+% comparing trajcetories of same gait, different phase
+figure()
+hold on
+
+for phase = 0:pi/4:2*pi
+    
+    gait = generate_1D_gait(1.5, 0, phase);
+    sol = asym_solve_gait(s, gait, system_map);
+    trajectory_plot(sol)
+    
+end
+
+hold off
+axis equal
+
+%% Experimenting with integrating Adif to get a prediction of the net
+% displacement produced by a gait.
+%%%%%%%%%%%%%%%%%%%
+
+Ax_dif = A.difference(:,1);
+Ay_dif = A.difference(:,2);
+At_dif = A.difference(:,3);
+
+point_a = a_grid(14)
+point_b = a_grid(18)
+da = a_grid(2) - a_grid(1)
+
+dx = trapz(Ax_dif(14:18))*da
+dy = trapz(Ay_dif(14:18))*da
+dth = trapz(At_dif(14:18))*da
+
+% compare to a gait that goes from point_a to point_b:
+off = (point_a + point_b)/2;
+amp = abs(point_a - point_b)/2;
+gait = generate_1D_gait(amp,off,0);
+sol = asym_solve_gait(s, gait, system_map);
+
+displacement = deval(sol, 2*pi)'
+
+g_cerc_vector = [dx dy dth];
+g_circ = [0 -g_cerc_vector(3) g_cerc_vector(1); ...
+          g_cerc_vector(3) 0 g_cerc_vector(2); ...
+          0 0 0];
+Adif_prediction = mat_to_vec_SE2(expm(g_circ))
+
+error = Adif_prediction - displacement
+proport_error = error ./ displacement
+
+% test a bigger amp now that I think it's correct:
+point_a = a_grid(11)
+point_b = a_grid(21)
+da = a_grid(2) - a_grid(1);
+
+dx = trapz(Ax_dif(11:21))*da;
+dy = trapz(Ay_dif(11:21))*da;
+dth = trapz(At_dif(11:21))*da;
+
+% compare to a gait that goes from point_a to point_b:
+off = (point_a + point_b)/2;
+amp = abs(point_a - point_b)/2;
+gait = generate_1D_gait(amp,off,0);
+sol = asym_solve_gait(s, gait, system_map);
+
+displacement = deval(sol, 2*pi)'
+
+g_cerc_vector = [dx dy dth];
+g_circ = [0 -g_cerc_vector(3) g_cerc_vector(1); ...
+          g_cerc_vector(3) 0 g_cerc_vector(2); ...
+          0 0 0];
+Adif_prediction = mat_to_vec_SE2(expm(g_circ))
+
+error = Adif_prediction - displacement
+proport_error = error ./ displacement
+
+%% Using the function that packages this calculation into something less
+% cumbersome
+%%%%%%%%%%%%%%%%%%%
+
+%Adif_gait_prediction(s, 1, 0, calc_density)
+% this function is unfinished
