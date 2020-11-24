@@ -39,10 +39,10 @@ function y=optimalgaitgenerator(s,dimension,npoints,a,lb,ub,stretch,direction,co
 % For minimal refactoring, mapping a -> P1
 P1 = a;
 
-% Close the loop of the gait if necessary
-if P1(end,:) ~= P1(1,:)
-    P1(end+1,:) = P1(1,:);
-end
+% % Close the loop of the gait if necessary
+% if P1(end,:) ~= P1(1,:)
+%     P1(end+1,:) = P1(1,:);
+% end
 
 
 %% Finding fourier coeffecients.
@@ -52,7 +52,7 @@ end
 
 % Time period of gait is 1 second in order to handle calculations performed
 % for inertial gait optimization
-t = linspace(0,1,npoints+1);
+t = linspace(0,1,size(P1,1));
 
 fa=cell(dimension);
 % The bounds ensure the fourier series terms have the right period
