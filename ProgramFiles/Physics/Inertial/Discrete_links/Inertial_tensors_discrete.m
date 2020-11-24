@@ -1,4 +1,4 @@
-function [A, M_alpha, J_full, local_inertias, M_full] = Inertial_tensors_discrete(geometry,physics,jointangles)
+function [A, M_alpha, J_full, Inertia_link_local, M_full] = Inertial_tensors_discrete(geometry,physics,jointangles)
 % Calculate the local connection for for an inertial system (floating in space or
 % ideal high-Re fluid)
 %
@@ -77,7 +77,7 @@ function [A, M_alpha, J_full, local_inertias, M_full] = Inertial_tensors_discret
         s.physics = physics;
 
         %Then, get added mass metric using flat-plate panel method
-        [M_full,J,J_full,h,local_inertias] = getAddedMass_NLinkChain(jointangles',s);
+        [M_full,J,J_full,h,Inertia_link_local] = getAddedMass_NLinkChain(jointangles',s);
     else
 
 
@@ -109,9 +109,11 @@ function [A, M_alpha, J_full, local_inertias, M_full] = Inertial_tensors_discret
 
         % Now iterate over each link, calculating the map from system body and
         % shape velocities to forces acting on the body
+        Inertia_link_system = cell(size(force_maps));
+        Inertia_link_local = cell(size(force_maps));
         for idx = 1:numel(link_force_maps)
 
-            [link_inertias{idx},local_inertias{idx}] = Inertia_link(h.pos(idx,:),...            % Position of this link relative to the base frame
+            [Inertia_link_system{idx},Inertia_link_local{idx}] = Inertia_link(h.pos(idx,:),...            % Position of this link relative to the base frame
                                                         J_full{idx},...             % Jacobian from body velocity of base link and shape velocity to body velocity of this link
                                                         h.lengths(idx),...          % Length of this link
                                                         geometry.link_shape_parameters{idx},...  % Shape parametes for this link
@@ -119,9 +121,9 @@ function [A, M_alpha, J_full, local_inertias, M_full] = Inertial_tensors_discret
 
         end
 
-        if isa(link_inertias{1},'sym')
-            M_full = sym(zeros(size(link_inertias{1})));
-            inertia_stack = cat(3,link_inertias{:});
+        if isa(Inertia_link_system{1},'sym')
+            M_full = sym(zeros(size(Inertia_link_system{1})));
+            inertia_stack = cat(3,Inertia_link_system{:});
             for i = 1:size(inertia_stack,1)
                 for j = 1:size(inertia_stack,2)
                     temp = inertia_stack(i,j,:);
@@ -131,7 +133,7 @@ function [A, M_alpha, J_full, local_inertias, M_full] = Inertial_tensors_discret
         else
             % Sum the force-maps for each link to find the total map from system
             % body and shape velocities to force actign on the body
-            M_full = sum(cat(3,link_inertias{:}),3);
+            M_full = sum(cat(3,Inertia_link_system{:}),3);
         end
     end
     
