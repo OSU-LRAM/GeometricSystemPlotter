@@ -56,7 +56,7 @@ function output = sysf_three_link_HighRe(input_mode,pathnames)
                         s.physics,...                            % Physics properties
                         [alpha1,alpha2]);                        % Joint angles
 
-            s.metric = @(alpha1,alpha2) mass_matrix(s.geometry,s.physics,[alpha1,alpha2]);
+            s.metric = @(alpha1,alpha2) Inertial_energy_metric(s.geometry,s.physics,[alpha1,alpha2]);
             %s.metric = @(alpha1,alpha2) eye(2);
              
 %             % TODO: These should probably be calculated as part of a larger
@@ -78,9 +78,9 @@ function output = sysf_three_link_HighRe(input_mode,pathnames)
 			s.density.scalar = [51 51]; %density to display scalar functions
 			s.density.eval = [31 31];   %density for function evaluations
             s.density.metric_eval = [11 11]; %density for metric evaluation
-            s.density.mass_eval = [31 31]; % density for mass matrix evaluation
+%            s.density.mass_eval = [31 31]; % density for mass matrix evaluation
             s.density.metric_display = [7 7];
-            s.density.coriolis_eval = [31 31];
+%            s.density.coriolis_eval = [31 31];
             s.density.finite_element=31;
 
 

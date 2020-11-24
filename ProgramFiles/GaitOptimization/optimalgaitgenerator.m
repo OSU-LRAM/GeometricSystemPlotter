@@ -1020,7 +1020,7 @@ end
 
 % Evaluate the body velocity and cost velocity (according to system metric)
 % at a given time
-function [xi, dcost] = get_velocities(t,s,gait,ConnectionEval)
+function [gcirc, dcost] = get_velocities(t,s,gait,ConnectionEval)
 
 	% Get the shape and shape derivative at the current time
 	shape = gait.phi_def(t);
@@ -1055,14 +1055,17 @@ function [xi, dcost] = get_velocities(t,s,gait,ConnectionEval)
                     metric = eye(size(metric));
                 %If our cost is inertial
                 case {'torque','covariant acceleration','power quality'}
-                    %Calculate mass matrix
-                    M_a = cellfun(@(C) interpn(s.grid.mass_eval{:},C,...
-                        shapelist{:},'spline'),s.massfield.mass_eval.content.M_alpha);
+                    %Calculate metric
+%                     M_a = cellfun(@(C) interpn(s.grid.mass_eval{:},C,...
+%                         shapelist{:},'spline'),s.massfield.mass_eval.content.M_alpha);
+                    M_a = cellfun(@(C) interpn(s.grid.metric_eval{:},C,...
+                        shapelist{:},'spline'),s.metricfield.metric_eval.content.metric);
+
                     %And mass matrix derivative
-                    dM_alphadalpha = cell(size(shapelist));
+                    dM = cell(size(shapelist));
                     for i = 1:length(shapelist)
-                        dM_alphadalpha{i} = cellfun(@(C) interpn(s.grid.coriolis_eval{:},C,...
-                            shapelist{:},'spline'),s.coriolisfield.coriolis_eval.content.dM_alphadalpha{i});
+                        dM{i} = cellfun(@(C) interpn(s.grid.metric_eval{:},C,...
+                            shapelist{:},'spline'),s.coriolisfield.coriolis_eval.content.dM{i});
                     end
             end
 			
@@ -1072,7 +1075,7 @@ function [xi, dcost] = get_velocities(t,s,gait,ConnectionEval)
 	
 	% Get the body velocity at the current time
 	%t;
-    xi = - A * dshape(:);
+    gcirc = - A * dshape(:);
 
     switch s.costfunction
         case {'pathlength metric','pathlength coord'}
@@ -1080,18 +1083,18 @@ function [xi, dcost] = get_velocities(t,s,gait,ConnectionEval)
         case 'pathlength metric2'
             dcost = sqrt(dshape(:)'*metric*metric*dshape(:));
         case 'torque'
-            dcost = torque_cost(M_a,dM_alphadalpha,shape,dshape,ddshape,metric);
+            dcost = torque_cost(M_a,dM,shape,dshape,ddshape,metric);
         case 'covariant acceleration'
-            dcost = acceleration_cost(M_a,dM_alphadalpha,shape,dshape,ddshape,metric);
+            dcost = acceleration_cost(M_a,dM,shape,dshape,ddshape,metric);
         case 'acceleration coord'
             dcost = ddshape(:)'*metric*ddshape(:);
         case 'power quality'
-            dcost = power_quality_cost(M_a,dM_alphadalpha,shape,dshape,ddshape);
+            dcost = power_quality_cost(M_a,dM,shape,dshape,ddshape);
     end
 	
 end
 
-function dcost = torque_cost(M,dM_alphadalpha,shape,dshape,ddshape,metric)
+function dcost = torque_cost(M,dM,shape,dshape,ddshape,metric)
 % Calculates the incremental cost for an inertial system where cost is torque squared.
 % Inputs:
 %   M: Mass matrix
@@ -1104,14 +1107,14 @@ function dcost = torque_cost(M,dM_alphadalpha,shape,dshape,ddshape,metric)
 %   ddshape: Current shape acceleration of system
 
     % Start by calculating the coriolis matrix
-    C = calc_coriolis_matrix(dM_alphadalpha,shape,dshape);
+    C = calc_coriolis_matrix(dM,shape,dshape);
     % Calculate the torque for this instant of time and return the inner
     % product of the torque with itself
     dtau = M*ddshape(:) + C;
     dcost = dtau'*metric*dtau;
 end
 
-function dcost = acceleration_cost(M,dM_alphadalpha,shape,dshape,ddshape,metric)
+function dcost = acceleration_cost(M,dM,shape,dshape,ddshape,metric)
 % Calculates the incremental cost for an inertial system where cost is covariant acceleration.
 % Inputs:
 %   M: Mass matrix
@@ -1122,13 +1125,13 @@ function dcost = acceleration_cost(M,dM_alphadalpha,shape,dshape,ddshape,metric)
 %       dM_alphadalpha were evaluated
 %   dshape: Current shape velocity of system
 %   ddshape: Current shape acceleration of system
-    C = calc_coriolis_matrix(dM_alphadalpha,shape,dshape);
+    C = calc_coriolis_matrix(dM,shape,dshape);
     cov_acc = ddshape(:) + inv(M)*C;
     dcost = cov_acc'*metric*cov_acc;
 
 end
 
-function dcost = power_quality_cost(M,dM_alphadalpha,shape,dshape,ddshape)
+function dcost = power_quality_cost(M,dM,shape,dshape,ddshape)
 % Calculates the incremental cost for an inertial system where cost is power quality.
 % Inputs:
 %   M: Mass matrix
@@ -1141,7 +1144,7 @@ function dcost = power_quality_cost(M,dM_alphadalpha,shape,dshape,ddshape)
 %   ddshape: Current shape acceleration of system
 
     % Start by calculating the coriolis matrix
-    C = calc_coriolis_matrix(dM_alphadalpha,shape,dshape);
+    C = calc_coriolis_matrix(dM,shape,dshape);
     % Calculate the torque for this instant of time 
     dtau = M*ddshape(:) + C;
     % Calculate power quality
@@ -1734,13 +1737,25 @@ function del_cost = inertia_gradient_helper(t,X,s,gait,grad_alpha,grad_alphadot,
     [metric,metricgrad] = getMetricGrad(s,shape,grad_alpha_eval);
     
     % Get mass and partial mass matrices
-    M = cellfun(@(C) interpn(s.grid.mass_eval{:},C,...
-        shapelist{:},'spline'),s.massfield.mass_eval.content.M_alpha);
-    dM_alphadalpha = calc_partial_mass(s,shapelist);
-    ddM_alphadalpha = calc_second_partial_mass(s,shapelist);
+    M = cellfun(@(C) interpn(s.grid.metric_eval{:},C,...
+        shapelist{:},'spline'),s.metricfield.metric_eval.content.metric);
+    
+    dM = cell(size(s.coriolisfield.coriolis_eval.content.dM));
+    for idx_component = 1:numel(dM)
+        dM{idx_component} = cellfun(@(C) interpn(s.grid.metric_eval{:},C,...
+            shapelist{:},'spline'),s.coriolisfield.coriolis_eval.content.dM{idx_component});
+                %calc_partial_mass(s,shapelist);
+    end
+    
+    ddM = cell(size(s.coriolisfield.coriolis_eval.content.ddM));
+    for idx_component = 1:numel(ddM)    
+        ddM{idx_component} = cellfun(@(C) interpn(s.grid.metric_eval{:},C,...
+            shapelist{:},'spline'),s.coriolisfield.coriolis_eval.content.ddM{idx_component});
+                %calc_second_partial_mass(s,shapelist);
+    end
     
     % Regular torque calculation
-    C = calc_coriolis_matrix(dM_alphadalpha,shape,dshape);
+    C = calc_coriolis_matrix(dM,shape,dshape);
     tau = M*ddshape(:) + C;
     
     for i = 1:numel(grad_alpha_eval)
@@ -1753,7 +1768,7 @@ function del_cost = inertia_gradient_helper(t,X,s,gait,grad_alpha,grad_alphadot,
         % Start with effect of gradient on M_alpha*alphaddot
         M_temp = zeros(length(shapelist));
         for j = 1:length(shapelist)
-            M_temp = M_temp + dM_alphadalpha{j}*del_shape(j);
+            M_temp = M_temp + dM{j}*del_shape(j);
         end
         % Catching for debugging
         try
@@ -1769,12 +1784,12 @@ function del_cost = inertia_gradient_helper(t,X,s,gait,grad_alpha,grad_alphadot,
         for j = 1:length(shapelist)
             Cj_temp = zeros(length(shapelist));
             for k = 1:length(shapelist)
-                Cj_temp = Cj_temp + ddM_alphadalpha{j,k}*del_shape(k);
+                Cj_temp = Cj_temp + ddM{j,k}*del_shape(k);
             end
             del_dM_alphadalpha{j} = Cj_temp;
             C1_partialgrad = C1_partialgrad + Cj_temp*dshape(j);
-            C1_shapegrad = C1_shapegrad + dM_alphadalpha{j}*del_dshape(j);
-            C1_outergrad = C1_outergrad + dM_alphadalpha{j}*dshape(j);
+            C1_shapegrad = C1_shapegrad + dM{j}*del_dshape(j);
+            C1_outergrad = C1_outergrad + dM{j}*dshape(j);
         end
         C1_grad = (C1_partialgrad + C1_shapegrad)*dshape(:) + ...
             C1_outergrad*del_dshape(:);
@@ -1782,9 +1797,9 @@ function del_cost = inertia_gradient_helper(t,X,s,gait,grad_alpha,grad_alphadot,
         % Effect of gradient on -(1/2)*alphadot'*dM_alphadalpha*alphadot
         C2_grad = zeros(size(shapelist(:)));
         for j = 1:length(shapelist)
-            C2_grad(j) = del_dshape(:)'*dM_alphadalpha{j}*dshape(:) + ...
+            C2_grad(j) = del_dshape(:)'*dM{j}*dshape(:) + ...
                 dshape(:)'*del_dM_alphadalpha{j}*dshape(:) + ...
-                dshape(:)'*dM_alphadalpha{j}*del_dshape(:);
+                dshape(:)'*dM{j}*del_dshape(:);
         end
         
         % Gradient of torque
@@ -1832,18 +1847,32 @@ function del_cost = acceleration_gradient_helper(t,X,s,gait,grad_alpha,grad_alph
     [metric,metricgrad] = getMetricGrad(s,shape,grad_alpha_eval);
     
     % Get mass and partial mass matrices
-    M = cellfun(@(C) interpn(s.grid.mass_eval{:},C,...
-        shapelist{:},'spline'),s.massfield.mass_eval.content.M_alpha);
-    Malpha_inv = inv(M);
-    dM_alphadalpha = calc_partial_mass(s,shapelist);
-    ddM_alphadalpha = calc_second_partial_mass(s,shapelist);
+    M = cellfun(@(C) interpn(s.grid.metric_eval{:},C,...
+        shapelist{:},'spline'),s.metricfield.metric_eval.content.metric);
+    
+    % Using inverse enough that it's worth it to calc once upfront
+    M_inv = inv(M);
+    
+    dM = cell(size(s.coriolisfield.coriolis_eval.content.dM));
+    for idx_component = 1:numel(dM)
+        dM{idx_component} = cellfun(@(C) interpn(s.grid.metric_eval{:},C,...
+            shapelist{:},'spline'),s.coriolisfield.coriolis_eval.content.dM{idx_component});
+                %calc_partial_mass(s,shapelist);
+    end
+    
+    ddM = cell(size(s.coriolisfield.coriolis_eval.content.ddM));
+    for idx_component = 1:numel(ddM)    
+        ddM{idx_component} = cellfun(@(C) interpn(s.grid.metric_eval{:},C,...
+            shapelist{:},'spline'),s.coriolisfield.coriolis_eval.content.ddM{idx_component});
+                %calc_second_partial_mass(s,shapelist);
+    end
     
     % Regular torque calculation
-    C = calc_coriolis_matrix(dM_alphadalpha,shape,dshape);
+    C = calc_coriolis_matrix(dM,shape,dshape);
     tau = M*ddshape(:) + C;
     
     %Covariant acceleration calculation
-    cov_acc = Malpha_inv*tau;
+    cov_acc = M_inv*tau;
     
     for i = 1:numel(grad_alpha_eval)
         % Partial of shape variables with respect to fourier coefficient i
@@ -1855,7 +1884,7 @@ function del_cost = acceleration_gradient_helper(t,X,s,gait,grad_alpha,grad_alph
         % Start with effect of gradient on M_alpha*alphaddot
         M_temp = zeros(length(shapelist));
         for j = 1:length(shapelist)
-            M_temp = M_temp + dM_alphadalpha{j}*del_shape(j);
+            M_temp = M_temp + dM{j}*del_shape(j);
         end
         
         % Catching for debugging
@@ -1870,7 +1899,7 @@ function del_cost = acceleration_gradient_helper(t,X,s,gait,grad_alpha,grad_alph
         for j = 1:length(shapelist)
             %Formula from matrix cookbook
             %d(M^-1)=-M^-1*dM*M^-1
-            dM_alphainv_dalpha = -Malpha_inv*dM_alphadalpha{j}*Malpha_inv;
+            dM_alphainv_dalpha = -M_inv*dM{j}*M_inv;
             Minv_grad = Minv_grad + dM_alphainv_dalpha*del_shape(j);
         end
         
@@ -1882,12 +1911,12 @@ function del_cost = acceleration_gradient_helper(t,X,s,gait,grad_alpha,grad_alph
         for j = 1:length(shapelist)
             Cj_temp = zeros(length(shapelist));
             for k = 1:length(shapelist)
-                Cj_temp = Cj_temp + ddM_alphadalpha{j,k}*del_shape(k);
+                Cj_temp = Cj_temp + ddM{j,k}*del_shape(k);
             end
             del_dM_alphadalpha{j} = Cj_temp;
             C1_partialgrad = C1_partialgrad + Cj_temp*dshape(j);
-            C1_shapegrad = C1_shapegrad + dM_alphadalpha{j}*del_dshape(j);
-            C1_outergrad = C1_outergrad + dM_alphadalpha{j}*dshape(j);
+            C1_shapegrad = C1_shapegrad + dM{j}*del_dshape(j);
+            C1_outergrad = C1_outergrad + dM{j}*dshape(j);
         end
         C1_grad = (C1_partialgrad + C1_shapegrad)*dshape(:) + ...
             C1_outergrad*del_dshape(:);
@@ -1895,14 +1924,14 @@ function del_cost = acceleration_gradient_helper(t,X,s,gait,grad_alpha,grad_alph
         % Effect of gradient on -(1/2)*alphadot'*dM_alphadalpha*alphadot
         C2_grad = zeros(size(shapelist(:)));
         for j = 1:length(shapelist)
-            C2_grad(j) = del_dshape(:)'*dM_alphadalpha{j}*dshape(:) + ...
+            C2_grad(j) = del_dshape(:)'*dM{j}*dshape(:) + ...
                 dshape(:)'*del_dM_alphadalpha{j}*dshape(:) + ...
-                dshape(:)'*dM_alphadalpha{j}*del_dshape(:);
+                dshape(:)'*dM{j}*del_dshape(:);
         end
         % Gradient of torque
         del_tau = M_grad + C1_grad - (1/2)*C2_grad;
         % Gradient of covariant acc
-        del_cov_acc = Minv_grad*tau(:)+Malpha_inv*del_tau(:);
+        del_cov_acc = Minv_grad*tau(:)+M_inv*del_tau(:);
         del_cost(i) = del_cov_acc'*metric*cov_acc...
                     + cov_acc'*metricgrad{i}*cov_acc...
                     + cov_acc'*metric*del_cov_acc;
