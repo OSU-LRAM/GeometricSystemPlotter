@@ -9,7 +9,7 @@ function s = evaluate_metric_derivatives(s)
     
     % Now construct an nx1 cell array to hold the derivatives of M with
     % respect to the shape variables
-    dM = repmat({M},1,numel(grid));
+    dM = repmat({M},numel(grid),1);
     
     %%%%%%
     % Now fill the cell array with the gradient of M (using ndgradient

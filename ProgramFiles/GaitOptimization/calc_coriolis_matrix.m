@@ -1,6 +1,6 @@
-function C = calc_coriolis_matrix(dM,dshape)
+function C = calc_coriolis_matrix(dM,shape,dshape)
     % Start with (dM_alpha/dalpha*qdot)*qdot terms
-    C_temp = zeros(length(dshape));
+    C_temp = zeros(length(shape));
     if isa(dM{1},'sym')
         C_temp = sym(C_temp);
     end
@@ -9,7 +9,7 @@ function C = calc_coriolis_matrix(dM,dshape)
     end
     C = C_temp*dshape(:);
     % Add on the (-1/2)*qdot'*dM_alpha/dalpha*qdot terms
-    C_temp = zeros(length(dshape),1);
+    C_temp = zeros(length(shape),1);
     if isa(dM{1},'sym')
         C_temp = sym(C_temp);
     end

@@ -1125,7 +1125,7 @@ function dcost = acceleration_cost(M,dM,shape,dshape,ddshape,metric)
 %       dM_alphadalpha were evaluated
 %   dshape: Current shape velocity of system
 %   ddshape: Current shape acceleration of system
-    C = calc_coriolis_matrix(dM,dshape);
+    C = calc_coriolis_matrix(dM,shape,dshape);
     cov_acc = ddshape(:) + inv(M)*C;
     dcost = cov_acc'*metric*cov_acc;
 
@@ -1275,7 +1275,91 @@ end
 % end
 % end
 
+function [grad_alphaddot,grad_alphadot,grad_alpha] = shape_grad(n,y,g)
+% Calculates the gradient of the shape position, velocity, and acceleration
+% with respect to the fourier coefficients.
+% Inputs:
+%   n: Number of points composing the gait when using shape-space
+%       parametrization
+%   y: Set of fourier coefficients parametrizing the gait
+%   g: Time period of the gait
 
+% Get the fourier frequency, number of shape variables, and number of
+% fourier coefficientsinertia_cost_gradient
+w = y(end,:);
+dim = size(y,2);
+num_coeffs = size(y,1);
+% Initialize cell array of function handles to hold the partials of the
+% shape variables with respect to the fourier coefficients
+grad_alpha = cell(num_coeffs,dim);
+grad_alphadot = cell(num_coeffs,dim);
+grad_alphaddot = cell(num_coeffs,dim);
+
+for i = 1:num_coeffs 
+    for j = 1:dim
+        % Coefficient a_0 is a lone scalar, so partials with respect to it
+        % are zero for the dotted terms and 1 for alpha
+        if i == 1
+            grad_alpha{i,j} = @(t) [0*(1:j-1), 1, 0*(j+1:dim)];
+            grad_alphadot{i,j} = @(t) zeros(1,dim);
+            grad_alphaddot{i,j} = @(t) zeros(1,dim);
+            continue
+        elseif i == num_coeffs % Partial w.r.t. frequency
+            grad_alpha{i,j} = @(t) [0*(1:j-1), t*(-y(2,j)*sin(w(j)*t) + y(3,j)*cos(w(j)*t) - ...
+                                               2*y(4,j)*sin(2*w(j)*t) + 2*y(5,j)*cos(2*w(j)*t) - ...
+                                               3*y(6,j)*sin(3*w(j)*t) + 3*y(7,j)*cos(3*w(j)*t) - ...
+                                               4*y(8,j)*sin(4*w(j)*t) + 4*y(9,j)*cos(4*w(j)*t)), ...
+                                    0*(j+1:dim)];
+            
+            grad_alphadot{i,j} = @(t) [0*(1:j-1), -y(2,j)*(w(j)*t*cos(w(j)*t)+sin(w(j)*t)) + y(3,j)*(-w(j)*t*sin(w(j)*t)+cos(w(j)*t)) + ...
+                                                  -2*y(4,j)*(2*w(j)*t*cos(2*w(j)*t)+sin(2*w(j)*t)) + 2*y(5,j)*(-2*w(j)*t*sin(2*w(j)*t)+cos(2*w(j)*t)) + ...
+                                                  -3*y(6,j)*(3*w(j)*t*cos(3*w(j)*t)+sin(3*w(j)*t)) + 3*y(7,j)*(-3*w(j)*t*sin(3*w(j)*t)+cos(3*w(j)*t)) + ...
+                                                  -4*y(8,j)*(4*w(j)*t*cos(4*w(j)*t)+sin(4*w(j)*t)) + 4*y(9,j)*(-4*w(j)*t*sin(4*w(j)*t)+cos(4*w(j)*t)), ...
+                                      0*(j+1:dim)];
+            
+            grad_alphaddot{i,j} = @(t) [0*(1:j-1), -y(2,j)*w(j)*(-t*w(j)*sin(w(j)*t)+2*cos(w(j)*t)) - y(3,j)*w(j)*(t*w(j)*cos(w(j)*t)+2*sin(w(j)*t)) + ...
+                                                   -4*y(4,j)*w(j)*(-2*t*w(j)*sin(2*w(j)*t)+2*cos(2*w(j)*t)) - 4*y(5,j)*w(j)*(2*t*w(j)*cos(2*w(j)*t)+2*sin(2*w(j)*t)) + ...
+                                                   -9*y(6,j)*w(j)*(-3*t*w(j)*sin(3*w(j)*t)+2*cos(3*w(j)*t)) - 9*y(7,j)*w(j)*(3*t*w(j)*cos(3*w(j)*t)+2*sin(3*w(j)*t)) + ...
+                                                   -16*y(8,j)*w(j)*(-4*t*w(j)*sin(4*w(j)*t)+2*cos(4*w(j)*t)) - 16*y(9,j)*w(j)*(4*t*w(j)*cos(4*w(j)*t)+2*sin(4*w(j)*t)), ...
+                                       0*(j+1:dim)];
+            continue
+        end
+        % For partial alpha, a_n is associated with cosine and b_n is
+        % associated with sine; a_n terms are every second row entry in y
+        % with the b_n terms in between
+        if mod(i,2) == 0
+            trig = @cos;
+        else
+            trig = @sin;
+        end
+        % mult comes from the multiplier of the natural frequency for
+        % increasing fourier coefficients
+        mult = floor(i/2);
+        
+        grad_alpha{i,j} = @(t) [0*(1:j-1), trig(mult*w(j)*t), 0*(j+1:dim)];
+        % For partial alphadot, a_n is associated with sine and b_n is
+        % associated with cosine; the a_n terms are every second row entry 
+        % in y with the b_n terms in between
+        if mod(i,2) == 0
+            trig = @sin;
+        else
+            trig = @cos;
+        end
+        
+        grad_alphadot{i,j} = @(t) [0*(1:j-1), (-1)^(i-1)*mult*w(j)*trig(mult*w(j)*t), 0*(j+1:dim)];
+        
+        % For partial alphaddot, a_n is associated with cosine and b_n is
+        % associated with sine
+        if mod(i,2) == 0
+            trig = @cos;
+        else
+            trig = @sin;
+        end
+        
+        grad_alphaddot{i,j} = @(t) [0*(1:j-1), -mult^2*w(j)^2*trig(mult*w(j)*t), 0*(j+1:dim)];
+    end
+end
+end
 
 function cost_grad = inertia_cost_gradient(s,n,y,g,p,EvaluationMethod)
 % Calculates the gradient of cost for inertial systems.
@@ -1311,12 +1395,10 @@ function cost_grad = inertia_cost_gradient(s,n,y,g,p,EvaluationMethod)
                     cost_grad = cost_grad + reshape(del_cost,size(cost_grad)).*del_t;
                 end
             case 'covariant acceleration'
-                del_cost = acceleration_gradient_helper(t_pts,[],s,p,grad_alpha,grad_alphadot,grad_alphaddot);
-                cost_grad = cost_grad + reshape(del_cost,size(cost_grad)).*del_t;
-%                 for k = 1:length(t_pts)
-%                     del_cost = acceleration_gradient_helper(t_pts(k),[],s,p,grad_alpha,grad_alphadot,grad_alphaddot);
-%                     cost_grad = cost_grad + reshape(del_cost,size(cost_grad)).*del_t;
-%                 end
+                for k = 1:length(t_pts)
+                    del_cost = acceleration_gradient_helper(t_pts(k),[],s,p,grad_alpha,grad_alphadot,grad_alphaddot);
+                    cost_grad = cost_grad + reshape(del_cost,size(cost_grad)).*del_t;
+                end
             case 'acceleration coord'
                 for k = 1:length(t_pts)
                     del_cost = accelerationcoord_gradient_helper(t_pts(k),[],s,p,grad_alphaddot);
@@ -1752,148 +1834,109 @@ function del_cost = acceleration_gradient_helper(t,X,s,gait,grad_alpha,grad_alph
 %       entry is an array function of time
 
 	% Evaluate gradient of shape variables
-    grad_alpha_eval_temp = cellfun(@(C) C(t'), grad_alpha, 'UniformOutput', false);
-    grad_alphadot_eval_temp = cellfun(@(C) C(t'), grad_alphadot, 'UniformOutput', false);
-    grad_alphaddot_eval_temp = cellfun(@(C) C(t'), grad_alphaddot, 'UniformOutput', false);
-    
-    
+    grad_alpha_eval = cellfun(@(C) C(t), grad_alpha, 'UniformOutput', false);
+    grad_alphadot_eval = cellfun(@(C) C(t), grad_alphadot, 'UniformOutput', false);
+    grad_alphaddot_eval = cellfun(@(C) C(t), grad_alphaddot, 'UniformOutput', false);
+    del_cost = zeros(size(grad_alpha_eval));
     % Get the shape and shape derivative at the current time
-	shape = gait.phi_def(t(:));
-	shapelist= mat2cell(shape,size(shape,1),ones(size(shape,2),1));
-	dshape = gait.dphi_def(t(:));
-    ddshape = gait.ddphi_def(t(:));
-
-    % Reshape the gait gradient terms
-    grad_alpha_eval = repmat({cell(size(grad_alpha_eval_temp))},[size(shape,1),1]);
-    grad_alphadot_eval = repmat({cell(size(grad_alpha_eval_temp))},[size(shape,1),1]);
-    grad_alphaddot_eval = repmat({cell(size(grad_alpha_eval_temp))},[size(shape,1),1]);
-    for idx = 1:numel(grad_alpha_eval)
-        for idx2 = 1:numel(grad_alpha_eval{1})
-            grad_alpha_eval{idx}{idx2} = grad_alpha_eval_temp{idx2}(idx,:);
-            grad_alphadot_eval{idx}{idx2} = grad_alphadot_eval_temp{idx2}(idx,:);
-            grad_alphaddot_eval{idx}{idx2} = grad_alphaddot_eval_temp{idx2}(idx,:);
-        end
-    end
+	shape = gait.phi_def(t);
+	shapelist = num2cell(shape);
+	dshape = gait.dphi_def(t);
+    ddshape = gait.ddphi_def(t);
     
-    del_cost = repmat({zeros(size(grad_alpha_eval{1}))},[size(shape,1),1]);
-
+    [metric,metricgrad] = getMetricGrad(s,shape,grad_alpha_eval);
     
     % Get mass and partial mass matrices
-    M = celltensorconvert(cellfun(@(C) interpn(s.grid.metric_eval{:},C,...
-        shapelist{:},'spline'),s.metricfield.metric_eval.content.metric,'UniformOutput',false));
+    M = cellfun(@(C) interpn(s.grid.metric_eval{:},C,...
+        shapelist{:},'spline'),s.metricfield.metric_eval.content.metric);
     
     % Using inverse enough that it's worth it to calc once upfront
-    M_inv = cellfun(@(C) inv(C), M,'UniformOutput',false);
+    M_inv = inv(M);
     
-    dM_hold = cell(size(s.coriolisfield.coriolis_eval.content.dM));
-    for idx_component = 1:numel(dM_hold)
-        dM_hold{idx_component} = celltensorconvert(cellfun(@(C) interpn(s.grid.metric_eval{:},C,...
-            shapelist{:},'spline'),s.coriolisfield.coriolis_eval.content.dM{idx_component},'UniformOutput',false));
+    dM = cell(size(s.coriolisfield.coriolis_eval.content.dM));
+    for idx_component = 1:numel(dM)
+        dM{idx_component} = cellfun(@(C) interpn(s.grid.metric_eval{:},C,...
+            shapelist{:},'spline'),s.coriolisfield.coriolis_eval.content.dM{idx_component});
                 %calc_partial_mass(s,shapelist);
     end
-    dM = repmat({cell(size(dM_hold))},size(dM_hold{1}));
-    for idx_time = 1:numel(dM)
-        for idx_component = 1:numel(dM{1})
-            dM{idx_time}{idx_component} = dM_hold{idx_component}{idx_time};
-        end
-    end
     
-    
-    ddM_hold = cell(size(s.coriolisfield.coriolis_eval.content.ddM));
-    for idx_component = 1:numel(ddM_hold)    
-        ddM_hold{idx_component} = celltensorconvert(cellfun(@(C) interpn(s.grid.metric_eval{:},C,...
-            shapelist{:},'spline'),s.coriolisfield.coriolis_eval.content.ddM{idx_component},'UniformOutput',false));
+    ddM = cell(size(s.coriolisfield.coriolis_eval.content.ddM));
+    for idx_component = 1:numel(ddM)    
+        ddM{idx_component} = cellfun(@(C) interpn(s.grid.metric_eval{:},C,...
+            shapelist{:},'spline'),s.coriolisfield.coriolis_eval.content.ddM{idx_component});
                 %calc_second_partial_mass(s,shapelist);
-    end
-    ddM = repmat({cell(size(ddM_hold))},size(ddM_hold{1}));
-    for idx_time = 1:numel(ddM)
-        for idx_component = 1:numel(ddM{1})
-            ddM{idx_time}{idx_component} = ddM_hold{idx_component}{idx_time};
-        end
     end
     
     % Regular torque calculation
-    cdShapelist = mat2cell(dshape,ones(size(shape,1),1),size(shape,2));
-    cddShapelist = mat2cell(ddshape,ones(size(shape,1),1),size(shape,2));
-    C = cellfun(@(E,F) calc_coriolis_matrix(E,F),dM,cdShapelist,'UniformOutput',false);
-    tau = cellfun(@(E,F,G) E*F' + G,M,cddShapelist,C,'UniformOutput',false);
+    C = calc_coriolis_matrix(dM,shape,dshape);
+    tau = M*ddshape(:) + C;
     
     %Covariant acceleration calculation
-    cov_acc = cellfun(@(E,F) E*F, M_inv ,tau,'UniformOutput',false);
+    cov_acc = M_inv*tau;
     
-    for idx = 1:numel(M)
-        for idx_row = 1:size(grad_alpha_eval{1},1)
-            for idx_column = 1:size(grad_alpha_eval{1},2)
-                % Partial of shape variables with respect to fourier coefficient i
-                del_shape = grad_alpha_eval{idx}{idx_row};
-                del_dshape = grad_alphadot_eval{idx}{idx_row};
-                del_ddshape = grad_alphaddot_eval{idx}{idx_row};
-
-                % Gradient of torque calculation
-                % Start with effect of gradient on M_alpha*alphaddot
-                M_temp = zeros(length(shapelist));
-                for j = 1:length(shapelist)
-                    M_temp = M_temp + dM{idx}{j}*del_shape(idx,j);
-                end
-
-                % Catching for debugging
-                %try
-                    M_grad = M_temp*ddshape(idx,:)' + M{idx}*del_ddshape(idx,:)';
-                %catch
-                %    M_temp
-                %end
-
-                %Gradient of inverse of mass for covariant acc calculation
-                Minv_grad = zeros(size(M{idx}));
-                for j = 1:length(shapelist)
-                    %Formula from matrix cookbook
-                    %d(M^-1)=-M^-1*dM*M^-1
-                    dM_alphainv_dalpha = -M_inv{idx}*dM{idx}{j}*M_inv{idx};
-                    Minv_grad = Minv_grad + dM_alphainv_dalpha*del_shape(j);
-                end
-
-                % Effect of gradient on dM_alphadalpha*alphadot*alphadot
-                 C1_partialgrad = zeros(length(shapelist));
-                 C1_shapegrad = zeros(length(shapelist));
-                 C1_outergrad = zeros(length(shapelist));
-                del_dM_alphadalpha = cell(size(shapelist));
-                % C1_grad = zeros(length(shapelist));
-    % 
-                for j = 1:length(shapelist)
-                    Cj_temp = zeros(length(shapelist));
-                    for k = 1:length(shapelist)
-                        Cj_temp = Cj_temp + ddM{idx}{j,k}*del_shape(k);
-                    end
-                    del_dM_alphadalpha{j} = Cj_temp;
-                    C1_partialgrad = C1_partialgrad + Cj_temp*dshape(j);
-                    C1_shapegrad = C1_shapegrad + dM{idx}{j}*del_dshape(j);
-                    C1_outergrad = C1_outergrad + dM{idx}{j}*dshape(idx,j);
-                end
-                C1_grad = (C1_partialgrad + C1_shapegrad)*dshape(idx,:)' + ...
-                    C1_outergrad*del_dshape(idx,:)';
-
-                % Effect of gradient on -(1/2)*alphadot'*dM_alphadalpha*alphadot
-                C2_grad = zeros(size(shapelist(:)));
-                for j = 1:length(shapelist)
-                    C2_grad(j) = del_dshape(idx,:)*dM{idx}{j}*dshape(idx,:)' + ...
-                        dshape(idx,:)*del_dM_alphadalpha{j}*dshape(idx,:)' + ...
-                        dshape(idx,:)*dM{idx}{j}*del_dshape(idx,:)';
-                end
-
-                % Gradient of torque
-                    del_tau = M_grad + C1_grad - (1/2)*C2_grad;
-                    % Gradient of covariant acc
-                    del_cov_acc = Minv_grad*tau{idx}(:)+M_inv{idx}*del_tau(:);
-                    disp(idx_row)
-                    disp(idx)
-                    del_cost{idx}(idx_row,idx_column) = del_cov_acc'*M{idx}*cov_acc{idx}...
-                                + cov_acc{idx}'*dM{idx}{idx_column}*cov_acc{idx}...
-                                + cov_acc{idx}'*M{idx}*del_cov_acc;
-            end
-            del_cost{idx} = del_cost{idx}(:);
+    for i = 1:numel(grad_alpha_eval)
+        % Partial of shape variables with respect to fourier coefficient i
+        del_shape = grad_alpha_eval{i};
+        del_dshape = grad_alphadot_eval{i};
+        del_ddshape = grad_alphaddot_eval{i};
+    
+        % Gradient of torque calculation
+        % Start with effect of gradient on M_alpha*alphaddot
+        M_temp = zeros(length(shapelist));
+        for j = 1:length(shapelist)
+            M_temp = M_temp + dM{j}*del_shape(j);
         end
-    end
+        
+        % Catching for debugging
+        try
+            M_grad = M_temp*ddshape(:) + M*del_ddshape(:);
+        catch
+            M_temp
+        end
+        
+        %Gradient of inverse of mass for covariant acc calculation
+        Minv_grad = zeros(length(shapelist));
+        for j = 1:length(shapelist)
+            %Formula from matrix cookbook
+            %d(M^-1)=-M^-1*dM*M^-1
+            dM_alphainv_dalpha = -M_inv*dM{j}*M_inv;
+            Minv_grad = Minv_grad + dM_alphainv_dalpha*del_shape(j);
+        end
+        
+        % Effect of gradient on dM_alphadalpha*alphadot*alphadot
+        C1_partialgrad = zeros(length(shapelist));
+        C1_shapegrad = zeros(length(shapelist));
+        C1_outergrad = zeros(length(shapelist));
+        del_dM_alphadalpha = cell(size(shapelist));
+        for j = 1:length(shapelist)
+            Cj_temp = zeros(length(shapelist));
+            for k = 1:length(shapelist)
+                Cj_temp = Cj_temp + ddM{j,k}*del_shape(k);
+            end
+            del_dM_alphadalpha{j} = Cj_temp;
+            C1_partialgrad = C1_partialgrad + Cj_temp*dshape(j);
+            C1_shapegrad = C1_shapegrad + dM{j}*del_dshape(j);
+            C1_outergrad = C1_outergrad + dM{j}*dshape(j);
+        end
+        C1_grad = (C1_partialgrad + C1_shapegrad)*dshape(:) + ...
+            C1_outergrad*del_dshape(:);
 
+        % Effect of gradient on -(1/2)*alphadot'*dM_alphadalpha*alphadot
+        C2_grad = zeros(size(shapelist(:)));
+        for j = 1:length(shapelist)
+            C2_grad(j) = del_dshape(:)'*dM{j}*dshape(:) + ...
+                dshape(:)'*del_dM_alphadalpha{j}*dshape(:) + ...
+                dshape(:)'*dM{j}*del_dshape(:);
+        end
+        % Gradient of torque
+        del_tau = M_grad + C1_grad - (1/2)*C2_grad;
+        % Gradient of covariant acc
+        del_cov_acc = Minv_grad*tau(:)+M_inv*del_tau(:);
+        del_cost(i) = del_cov_acc'*metric*cov_acc...
+                    + cov_acc'*metricgrad{i}*cov_acc...
+                    + cov_acc'*metric*del_cov_acc;
+    end
+    del_cost = del_cost(:);
 end
 
 function del_cost = accelerationcoord_gradient_helper(t,X,s,gait,grad_alphaddot)
@@ -2036,3 +2079,79 @@ function del_cost = powerquality_gradient_helper(t,X,s,gait,grad_alpha,grad_alph
     del_cost = del_cost(:);
 end
 
+function [metric,metricgrad] = getMetricGrad(s,shape,grad_alpha)
+%Returns metric at a shape position, and gradient of metric w.r.t. fourier
+%coefficients
+
+%s - structure containing metric function
+%shape - array of shape values
+%grad_alpha - gradient of shape values w.r.t. fourier coefficients
+
+
+    %Number of shape variables
+    dimension = numel(shape);
+    %Step size for small step approximation on metric gradient
+    shapestep = 0.0001;
+    
+    %Declare empty grid for metric interpolation
+    interpmetricgrid=cell(1,dimension);
+    for j=1:dimension
+        interpmetricgrid{j} = s.grid.metric_eval{j,1};
+    end
+    
+    %Calculate metric at shape position
+    shapecell = num2cell(shape);
+    
+    %Initialize metric gradient to zero matrix for all fourier coefficients
+    metricgrad = repmat({zeros(dimension)},size(grad_alpha));
+    %If cost function is in coordinate space, metric is always identity
+    if strcmpi(s.costfunction,'pathlength coord') || strcmpi(s.costfunction,'acceleration coord')
+        metric = eye(dimension);
+        return
+    end
+    
+    metric = zeros(dimension);
+    for i = 1:dimension
+        for j = 1:dimension
+            metric(i,j) = interpn(interpmetricgrid{:},s.metricfield.metric_eval.content.metric{i,j},shape(1),shape(2),'spline');
+        end
+    end
+    
+    if isequal(metric,eye(dimension))
+        return
+    end
+    
+    %For each shape variable
+    for j = 1:dimension
+
+        %Calculate gradient of metric w.r.t. that shape variable using
+        %central differencing
+        shapeminus = shape;
+        shapeminus(j) = shape(j) - shapestep;
+        metricminus = zeros(dimension);
+        for i = 1:dimension
+            for k = 1:dimension
+                metricminus(i,k) = interpn(interpmetricgrid{:},s.metricfield.metric_eval.content.metric{i,k},shapeminus(1),shapeminus(2),'spline');
+            end
+        end
+
+        shapeplus = shape;
+        shapeplus(j) = shape(j) + shapestep;
+        metricplus = zeros(dimension);
+        for i = 1:dimension
+            for k = 1:dimension
+                metricplus(i,k) = interpn(interpmetricgrid{:},s.metricfield.metric_eval.content.metric{i,k},shapeplus(1),shapeplus(2),'spline');
+            end
+        end
+
+        thisgrad = (metricplus-metricminus)/(2*shapestep);
+        
+        %Use formula
+        %dMetric/dCoeffs = dMetric/dShape*dShape/dCoeffs
+        for i = 1:numel(grad_alpha)
+            metricgrad{i} = metricgrad{i}+thisgrad*grad_alpha{i}(j);
+        end
+        
+    end
+
+end
