@@ -1,4 +1,4 @@
-function [A, h, J,Omega] = LowRE_local_connection(geometry,physics,shapeparams)
+function [A, h, J,J_full,Omega] = LowRE_local_connection(geometry,physics,shapeparams)
 % Calculate the local connection for a set of curvature bases
 %
 % Inputs:
@@ -29,6 +29,6 @@ switch geometry.type
 end
 
 % Call the physics function identified for the system
-[A, h, J,Omega] = physics_function(geometry,physics,shapeparams);
+[A, h, J,J_full,Omega] = physics_function(geometry,physics,shapeparams);
 
 end

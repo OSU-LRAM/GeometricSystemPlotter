@@ -282,18 +282,20 @@ for i=1:1:n
     end
 end
 
+y_for_interp = mat2cell(y,size(y,1),ones(1,size(y,2)));
+
 for j=1:1:dimension
     interpstateccf{j}=s.grid.eval{j,1};
     interpmetricgrid{j}=s.grid.metric_eval{j,1};
 end
 
 for j=1:dimension*(dimension-1)/2
-    ccf(:,j)=interpn(interpstateccf{:},s.DA_optimized{direction,j},y(:,1),y(:,2),'spline');
+    ccf(:,j)=interpn(interpstateccf{:},s.DA_optimized{direction,j},y_for_interp{:},'spline');
 end
 
 for j=1:1:dimension
     for k=1:1:dimension
-        metric1(:,j,k)=interpn(interpmetricgrid{:},s.metricfield.metric_eval.content.metric{j,k},y(:,1),y(:,2),'spline');
+        metric1(:,j,k)=interpn(interpmetricgrid{:},s.metricfield.metric_eval.content.metric{j,k},y_for_interp{:},'spline');
     end
 end
 
@@ -324,6 +326,7 @@ if strcmpi(s.costfunction,'pathlength coord') || strcmpi(s.costfunction,'acceler
     end
 elseif strcmpi(s.costfunction,'pathlength metric') || strcmpi(s.costfunction,'pathlength metric2')
     y2 = zeros(size(y));
+    y1 = y2;
     for l=1:1:dimension
         for m=1:1:dimension
             if m==l
@@ -334,9 +337,12 @@ elseif strcmpi(s.costfunction,'pathlength metric') || strcmpi(s.costfunction,'pa
                y1(:,m)=y(:,m);
             end
         end
+        y2_for_interp = mat2cell(y2,size(y,1),ones(1,size(y,2)));
+        y1_for_interp = mat2cell(y1,size(y,1),ones(1,size(y,2)));
         for j=1:1:dimension
             for k=1:1:dimension
-                metricgrad1(:,l,j,k)=(interpn(interpmetricgrid{:},s.metricfield.metric_eval.content.metric{j,k},y2(:,1),y2(:,2),'spline')-interpn(interpmetricgrid{:},s.metricfield.metric_eval.content.metric{j,k},y1(:,1),y1(:,2),'spline'))/(2*afactor);
+                metricgrad1(:,l,j,k)=(interpn(interpmetricgrid{:},s.metricfield.metric_eval.content.metric{j,k},y2_for_interp{:},'spline')...
+                    -interpn(interpmetricgrid{:},s.metricfield.metric_eval.content.metric{j,k},y1_for_interp{:},'spline'))/(2*afactor);
             end
         end
         for i=1:n
@@ -1008,7 +1014,12 @@ function [net_disp_orig, net_disp_opt, cost] = evaluate_displacement_and_cost1(s
 	
 	% Convert the final motion into its representation in optimal
 	% coordinates
-	startshape = p.phi_def(0);
+    startshape = zeros(size(s.grid.eval));
+	startshape_def = p.phi_def(0);
+        
+    actual_size = min(numel(startshape),numel(startshape_def));
+    startshape(1:actual_size) = startshape_def(1:actual_size);
+    
 	startshapelist = num2cell(startshape);
 	beta_theta = interpn(s.grid.eval{:},s.B_optimized.eval.Beta{3},startshapelist{:},'spline');
 	net_disp_opt = [cos(beta_theta) sin(beta_theta) 0;...
@@ -1023,10 +1034,21 @@ end
 function [gcirc, dcost] = get_velocities(t,s,gait,ConnectionEval)
 
 	% Get the shape and shape derivative at the current time
-	shape = gait.phi_def(t);
+    shape = zeros(size(s.grid.eval));
+    dshape = zeros(size(s.grid.eval));
+    dshape = zeros(size(s.grid.eval));
+    
+	shape_gait_def = gait.phi_def(t);
+	dshape_gait_def = gait.dphi_def(t);
+    ddshape_gait_def = gait.ddphi_def(t);
+    
+    actual_size = min(numel(shape),numel(shape_gait_def));
+    shape(1:actual_size) = shape_gait_def(1:actual_size);
+    dshape(1:actual_size) = dshape_gait_def(1:actual_size);
+    ddshape(1:actual_size) = ddshape_gait_def(1:actual_size);
+            
+    
 	shapelist = num2cell(shape);
-	dshape = gait.dphi_def(t);
-    ddshape = gait.ddphi_def(t);
 	
 	% Get the local connection and metric at the current time, in the new coordinates
 	switch ConnectionEval
