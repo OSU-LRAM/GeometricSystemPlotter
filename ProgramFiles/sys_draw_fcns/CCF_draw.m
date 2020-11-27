@@ -303,15 +303,23 @@ function plot_info = CCF_draw(s,p,plot_info,sys,shch,resolution)
                     % populate this cell array with zeros
                     y(:)={0};
                     
+                    % Build up a (squared) norm of the constraint curvature
+                    % (using for now the simple in-coordinates norm, could
+                    % introduce the metric later)
+                    Hnorm = zeros(size(H{1}));
+                    for idx_normbuild = 1:size(H,2)
+                        Hnorm = Hnorm+H{function_number,idx_normbuild}.^2;
+                    end
+                    
                     % Get the maximum value, and the index of that value,
                     % for the current CCF
-                    [~, Imax] = max(H{function_number}(:));
+                    [~, Imax] = max(Hnorm(:));
                     [Imax_x,Imax_y,Imax_z] = ind2sub(size(H{function_number}),Imax);
                     
-%                     % Populate y with the location of that point
-%                     for idx_maxpoint = 1:n_dim
-%                         y{idx_maxpoint} = grid{idx_maxpoint}(Imax);
-%                     end
+                    % Populate y with the location of that point
+                    for idx_maxpoint = 1:n_dim
+                        y{idx_maxpoint} = grid{idx_maxpoint}(Imax);
+                    end
                     
                     
                     
