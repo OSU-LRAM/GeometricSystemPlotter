@@ -1036,7 +1036,7 @@ function [gcirc, dcost] = get_velocities(t,s,gait,ConnectionEval)
 	% Get the shape and shape derivative at the current time
     shape = zeros(size(s.grid.eval));
     dshape = zeros(size(s.grid.eval));
-    dshape = zeros(size(s.grid.eval));
+    ddshape = zeros(size(s.grid.eval));
     
 	shape_gait_def = gait.phi_def(t);
 	dshape_gait_def = gait.dphi_def(t);
@@ -1982,7 +1982,14 @@ function del_cost = accelerationcoord_gradient_helper(t,X,s,gait,grad_alphaddot)
     grad_alphaddot_eval = cellfun(@(C) C(t), grad_alphaddot, 'UniformOutput', false);
     del_cost = zeros(size(grad_alphaddot_eval));
     % Get the shape derivative at the current time
-    ddshape = gait.ddphi_def(t);
+    
+    ddshape_def = gait.ddphi_def(t);
+    actual_size = min(numel(s.grid.eval),numel(ddshape_def));
+    ddshape = zeros(size(s.grid.eval));
+    
+    ddshape(1:actual_size) = ddshape_def(1:actual_size);
+    
+    
    
     % Regular cost calculation
     cost = sqrt(ddshape(:)'*ddshape(:));
