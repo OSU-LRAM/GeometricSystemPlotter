@@ -1751,10 +1751,20 @@ function del_cost = inertia_gradient_helper(t,X,s,gait,grad_alpha,grad_alphadot,
     grad_alphaddot_eval = cellfun(@(C) C(t), grad_alphaddot, 'UniformOutput', false);
     del_cost = zeros(size(grad_alpha_eval));
     % Get the shape and shape derivative at the current time
-	shape = gait.phi_def(t);
-	shapelist = num2cell(shape);
-	dshape = gait.dphi_def(t);
-    ddshape = gait.ddphi_def(t);
+    shape = zeros(size(s.grid.eval));
+    dshape = zeros(size(s.grid.eval));
+    ddshape = zeros(size(s.grid.eval));
+    
+	shape_gait_def = gait.phi_def(t);
+	dshape_gait_def = gait.dphi_def(t);
+    ddshape_gait_def = gait.ddphi_def(t);
+    
+    actual_size = min(numel(shape),numel(shape_gait_def));
+    shape(1:actual_size) = shape_gait_def(1:actual_size);
+    dshape(1:actual_size) = dshape_gait_def(1:actual_size);
+    ddshape(1:actual_size) = ddshape_gait_def(1:actual_size);
+
+    shapelist = num2cell(shape);
     
     [metric,metricgrad] = getMetricGrad(s,shape,grad_alpha_eval);
     
