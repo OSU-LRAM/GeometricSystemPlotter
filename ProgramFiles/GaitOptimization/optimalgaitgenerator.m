@@ -1861,10 +1861,21 @@ function del_cost = acceleration_gradient_helper(t,X,s,gait,grad_alpha,grad_alph
     grad_alphaddot_eval = cellfun(@(C) C(t), grad_alphaddot, 'UniformOutput', false);
     del_cost = zeros(size(grad_alpha_eval));
     % Get the shape and shape derivative at the current time
-	shape = gait.phi_def(t);
+    shape = zeros(size(s.grid.eval));
+    dshape = zeros(size(s.grid.eval));
+    ddshape = zeros(size(s.grid.eval));
+    
+	shape_gait_def = gait.phi_def(t);
+	dshape_gait_def = gait.dphi_def(t);
+    ddshape_gait_def = gait.ddphi_def(t);
+    
+    actual_size = min(numel(shape),numel(shape_gait_def));
+    shape(1:actual_size) = shape_gait_def(1:actual_size);
+    dshape(1:actual_size) = dshape_gait_def(1:actual_size);
+    ddshape(1:actual_size) = ddshape_gait_def(1:actual_size);
+            
+    
 	shapelist = num2cell(shape);
-	dshape = gait.dphi_def(t);
-    ddshape = gait.ddphi_def(t);
     
     [metric,metricgrad] = getMetricGrad(s,shape,grad_alpha_eval);
     
@@ -2116,71 +2127,98 @@ function [metric,metricgrad] = getMetricGrad(s,shape,grad_alpha)
 %shape - array of shape values
 %grad_alpha - gradient of shape values w.r.t. fourier coefficients
 
+    n_dim = numel(s.grid.eval);
+    actual_size = min(size(shape,2),n_dim);
 
-    %Number of shape variables
-    dimension = numel(shape);
-    %Step size for small step approximation on metric gradient
-    shapestep = 0.0001;
-    
-    %Declare empty grid for metric interpolation
-    interpmetricgrid=cell(1,dimension);
-    for j=1:dimension
-        interpmetricgrid{j} = s.grid.metric_eval{j,1};
-    end
-    
-    %Calculate metric at shape position
-    shapecell = num2cell(shape);
-    
-    %Initialize metric gradient to zero matrix for all fourier coefficients
-    metricgrad = repmat({zeros(dimension)},size(grad_alpha));
-    %If cost function is in coordinate space, metric is always identity
-    if strcmpi(s.costfunction,'pathlength coord') || strcmpi(s.costfunction,'acceleration coord')
-        metric = eye(dimension);
-        return
-    end
-    
-    metric = zeros(dimension);
-    for i = 1:dimension
-        for j = 1:dimension
-            metric(i,j) = interpn(interpmetricgrid{:},s.metricfield.metric_eval.content.metric{i,j},shape(1),shape(2),'spline');
-        end
-    end
-    
-    if isequal(metric,eye(dimension))
-        return
-    end
-    
-    %For each shape variable
-    for j = 1:dimension
+    procrustes_shape = zeros(1,n_dim);
+    procrustes_shape(1:actual_size) = shape(1:actual_size);
 
-        %Calculate gradient of metric w.r.t. that shape variable using
-        %central differencing
-        shapeminus = shape;
-        shapeminus(j) = shape(j) - shapestep;
-        metricminus = zeros(dimension);
-        for i = 1:dimension
-            for k = 1:dimension
-                metricminus(i,k) = interpn(interpmetricgrid{:},s.metricfield.metric_eval.content.metric{i,k},shapeminus(1),shapeminus(2),'spline');
+    shapelist = mat2cell(procrustes_shape,size(procrustes_shape,1),ones(1,size(procrustes_shape,2)));
+
+    metric = zeros(n_dim);
+    metricgrad_temp = repmat({metric}, size(procrustes_shape));
+    for i = 1:n_dim
+        for j = 1:n_dim
+            metric(i,j) = interpn(s.grid.metric_eval{:},s.metricfield.metric_eval.content.metric{i,j},shapelist{:},'spline');
+            for k=1:numel(metricgrad_temp)
+                metricgrad_temp{k}(i,j) = interpn(s.grid.metric_eval{:},s.coriolisfield.coriolis_eval.content.dM{k}{i,j},shapelist{:},'spline');
             end
         end
-
-        shapeplus = shape;
-        shapeplus(j) = shape(j) + shapestep;
-        metricplus = zeros(dimension);
-        for i = 1:dimension
-            for k = 1:dimension
-                metricplus(i,k) = interpn(interpmetricgrid{:},s.metricfield.metric_eval.content.metric{i,k},shapeplus(1),shapeplus(2),'spline');
-            end
-        end
-
-        thisgrad = (metricplus-metricminus)/(2*shapestep);
-        
-        %Use formula
-        %dMetric/dCoeffs = dMetric/dShape*dShape/dCoeffs
-        for i = 1:numel(grad_alpha)
-            metricgrad{i} = metricgrad{i}+thisgrad*grad_alpha{i}(j);
-        end
-        
     end
+    
+    metricgrad = repmat({zeros(n_dim)},size(grad_alpha));
+    for j = 1:n_dim
+        
+        for k = 1:numel(grad_alpha)
+            metricgrad{k} = metricgrad{k}+ metricgrad_temp{j}*grad_alpha{k}(j);
+        end
+    end
+    
+    
+%     %Number of shape variables
+%     dimension = numel(s.grid.eval);
+%     %Step size for small step approximation on metric gradient
+%     shapestep = 0.0001;
+%     
+%     %Declare empty grid for metric interpolation
+%     interpmetricgrid=cell(1,dimension);
+%     for j=1:dimension
+%         interpmetricgrid{j} = s.grid.metric_eval{j,1};
+%     end
+%     
+%     %Calculate metric at shape position
+%     shapecell = num2cell(shape);
+%     
+%     %Initialize metric gradient to zero matrix for all fourier coefficients
+%     metricgrad = repmat({zeros(dimension)},size(grad_alpha));
+%     %If cost function is in coordinate space, metric is always identity
+%     if strcmpi(s.costfunction,'pathlength coord') || strcmpi(s.costfunction,'acceleration coord')
+%         metric = eye(dimension);
+%         return
+%     end
+%     
+%     metric = zeros(dimension);
+%     for i = 1:dimension
+%         for j = 1:dimension
+%             metric(i,j) = interpn(interpmetricgrid{:},s.metricfield.metric_eval.content.metric{i,j},shape(1),shape(2),'spline');
+%         end
+%     end
+%     
+%     if isequal(metric,eye(dimension))
+%         return
+%     end
+%     
+%     %For each shape variable
+%     for j = 1:dimension
+% 
+%         %Calculate gradient of metric w.r.t. that shape variable using
+%         %central differencing
+%         shapeminus = shape;
+%         shapeminus(j) = shape(j) - shapestep;
+%         metricminus = zeros(dimension);
+%         for i = 1:dimension
+%             for k = 1:dimension
+%                 metricminus(i,k) = interpn(interpmetricgrid{:},s.metricfield.metric_eval.content.metric{i,k},shapeminus(1),shapeminus(2),'spline');
+%             end
+%         end
+% 
+%         shapeplus = shape;
+%         shapeplus(j) = shape(j) + shapestep;
+%         metricplus = zeros(dimension);
+%         for i = 1:dimension
+%             for k = 1:dimension
+%                 metricplus(i,k) = interpn(interpmetricgrid{:},s.metricfield.metric_eval.content.metric{i,k},shapeplus(1),shapeplus(2),'spline');
+%             end
+%         end
+% 
+%         thisgrad = (metricplus-metricminus)/(2*shapestep);
+%         
+%         %Use formula
+%         %dMetric/dCoeffs = dMetric/dShape*dShape/dCoeffs
+%         for i = 1:numel(grad_alpha)
+%             metricgrad{i} = metricgrad{i}+thisgrad*grad_alpha{i}(j);
+%         end
+%         
+%     end
 
 end
