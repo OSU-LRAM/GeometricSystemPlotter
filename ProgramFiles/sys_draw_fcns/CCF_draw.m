@@ -292,90 +292,100 @@ function plot_info = CCF_draw(s,p,plot_info,sys,shch,resolution)
         % interacts with it; it badly needs commenting
         else
 
-            switch plot_info.style
+            %switch plot_info.style
 
-                case 'surface'
+                %case 'surface'
 
-                    % create an empty cell array with as many entries as
-                    % there are dimensions
-                    y=cell(1,n_dim);
-                    
-                    % populate this cell array with zeros
-                    y(:)={0};
-                    
-                    % Build up a (squared) norm of the constraint curvature
-                    % (using for now the simple in-coordinates norm, could
-                    % introduce the metric later)
-                    Hnorm = zeros(size(H{1}));
-                    for idx_normbuild = 1:size(H,2)
-                        Hnorm = Hnorm+H{function_number,idx_normbuild}.^2;
-                    end
-                    
-                    % Get the maximum value, and the index of that value,
-                    % for the current CCF
-                    [~, Imax] = max(Hnorm(:));
-                    [Imax_x,Imax_y,Imax_z] = ind2sub(size(H{function_number}),Imax);
-                    
-                    % Populate y with the location of that point
-                    for idx_maxpoint = 1:n_dim
-                        y{idx_maxpoint} = grid{idx_maxpoint}(Imax);
-                    end
-                    
-                    
-                    
+%                     % create an empty cell array with as many entries as
+%                     % there are dimensions
+%                     y=cell(1,n_dim);
+%                     
+%                     % populate this cell array with zeros
+%                     y(:)={0};
+%                     
+%                     % Build up a (squared) norm of the constraint curvature
+%                     % (using for now the simple in-coordinates norm, could
+%                     % introduce the metric later)
+%                     Hnorm = zeros(size(H{1}));
+%                     for idx_normbuild = 1:size(H,2)
+%                         Hnorm = Hnorm+H{function_number,idx_normbuild}.^2;
+%                     end
+%                     
+%                     % Get the maximum value, and the index of that value,
+%                     % for the current CCF
+%                     [~, Imax] = max(Hnorm(:));
+%                     [Imax_x,Imax_y,Imax_z] = ind2sub(size(H{function_number}),Imax);
+%                     
+%                     % Populate y with the location of that point
+%                     for idx_maxpoint = 1:n_dim
+%                         y{idx_maxpoint} = grid{idx_maxpoint}(Imax);
+%                     end
+%                     
+%                     
+%                     
                     % create a cell array with two fewer elements than
                     % there are dimensions
                     idxt=cell(1,n_dim-2);
                     
                     % populate this cell array with ones
                     idxt(1,:)={1};
-                    
-                    % For every dimension in the problem, create a copy of
-                    % the grid? Not sure why this is named
-                    % "interpstatecurvature"
-                    for j=1:1:n_dim
-                        interpstatecurvature{j}=grid{j,1};
-                    end
-
-                    % Get the value of the curvature at the point y
-                    for j=1:n_dim*(n_dim-1)/2
-                        curvature(:,j)=interpn(interpstatecurvature{:},H{function_number,j},y{:},'cubic');
-                    end
-                    
-                    % Create a skew-symmetric matrix describing the
-                    % orientation of the curvature form
-                    B=[0,curvature(1),curvature(2);
-                        -curvature(1),0,curvature(n_dim);
-                        -curvature(2),-curvature(n_dim),0];
-
-                    % Get the eigenvectors and values of the curvature
-                    % orientation
-                    [V,D]=eig(B);
-                    
-                    % Sort the eigenvalues and eigenvectors
-                    [d,ind] = sort(diag(D));
-                    Ds = D(ind,ind);
-                    Vs = V(:,ind);
-
-
-                    % Get the real component of the eigenvector with the
-                    % largest eigenvalue
-                    X=real(Vs(:,end));
-                    
-                    % Get a vector that is right-hand-positive orthogonal
-                    % to the preceding vector
-                    Y=(Vs(:,end)-X)/(sqrt(-1));
-
-                    % Normalize the X and Y vectors (to make up for the
-                    % fact that they lost length when mapped to real values
-                    Xnorm=X/(norm(X));
-                    Ynorm=Y/(norm(Y));
+%                     
+%                     % For every dimension in the problem, create a copy of
+%                     % the grid? Not sure why this is named
+%                     % "interpstatecurvature"
+%                     for j=1:1:n_dim
+%                         interpstatecurvature{j}=grid{j,1};
+%                     end
+% 
+%                     % Get the value of the curvature at the point y
+%                     for j=1:n_dim*(n_dim-1)/2
+%                         curvature(:,j)=interpn(interpstatecurvature{:},H{function_number,j},y{:},'cubic');
+%                     end
+%                     
+%                     % Create a skew-symmetric matrix describing the
+%                     % orientation of the curvature form
+%                     B=[0,curvature(1),curvature(2);
+%                         -curvature(1),0,curvature(n_dim);
+%                         -curvature(2),-curvature(n_dim),0];
+% 
+%                     % Get the eigenvectors and values of the curvature
+%                     % orientation
+%                     [V,D]=eig(B);
+%                     
+%                     % Sort the eigenvalues and eigenvectors
+%                     [d,ind] = sort(diag(D));
+%                     Ds = D(ind,ind);
+%                     Vs = V(:,ind);
+%                  
+% 
+%                     % Get the real component of the eigenvector with the
+%                     % largest eigenvalue
+%                     X=real(Vs(:,end));
+%                     
+%                     % Get a vector that is right-hand-positive orthogonal
+%                     % to the preceding vector
+%                     Y=(Vs(:,end)-X)/(sqrt(-1));
+% 
+%                     % Normalize the X and Y vectors (to make up for the
+%                     % fact that they lost length when mapped to real values
+%                     Xnorm=X/(norm(X));
+%                     Ynorm=Y/(norm(Y));
 
 %                     normal=cross(Xnorm,Ynorm);
 %                     y=zeros(1,n_dim)
 %                     projnorm=y*normal;
 
                     pointonplane=zeros(1,n_dim);%y'-(y'-projnorm*normal);
+                    
+%                     % Test code
+%                     Xnorm = [1;0;0];
+%                     Ynorm = [0; 0; 1];
+%                     y = {0 0 0};
+
+                    [maxpoint, maxplane, Imax_x, Imax_y, Imax_z,interpstatecurvature] = CCF_maxpoint(H(function_number,:),grid);
+                    Xnorm = maxplane(:,1);
+                    Ynorm = maxplane(:,2);
+                    y = maxpoint;
 
                     % Pull out a 2d x and y grid
                     Xtemp=grid{1,1}(:,:,idxt{:});
@@ -398,8 +408,8 @@ function plot_info = CCF_draw(s,p,plot_info,sys,shch,resolution)
                                 
                                 % Raise or lower the grid so that the
                                 % maxpoint is on the surface
-                                
-                                %zgrid(m,j)=zgrid(m,j) + (zgrid_at_max-y{3});
+                                zshift = y{3}-zgrid_at_max;%(zgrid_at_max-y{3});
+                                zgrid(m,j)=zgrid(m,j) + zshift;
                                 
                                 for k=1:2
                                     curvaturetemp(:,k)=interpn(...
@@ -417,6 +427,7 @@ function plot_info = CCF_draw(s,p,plot_info,sys,shch,resolution)
 
                     meshhandle=pcolor(xgrid,ygrid,-curvatureproj,'Parent',ax);
                     meshhandle.ZData=zgrid;
+                    
 
                     hold on
 
@@ -424,71 +435,71 @@ function plot_info = CCF_draw(s,p,plot_info,sys,shch,resolution)
                     shading(ax,'interp')
                     view(ax,3)
                     
-                case 'contour'
-                    
-                    y=cell(1,n_dim);
-                    y(:)={0};
-                    idxt=cell(1,n_dim-2);
-                    idxt(1,:)={1};
-                    for j=1:1:n_dim
-                        interpstatecurvature{j}=grid{j,1};
-                    end
-
-                    for j=1:n_dim*(n_dim-1)/2
-                        curvature(:,j)=interpn(interpstatecurvature{:},H{function_number,j},y{:},'cubic');
-                    end
-                    
-                    B=[0,curvature(1),curvature(2);-curvature(1),0,curvature(n_dim);-curvature(2),-curvature(n_dim),0];
-
-                    [V,D]=eig(B);
-                    [d,ind] = sort(diag(D));
-                    Ds = D(ind,ind);
-                    Vs = V(:,ind);
-                    
-                    
-                    X=real(Vs(:,end));
-                    Y=(Vs(:,end)-X)/(sqrt(-1));
-                    
-                    Xnorm=X/(norm(X));
-                    Ynorm=Y/(norm(Y));
-
-                    Xtemp=grid{1,1}(:,:,idxt{:});
-                    Ytemp=grid{2,1}(:,:,idxt{:});
-
-                    arsize=length(grid{1,1}(:,1));
-                    idxt2=cell(1,n_dim-3);
-                    idxt2(1,:)={ceil(arsize/2)};
-                    idxt3=cell(1,n_dim-3);
-                    idxt3(1,:)={0};
-                    for m=1:1:arsize
-                        for j=1:1:arsize
-                                xgrid(m,j)=Xtemp(m,j)*Xnorm(1)+Ytemp(m,j)*Ynorm(1);
-                                ygrid(m,j)=Xtemp(m,j)*Xnorm(2)+Ytemp(m,j)*Ynorm(2);
-                                zgrid(m,j)=Xtemp(m,j)*Xnorm(3)+Ytemp(m,j)*Ynorm(3);
-                        end
-                    end
-
-
-                    for idx1=1:length(grid{1,1}(:,1))
-                        for idx2=1:length(grid{2,1}(:,1))
-                            for idx3=1:length(grid{3,1}(:,1))
-                                for k=1:n_dim*(n_dim-1)/2
-                                    curvaturetemp(:,k)=interpn(interpstatecurvature{:},H{function_number,k},grid{2,1}(idx1,idx2,idx3,idxt2{:}),grid{1,1}(idx1,idx2,idx3,idxt2{:}),grid{3,1}(idx1,idx2,idx3,idxt2{:}),idxt3{:},'cubic');
-                                end                                
-                                curvatureproj(idx1,idx2,idx3)=curvaturetemp(1)*(Xnorm(1)*Ynorm(2)-Ynorm(1)*Xnorm(2))+curvaturetemp(2)*(Xnorm(1)*Ynorm(3)-Ynorm(1)*Xnorm(3))+curvaturetemp(n_dim)*(Xnorm(2)*Ynorm(3)-Ynorm(2)*Xnorm(3));
-                            end
-                        end
-                    end
-                               
-
-                   meshhandle=contourslice(grid{2,1}(:,:,:,idxt2{:}),grid{1,1}(:,:,:,idxt2{:}),grid{3,1}(:,:,:,idxt2{:}),curvatureproj,xgrid,ygrid,zgrid,'parent',ax);
-                   view(ax,3)                    
-
-                    hold on
-
-                    colormap(Colorset.colormap_contour); 
-                    view(ax,3)
-            end
+%                 case 'contour'
+%                     
+%                     y=cell(1,n_dim);
+%                     y(:)={0};
+%                     idxt=cell(1,n_dim-2);
+%                     idxt(1,:)={1};
+%                     for j=1:1:n_dim
+%                         interpstatecurvature{j}=grid{j,1};
+%                     end
+% 
+%                     for j=1:n_dim*(n_dim-1)/2
+%                         curvature(:,j)=interpn(interpstatecurvature{:},H{function_number,j},y{:},'cubic');
+%                     end
+%                     
+%                     B=[0,curvature(1),curvature(2);-curvature(1),0,curvature(n_dim);-curvature(2),-curvature(n_dim),0];
+% 
+%                     [V,D]=eig(B);
+%                     [d,ind] = sort(diag(D));
+%                     Ds = D(ind,ind);
+%                     Vs = V(:,ind);
+%                     
+%                     
+%                     X=real(Vs(:,end));
+%                     Y=(Vs(:,end)-X)/(sqrt(-1));
+%                     
+%                     Xnorm=X/(norm(X));
+%                     Ynorm=Y/(norm(Y));
+% 
+%                     Xtemp=grid{1,1}(:,:,idxt{:});
+%                     Ytemp=grid{2,1}(:,:,idxt{:});
+% 
+%                     arsize=length(grid{1,1}(:,1));
+%                     idxt2=cell(1,n_dim-3);
+%                     idxt2(1,:)={ceil(arsize/2)};
+%                     idxt3=cell(1,n_dim-3);
+%                     idxt3(1,:)={0};
+%                     for m=1:1:arsize
+%                         for j=1:1:arsize
+%                                 xgrid(m,j)=Xtemp(m,j)*Xnorm(1)+Ytemp(m,j)*Ynorm(1);
+%                                 ygrid(m,j)=Xtemp(m,j)*Xnorm(2)+Ytemp(m,j)*Ynorm(2);
+%                                 zgrid(m,j)=Xtemp(m,j)*Xnorm(3)+Ytemp(m,j)*Ynorm(3);
+%                         end
+%                     end
+% 
+% 
+%                     for idx1=1:length(grid{1,1}(:,1))
+%                         for idx2=1:length(grid{2,1}(:,1))
+%                             for idx3=1:length(grid{3,1}(:,1))
+%                                 for k=1:n_dim*(n_dim-1)/2
+%                                     curvaturetemp(:,k)=interpn(interpstatecurvature{:},H{function_number,k},grid{2,1}(idx1,idx2,idx3,idxt2{:}),grid{1,1}(idx1,idx2,idx3,idxt2{:}),grid{3,1}(idx1,idx2,idx3,idxt2{:}),idxt3{:},'cubic');
+%                                 end                                
+%                                 curvatureproj(idx1,idx2,idx3)=curvaturetemp(1)*(Xnorm(1)*Ynorm(2)-Ynorm(1)*Xnorm(2))+curvaturetemp(2)*(Xnorm(1)*Ynorm(3)-Ynorm(1)*Xnorm(3))+curvaturetemp(n_dim)*(Xnorm(2)*Ynorm(3)-Ynorm(2)*Xnorm(3));
+%                             end
+%                         end
+%                     end
+%                                
+% 
+%                    meshhandle=contourslice(grid{2,1}(:,:,:,idxt2{:}),grid{1,1}(:,:,:,idxt2{:}),grid{3,1}(:,:,:,idxt2{:}),curvatureproj,xgrid,ygrid,zgrid,'parent',ax);
+%                    view(ax,3)                    
+% 
+%                     hold on
+% 
+%                     colormap(Colorset.colormap_contour); 
+%                     view(ax,3)
+%             end
 
 
         end
@@ -556,6 +567,21 @@ function plot_info = CCF_draw(s,p,plot_info,sys,shch,resolution)
 
                     l_edge = line('Parent',ax,'Xdata',x_edge,'YData',y_edge,'Zdata',z_edge,'Color','k','LineWidth',1);
             end
+            
+        elseif numel(s.grid.eval) > 2
+            
+            edgeres = 30;
+            
+            oldy_edge = [s.grid_range(1)*ones(edgeres,1);linspace(s.grid_range(1),s.grid_range(2),edgeres)';...
+                s.grid_range(2)*ones(edgeres,1);linspace(s.grid_range(2),s.grid_range(1),edgeres)'];
+            oldx_edge = [linspace(s.grid_range(3),s.grid_range(4),edgeres)';s.grid_range(4)*ones(edgeres,1);...
+                linspace(s.grid_range(4),s.grid_range(3),edgeres)';s.grid_range(3)*ones(edgeres,1)];
+            
+            x_edge = oldx_edge * Xnorm(1) + oldy_edge * Ynorm(1);
+            y_edge = oldx_edge * Xnorm(2) + oldy_edge * Ynorm(2);
+            z_edge = (oldx_edge * Xnorm(3)) + (oldy_edge * Ynorm(3)) + zshift;
+            
+            l_edge = line('Parent',ax,'Xdata',x_edge,'YData',y_edge,'Zdata',z_edge,'Color',[.5 .5 .5],'LineWidth',1);
        end
 				
 
