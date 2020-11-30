@@ -1,4 +1,26 @@
 %% definitions
+% Direction names (FF, BF...) refer to the direction of link velocity for
+% each link. These "sub-systems" have constant drag matrices as long as you
+% stay within one, so the old tools for scale-free systems apply. There are
+% other things to call this that might be more
+% intuitive, like "Smooth-Smooth" and "Rough-Smooth" which takes away the
+% ambiguity of which thing is "forward" (link velocity or longitudinal
+% friction?). s stores the information about the system, although not all
+% of the fields are implemented. For example, I'm not worrying about the metric
+% yet. Changing n_dim to 1 broke a lot of the existing code in the standard
+% sysplotter software, which is why I wrote my own script to do the same
+% sort of stuff. In s.geometry, you can see that the lengths are both 1. In
+% s.physics, the drag properties are identical for each link. I use this
+% link symmetry in the proof explaining why FB and BF are the only
+% "sub-systems" that can happen, but I suspect it would still stand if the
+% magnitude of drag numbers or lengths differed between links. It just
+% simplifies things a lot.
+% The rest of this code block is setting up the grids for the shape
+% (referred to as "a" sometimes, but it corresponds to alpha) and shape
+% velocity (referred to as "adot") to test for "consistency" (that for each
+% combination of a and adot, there is exactly one sub-system where the link
+% velocities according to that sub-system match up with the link velocities
+% that sub-system is supposed to be the active sub-system.
 %%%%%%%%%%%%%%%%%%%
 
 direction_names = ["FF","BF","FB","BB"];
