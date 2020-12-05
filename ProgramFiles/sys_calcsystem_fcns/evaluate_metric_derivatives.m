@@ -4,7 +4,7 @@ function s = evaluate_metric_derivatives(s)
 
     % First, extract the metric and the grid
     M = s.metricfield.metric_eval.content.metric;
-    grid = s.grid.eval;
+    grid = s.grid.metric_eval;
     baseline = grid_to_baseline(grid);
     
     % Now construct an nx1 cell array to hold the derivatives of M with

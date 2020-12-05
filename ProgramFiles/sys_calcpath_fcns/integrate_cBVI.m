@@ -39,7 +39,7 @@ function [cBVI, cBVI_opt] = integrate_cBVI(s,p)
 					,struct('method','gauss','tol',1e-6))...
 					,(1:n_g)');
 				
-            catch
+            catch ME
 				
                 if numel(s.grid.eval) == 2
                     warning('Gait curve not sufficiently convex for simple integration. Specify either ''delaunay'' or ''section'' in p.complex_curve{i} to invoke that integration method')
