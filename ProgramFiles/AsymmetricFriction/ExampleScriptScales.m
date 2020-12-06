@@ -20,7 +20,7 @@
 % velocity (referred to as "adot") to test for "consistency" (that for each
 % combination of a and adot, there is exactly one sub-system where the link
 % velocities according to that sub-system match up with the link velocities
-% that sub-system is supposed to be the active sub-system.
+% that sub-system is supposed to be the active sub-system.)
 %%%%%%%%%%%%%%%%%%%
 
 direction_names = ["FF","BF","FB","BB"];
@@ -33,14 +33,54 @@ s = create_grids(s)
 a_grid = s.grid.eval{1};
 adot_grid = s.grid.eval{1}*0.1;
 
-%% figure out which non-scaled systems are consistent in which regions of
-% the shape-shapechange space
+%% test for consistency (count, combination of a and adot, how many sub-systems are consistent: have the link
+% velocities according to that sub-system match up with the link velocities
+% that sub-system is supposed to be the active sub-system.) We expect one
+% sub-system to be consistent at each a-adot combination. Zero being
+% consistent somewhere would be weird and concerning. More than one might
+% happen in more complicated systems (but is observed to not happen here--
+% unless a or adot are zero. When that happens, all consistent sub-systems
+% result in the same body velocity so it doesn't matter, just pick any).
+% TODO: Check if there's anything to document within
+% identify_piecewise_system if there's time. I think it's all boring stuff
+% so I'm skipping for now.
+% Figures/results from this secion:
+% Consistency Count: The Z axis displays how many sub-systems are consistent.
+% There is exactly one consistent sub-system for each nonzero combination
+% of a and adot. The a and adot axes are consistent with all four
+% sub-systems. I think it works out that all four systems give the same
+% velocities at these values.
+% Consistency Summary: The Z axis is a key corresponding to a specific
+% sub-system. Because (other than the a and adot axes) there is only one
+% sub-system consistent at each point, the currently consistent one can be
+% displayed. As explained in the colorbar, BF is dark blue, FB is cyan, and
+% BB is yellow. FF doesn't show up, and BB wouldn't show up either, but
+% because it's last and the code is simple, it's displayed on the axes.
+% This plot shows that only sub-systems FB and BF are ever active, and it's
+% on a simple, per-quadrant basis. The FB quadrants correspond to when the
+% swimmer is "closing" (alpha is getting farther from zero. the shape of
+% the swimmer is getting farther from straight.) and the BF quadrants
+% correspond to when the swimmer is "opening". This conclusion found
+% computationally here is confirmed with a symmetry proof (explained
+% elsewhere), so we know it's true for all friction coefficients that
+% maintain the assumptions in that proof.
+% This result, that the choice of what sub-system to use is so simple and
+% ends up using only two sub-systems instead of four, makes implementing
+% and making sense of the full, scaled system so much easier. It shows that
+% it was really worth it to start with such a simple and symmetric swimmer.
 %%%%%%%%%%%%%%%%%%%
 
 % find which system is consistent when
 [system_map, count] = identify_piecewise_system(s, adot_grid);
 
 % look at symmetry and missing/redundant areas
+figure(3);
+clf(3);
+title("Consistency Count");
+surface(adot_grid, a_grid, count);
+xlabel("\alpha dot");
+ylabel("\alpha");
+
 figure(2);
 clf(2);
 title("Consistency Summary");
