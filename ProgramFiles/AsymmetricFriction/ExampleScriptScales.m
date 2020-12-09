@@ -90,28 +90,36 @@ surface(adot_grid, a_grid, system_map);
 colorbar('Ticks',[1, 2, 3, 4],...
          'TickLabels',direction_names)
     
-%% demonstrate getting velocities and plotting as vectors in body and link
+%% Demonstrate getting velocities and plotting as vectors in body and link
 % origins
 %%%%%%%%%%%%%%%%%%%
 
-% get a body velocity
+% Pick an a and adot on the grid. I can't remember if this is required for
+% any of the code-- it might not be.
 i = 20; j = 30;
-bvel = apply_piecewise_system(s, system_map, 2, 0.1);
+a = a_grid(i);
+adot = adot_grid(j);
+
+% get a body velocity. The relevant sub-system is automatically chosen.
+bvel = apply_piecewise_system(s, system_map, a, adot);
 
 % get link velocities
-lvel = zeros(nlinks, 3); % 3 is x y theta
+lvel = zeros(nlinks, 3); % the 3 is for: x y theta
 
 % get Jfull(alpha)
-[~, ~, J_full, ~, ~] = N_link_chain(s.geometry, a_grid(i));
+[~, ~, J_full, ~, ~] = N_link_chain(s.geometry, a);
 
 for link = 1:nlinks
-    lvel(link, :) = J_full{link} * [bvel; adot_grid(j)];
+    lvel(link, :) = J_full{link} * [bvel; adot];
 end
 
 % plot
-velocity_diagram(s, lvel, bvel, a_grid(i), adot_grid(j), 0, 0);
+velocity_diagram(s, lvel, bvel, a, adot, 0, 0);
 
-%% example of making some gaits
+%% Some example gaits.
+% Input: generate_1D_gait(amplitude, center, phase). The parameters
+% describe a sine wave.
+% Output: two anonymous functions. gait{1} is a(t) and gait{2} is adot(t).
 %%%%%%%%%%%%%%%%%%%
 
 % define gait functions
@@ -123,18 +131,30 @@ tiny_gait_bw = generate_1D_gait(0.5, 0, pi);
 huge_gait = generate_1D_gait(3, 0, 0);
 huge_gait_bw = generate_1D_gait(3, 0, pi);
 
+% Replace centered_gait here with any of the above gaits or your own, and
+% it will be the focus of the following few sections of the script.
 gait = centered_gait;
 
-%% find the displacement and trajectory the ODE solver way
+%% Find the displacement and trajectory using an ODE solver.
+% 
 %%%%%%%%%%%%%%%%%%%
 
-% apply ODE solver
+% Wrapper that does all the details of using ode45. Assumes a gait's period
+% is 2pi, which generate_1D_gait makes sure of.
 sol = asym_solve_gait(s, gait, system_map);
+
+% The gait's displacement is the value of the solution after one period has
+% elapsed.
 gait_displacement = deval(sol, 2*pi)
+
 figure(3);
+% The gait's trajectory can be plotted with this function. It is hardcoded
+% to plot three cycles.
 trajectory_plot(sol);
 
-%% plot frames and turn it into a movie (takes a while)
+%% Plot frames and turn it into a movie.
+% Uses softspace and does three cycles. The plots are saved to F, which can
+% be played back or saved in the following two code blocks.
 %%%%%%%%%%%%%%%%%%%
 
 F = animate_asymmetric_solution(s, sol, gait);
@@ -143,7 +163,7 @@ F = animate_asymmetric_solution(s, sol, gait);
 %%%%%%%%%%%%%%%%%%%
 
 % play movie
-figure('visible','on') %forces animation to be visible in live script
+%figure('visible','on') %forces animation to be visible in live script
 movie(F);
 
 %% save the movie (path might need adjusting)
@@ -154,14 +174,31 @@ movie(F);
 %writeVideo(v, F);
 %close(v);
 
-%% get A as a function of alpha (split into A.positive and A.negative
-% depending on the sign of alphadot)
+%% Get A as a function of alpha (split into A.positive and A.negative
+% depending on the sign of alphadot). For a normal, no-scales system, A(alpha) is
+% independant of adot. For this system, the combination of FB and BF
+% sub-systems, A(alpha) depends on only the sign of adot. A.positive (or,
+% A+) and A.negative (or, A-) correspond to the A that is active when adot
+% is positive or negative, respectively. There is not a one-to-one
+% correspondance between A+, A- and the A's corresponding to FB, BF. Going
+% back to the consistency diagram that showed where FB and BF are valid in
+% the a-adot space, you can see that:
+% A+ uses [the A from the sub-system] FB for positve alpha and BF for
+% negative alpha.
+% A- uses BF for positive alpha and FB for negative alpha.
+% The A's for sub-systems FB and BF are continuous with respect to alpha,
+% but because of this hop between the two at alpha=0, A+ and A- are able to
+% have a discontinuity in derivative at that point. This happens for the x
+% components, as seen in the plot in the next code block. The fact
+% that there isn't a discontinuity in the A's themselves is because the
+% values for A's of FB and BF are identical at that point.
 %%%%%%%%%%%%%%%%%%%
 
 A = get_A_of_alpha(s, a_grid);
 
 %% Make a plot for each of x, y, and theta components of A. Plot A+ and A-
 % on the same axes.
+% TODO: explain what the figure is doing, because it's pretty busy.
 %%%%%%%%%%%%%%%%%%%
 
 % directional glyphs
