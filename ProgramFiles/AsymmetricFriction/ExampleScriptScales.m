@@ -198,11 +198,30 @@ A = get_A_of_alpha(s, a_grid);
 
 %% Make a plot for each of x, y, and theta components of A. Plot A+ and A-
 % on the same axes.
-% TODO: explain what the figure is doing, because it's pretty busy.
+% The first plot shows the components of A broken down into Ax, Ay, and
+% Atheta. On each of these subplots, the black line with triangles pointing
+% in the direction of increasing alpha is A+, and the red with triangles
+% pointing towards decreasing alpha is A-. As the swimmer increases its
+% joint angle alpha, its resulting body velocity scales according to the
+% value of A+ at its current alpha value. As it decreases its joint angle
+% alpha, the same thing happens but according to the current value of A-.
+% Because we are concerned with closed gaits and there is only one degree
+% of freedom, the swimmer must go back over any alpha value it has crossed
+% again, but from the opposite directon. We can then try to approximate a
+% single connection function "Adif" that is A+ - A-. Instead of
+% "integrating" (not the exact thing going on if you're being fancy: slope
+% plots are more) along the gait as we would do to get net displacement
+% from the first figure, we integrate from the minimum alpha of a gait to
+% the maximum alpha of a gait. As long as there's no extra backtracking.
+% For example, a gait that was just the first gait x2 would go twice as
+% far. There's a simpler way to explain this. The second plot shows Adif
+% for x and theta. y is not shown because A+ and A- are equal everywhere.
+% The only source of y displacement is from lie bracket trickery.
 %%%%%%%%%%%%%%%%%%%
 
 % directional glyphs
 figure()
+title("A- and A+");
 tiledlayout(3,1)
 
 % X plot
@@ -223,8 +242,8 @@ plot(ax2,a_grid, A.positive(:,3), 'k>', a_grid, A.negative(:,3), 'r<');
 ylabel(ax2,'A_\theta')
 xlabel(ax2, '\alpha')
 
-% directional glyphs
 figure()
+title("Adif");
 tiledlayout(2,1)
 
 % X plot
@@ -241,6 +260,8 @@ xlabel(ax2, '\alpha')
 
 %% Make slope plots in both styles. I think the "true" option with arrows on
 % the positive direction might be nice.
+% TODO explain slope plots, and the merits of both ways. Might be good to
+% have arrows?
 %%%%%%%%%%%%%%%%%%%
 
 A_sparse = get_A_of_alpha(s, a_grid(1:2:31));
