@@ -260,13 +260,47 @@ xlabel(ax2, '\alpha')
 
 %% Make slope plots in both styles. I think the "true" option with arrows on
 % the positive direction might be nice.
-% TODO explain slope plots, and the merits of both ways. Might be good to
-% have arrows?
+% The more mathematically appropriate way to view the connection function
+% is as a field of slopes, one at each combination of shape variables (in
+% a single-jointed snake, that's one at each value of alpha). (This has to
+% do with it being co-vectors instead of vectors-- right? So scaling is
+% different.) The value of A_x (or A_y, A_theta) is not a height on some
+% axis, but the slope of the function relating alpha to x when alpha is at
+% that point. For one shape variable, you can get away with viewing it as
+% integration(?) but that perspective doesn't generalize correctly to
+% higher dimensions of shape-space. A vector field might be a more helpful
+% metaphor?
+% The first way of plotting, with the multicolored X's, shows A+ and A-
+% slope plots overlaid. The A value at the center of these line
+% segments (where they cross in the x and theta subplots) determines the
+% slope of the line segment. The width of the line segments, the change in
+% alpha, is constant for each line segment. This way, the magnitude of the
+% slope is clearly visible from the height reached by the line segment.
+% However the A+ is only every used for increasing alpha and A- for
+% decreasing alpha, so the part of the red line in the negative direction
+% is never "used" (It's just a slope so it isn't actually being used, but
+% if you think of it metaphorically as a ramp, it's a one-directional ramp
+% from the center of the segment.) and vise-versa for A-. To make a more
+% intuitive plot, I removed the "unused" portions to create the second
+% plot, with the V's. Think of this one as a ramp that's "bent" in the
+% middle. A system without scales would have one straight line for all of
+% its ramps. This system has scales, which "bend" its one straight line.
+% For example, on the Ax sub-plot, starting at any nonzero alpha and
+% increasing alpha will push you up the red A+ ramp: A+x is positive for
+% all nonzero alpha, so the slope is positive. This means the x portion of
+% the body velocity will be increasing during this motion. Now, decreasing
+% alpha puts us on the black A- ramp. The slope for A-x is negative for
+% all nonzero alpha, but we're going backwards on it so the resulting
+% locomotion is the same: a positive x body velocity. I think this result
+% is much more apparent from the V-style slope plot than the X-style slope
+% plot. For example, you can see at a glance that a gait that always
+% remains in the negative alpha region will have a negative-theta,
+% positive-x body velocity.
 %%%%%%%%%%%%%%%%%%%
 
 A_sparse = get_A_of_alpha(s, a_grid(1:2:31));
-slope_plot(a_grid(1:2:31),A_sparse,true)
 slope_plot(a_grid(1:2:31),A_sparse,false)
+slope_plot(a_grid(1:2:31),A_sparse,true)
 
 %% compare a bunch of tiny gaits with different offsets: experimenting with
 % lie brackets, essentially. Probably not something to put into the paper,
