@@ -1,4 +1,4 @@
-function [A, h, J, J_full, omega, M_full, local_inertias, T] = Inertial_connection_discrete(geometry,physics,jointangles)
+function [A, h, J, J_full, omega,M_full] = Inertial_connection_discrete(geometry,physics,jointangles)
 % Calculate the local connection for for an inertial system (floating in space or
 % ideal high-Re fluid)
 %
@@ -58,9 +58,6 @@ function [A, h, J, J_full, omega, M_full, local_inertias, T] = Inertial_connecti
 %       shape velocities to net external forces acting on the base frame,
 %       which must be zero for all achievable motions of the system
 %
-%   local_inertias: The inertia tensor of the link as measured in its fixed
-%       coordinate frame, which includes the added mass from the surrounding
-%       fluid.
 
     %%%%
     % First, get the positions of the links in the chain and their
@@ -77,14 +74,14 @@ function [A, h, J, J_full, omega, M_full, local_inertias, T] = Inertial_connecti
         s.physics = physics;
 
         %Then, get added mass metric using flat-plate panel method
-        [M_full,J,J_full,h,local_inertias] = getAddedMass_NLinkChain(jointangles',s);
+        [M_full,J,J_full,h,~] = getAddedMass_NLinkChain(jointangles',s);
 
         % Pfaffian is first three rows of M_full
         omega = M_full(1:3,:);
 
         % Build the local connection
         A = omega(:,1:3)\omega(:,4:end);
-        T = A;
+       % T = A;
         
         return
     end
@@ -118,6 +115,9 @@ function [A, h, J, J_full, omega, M_full, local_inertias, T] = Inertial_connecti
     
     % Now iterate over each link, calculating the map from system body and
     % shape velocities to forces acting on the body
+    link_inertias = cell(size(link_force_maps));
+    local_inertias = cell(size(link_force_maps));
+    
     for idx = 1:numel(link_force_maps)
         
         [link_inertias{idx},local_inertias{idx}] = Inertia_link(h.pos(idx,:),...            % Position of this link relative to the base frame

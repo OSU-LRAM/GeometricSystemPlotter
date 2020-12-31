@@ -5,13 +5,14 @@ function V = se2_integrator_all_terms(t,X,s,phi_fun,dphi_fun)
 
 	% Get the shape and shape derivative at the current time
 	shape = phi_fun(t);
+    shape = shape(:);
 	shapelist = num2cell(shape);
 	dshape = dphi_fun(t);
     dshape1=dshape(:);
 	n_dim=length(s.vecfield.eval.content.Avec_optimized(1,:));
     
     if length(shape)<n_dim
-        shape=[shape,zeros(1,n_dim-length(shape))];
+        shape=[shape;zeros(n_dim-length(shape),1)];
     end
     shapelist = num2cell(shape);
     if length(dshape)<n_dim

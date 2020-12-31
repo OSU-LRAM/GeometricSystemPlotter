@@ -1,4 +1,4 @@
-function output = sysf_three_link_HighRe(input_mode,pathnames)
+function output = sysf_two_mode_serpenoid(input_mode,pathnames)
 
 	% Default arguments
 	if ~exist('input_mode','var')
@@ -13,7 +13,7 @@ function output = sysf_three_link_HighRe(input_mode,pathnames)
 
 		case 'name'
 
-			output = 'HighRe Continuous Approx: 20-link ellipses, Serpenoid'; % Display name
+			output = 'HighRe Serpenoid, Two-Mode'; % Display name
 
 		case 'dependency'
 
@@ -54,9 +54,7 @@ function output = sysf_three_link_HighRe(input_mode,pathnames)
             %%%%%%
             % Define system physics
             s.physics.fluid_density = 1;
-            s.physics.interaction = 'off';
-           
- 
+         
             %Functional Local connection and dissipation metric
 
 
@@ -65,15 +63,8 @@ function output = sysf_three_link_HighRe(input_mode,pathnames)
                         s.physics,...                            % Physics properties
                         [alpha1,alpha2]);                        % Joint angles
 
-            s.metric = @(alpha1,alpha2) mass_matrix(s.geometry,s.physics,[alpha1,alpha2]);
-             
-            % TODO: These should probably be calculated as part of a larger
-            % wrapping function that's meant to return M and C matrices for
-            % a set of points
-%             s.dJdq = @(alpha1,alpha2) mobile_jacobian_derivative(s.J_full);
-%             s.dMdq = @(alpha1,alpha2) partial_mass_matrix(s.J,s.dJdq,local_inertias,'mobile');
-            s.M_alpha = @(alpha1,alpha2) mass_matrix(s.geometry,s.physics,[alpha1,alpha2]);
-            s.dM_alphadalpha = @(alpha1,alpha2,A_eval,A_grid) shape_partial_mass(s.geometry,s.physics,[alpha1,alpha2],A_eval,A_grid);
+            %s.metric = @(alpha1,alpha2) Inertial_energy_metric(s.geometry,s.physics,[alpha1,alpha2]);
+            s.metric = @(alpha1,alpha2) eye(2);
                     
 			%%%
 			%Processing details

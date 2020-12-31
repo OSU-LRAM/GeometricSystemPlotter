@@ -508,31 +508,31 @@ for idx_baseframe = 1:numel(baseframe)
         % If a transformation matrix is provided as the input, apply it
         % to the base frame (stacked onto any previous base frame)
 
-        elseif isnumeric(baseframe{idx_baseframe})
+    elseif isnumeric(baseframe{idx_baseframe})
 
 
-            if ~exist('J_zero','var')
+        if ~exist('J_zero','var')
 
-                % Identify the first link
-                link_zero = 1;
+            % Identify the first link
+            link_zero = 1;
 
-                % Extract the transform from the end link to itself 
-                frame_zero = eye(3);       
+            % Extract the transform from the end link to itself 
+            frame_zero = eye(3);       
 
-                % Jacobian for base link is zero
-                J_zero = zeros(size(J_temp{1}));
+            % Jacobian for base link is zero
+            J_zero = zeros(size(J_temp{1}));
 
-            end
+        end
 
-            % Step by the provided transformation
-            frame_step = baseframe{idx_baseframe};
+        % Step by the provided transformation
+        frame_step = baseframe{idx_baseframe};
 
-            % Apply the step relatve to the pre-existing frame zero
-            frame_zero = frame_zero * frame_step;
+        % Apply the step relatve to the pre-existing frame zero
+        frame_zero = frame_zero * frame_step;
 
-            % Use the adjoint-inverse of the step to modify the
-            % Jacobian
-            J_zero = Adjinv(frame_step) * J_zero;
+        % Use the adjoint-inverse of the step to modify the
+        % Jacobian
+        J_zero = Adjinv(frame_step) * J_zero;
 
     end
             
