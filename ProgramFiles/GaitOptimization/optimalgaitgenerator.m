@@ -821,7 +821,7 @@ function [net_disp_orig, net_disp_opt, cost] = evaluate_displacement_and_cost1(s
 %
 % IntegrationMethod can specify whether ODE45 or a fixed point
 % (euler-exponential) integration method should be employed. Defaults to
-% ODE, fixed point code is experimental.
+% fixed point, to reduce interpolation overhead computational times.
 %
 % RESOLUTION specifies the number of points for fixed-point resolution
 % evaluation. A future option may support autoconvergence, but ODE
@@ -836,7 +836,7 @@ function [net_disp_orig, net_disp_opt, cost] = evaluate_displacement_and_cost1(s
     
     % if no IntegrationMethod is specified, default to ODE
 	if ~exist('IntegrationMethod','var')
-		IntegrationMethod = 'ODE';
+		IntegrationMethod = 'fixed_step';
 	end
 
     % if no resolution is specified, default to 100 (this only affects
@@ -888,7 +888,9 @@ end
 
 % Evaluate the body velocity and cost velocity (according to system metric)
 % at a given time
-function [gcirc, dcost] = get_velocities(t,s,gait,ConnectionEval)
+function [gcirc, dcost] = get_velocities(t,s,gait,ConnectionEval,A,metric,dM)
+
+    M_a = metric;
 
 	% Get the shape and shape derivative at the current time
     shape = zeros(size(s.grid.eval));
@@ -907,50 +909,20 @@ function [gcirc, dcost] = get_velocities(t,s,gait,ConnectionEval)
     
 	shapelist = num2cell(shape);
 	
+    % If doing functional eval of system (not recommended)
 	% Get the local connection and metric at the current time, in the new coordinates
-	switch ConnectionEval
-		case 'functional'
+	if strcmpi(ConnectionEval,'functional')
 			
-			A = s.A_num(shapelist{:})./s.A_den(shapelist{:});
-			
-            switch s.system_type
-                case 'drag'
-                    M = s.metric(shapelist{:});
-                case 'inertia'
-                    error('Functional ConnectionEval method not supported for inertia systems!')
-            end
+        A = s.A_num(shapelist{:})./s.A_den(shapelist{:});
 
-		case 'interpolated'
-			
-			A = -cellfun(@(C) interpn(s.grid.eval{:},C,shapelist{:},'spline'),...
-                s.vecfield.eval.content.Avec);
-			
-            metric =  cellfun(@(C) interpn(s.grid.metric_eval{:},C,...
-                shapelist{:},'spline'),s.metricfield.metric_eval.content.metric);
-            switch s.costfunction
-                %If our cost is from the coordinate space
-                case {'pathlength coord','acceleration coord'}
-                    %The reimannian metric is the identity
-                    metric = eye(size(metric));
-                %If our cost is inertial
-                case {'torque','covariant acceleration','power quality'}
-                    %Calculate metric
-%                     M_a = cellfun(@(C) interpn(s.grid.mass_eval{:},C,...
-%                         shapelist{:},'spline'),s.massfield.mass_eval.content.M_alpha);
-                    M_a = cellfun(@(C) interpn(s.grid.metric_eval{:},C,...
-                        shapelist{:},'spline'),s.metricfield.metric_eval.content.metric);
+        switch s.system_type
+            case 'drag'
+                metric = s.metric(shapelist{:});
+            case 'inertia'
+                error('Functional ConnectionEval method not supported for inertia systems!')
+        end
 
-                    %And mass matrix derivative
-                    dM = cell(size(shapelist));
-                    for i = 1:length(shapelist)
-                        dM{i} = cellfun(@(C) interpn(s.grid.metric_eval{:},C,...
-                            shapelist{:},'spline'),s.coriolisfield.coriolis_eval.content.dM{i});
-                    end
-            end
-			
-		otherwise
-			error('Unknown method for evaluating local connection');
-	end
+    end
 	
 	% Get the body velocity at the current time
 	%t;
@@ -1054,11 +1026,77 @@ function [net_disp_orig, cost] = fixed_step_integrator(s,gait,tspan,ConnectionEv
 	% Generate the fixed points from the time span and resolution
 	tpoints = linspace(tspan(1),tspan(2),res);
 	tsteps = gradient(tpoints);
+    
+    %Prep interpolation inputs for velocities function
+    shape = zeros(size(s.grid.eval));
+    shape_gait_def_0 = readGait(gait.phi_def,0);
+    actual_size = min(numel(shape),numel(shape_gait_def_0));
+    
+    samplePoints = {};
+    for dim = 1:actual_size
+        samplePoints{dim} = [];
+    end
+    
+    for time = tpoints
+        shape_gait_def = readGait(gait.phi_def,time);
+        shape(1:actual_size) = shape_gait_def(1:actual_size);
+        for dim = 1:numel(shape)
+            samplePoints{dim}(end+1) = shape(dim); 
+        end
+    end
+    
+    indexList = 1:numel(tpoints);
+    id = eye(actual_size);
+    
+    As = cellfun(@(C) -interpn(s.grid.eval{:},C,...
+        samplePoints{:},'spline'),s.vecfield.eval.content.Avec,...
+        'UniformOutput',false);
+    As = celltensorconvert(As);
+    
+    switch s.costfunction
+        case {'pathlength coord','acceleration coord'}
+            %In the case of these two cost functions, we only care about
+            %the connection field, and the metric is always identity.
+            %dM is passed a filler value
+            [xi,dcost] = arrayfun(@(t,i) get_velocities(t,s,gait,ConnectionEval,As{i},id,1),...
+                tpoints,indexList,'UniformOutput',false);
+        case {'torque','covariant acceleration','power quality'}
+            %In the inertial cases, we need to calculate dM, and the metric
+            metrics = cellfun(@(C) interpn(s.grid.metric_eval{:},C,...
+                samplePoints{:},'spline'),s.metricfield.metric_eval.content.metric,...
+                'UniformOutput',false);
+            metrics = celltensorconvert(metrics);
+            
+            dM_set = {};
+            for dim = 1:actual_size
+                dM_holder = cellfun(@(C) interpn(s.grid.metric_eval{:},C,...
+                    samplePoints{:},'spline'),s.coriolisfield.coriolis_eval.content.dM{dim},...
+                    'UniformOutput',false);
+                dM_holder = celltensorconvert(dM_holder);
+                dM_set{dim} = dM_holder;
+            end
+            dMs = {};
+            for i = 1:numel(tpoints)
+                dMs{i} = {};
+                for dim = 1:actual_size
+                    dMs{i}{dim} = dM_set{dim}{i};
+                end
+            end
+            
+            [xi,dcost] = arrayfun(@(t,i) get_velocities(t,s,gait,ConnectionEval,...
+                As{i},metrics{i},dMs{i}),tpoints,indexList,'UniformOutput',false);
+        otherwise
+            %Otherwise, we're not doing inertial so don't need dM, but we
+            %do care about the metric and connection
+            metrics = cellfun(@(C) interpn(s.grid.metric_eval{:},C,...
+                samplePoints{:},'spline'),s.metricfield.metric_eval.content.metric,...
+                'UniformOutput',false);
+            metrics = celltensorconvert(metrics);
+            
+            [xi,dcost] = arrayfun(@(t,i) get_velocities(t,s,gait,ConnectionEval,...
+                As{i},metrics{i},1),tpoints,indexList,'UniformOutput',false);
+    end
 
-	% Evaluate the velocity function at each time
-	[xi, dcost] = arrayfun(@(t) get_velocities(t,s,gait,ConnectionEval),tpoints,'UniformOutput',false);
-	
-	
 	%%%%%%%
 	% Integrate cost and displacement into final values
 	
@@ -1889,72 +1927,5 @@ function [metric,metricgrad] = getMetricGrad(s,shape,grad_alpha)
             metricgrad{k} = metricgrad{k}+ metricgrad_temp{j}*grad_alpha{k}(j);
         end
     end
-    
-    
-%     %Number of shape variables
-%     dimension = numel(s.grid.eval);
-%     %Step size for small step approximation on metric gradient
-%     shapestep = 0.0001;
-%     
-%     %Declare empty grid for metric interpolation
-%     interpmetricgrid=cell(1,dimension);
-%     for j=1:dimension
-%         interpmetricgrid{j} = s.grid.metric_eval{j,1};
-%     end
-%     
-%     %Calculate metric at shape position
-%     shapecell = num2cell(shape);
-%     
-%     %Initialize metric gradient to zero matrix for all fourier coefficients
-%     metricgrad = repmat({zeros(dimension)},size(grad_alpha));
-%     %If cost function is in coordinate space, metric is always identity
-%     if strcmpi(s.costfunction,'pathlength coord') || strcmpi(s.costfunction,'acceleration coord')
-%         metric = eye(dimension);
-%         return
-%     end
-%     
-%     metric = zeros(dimension);
-%     for i = 1:dimension
-%         for j = 1:dimension
-%             metric(i,j) = interpn(interpmetricgrid{:},s.metricfield.metric_eval.content.metric{i,j},shape(1),shape(2),'spline');
-%         end
-%     end
-%     
-%     if isequal(metric,eye(dimension))
-%         return
-%     end
-%     
-%     %For each shape variable
-%     for j = 1:dimension
-% 
-%         %Calculate gradient of metric w.r.t. that shape variable using
-%         %central differencing
-%         shapeminus = shape;
-%         shapeminus(j) = shape(j) - shapestep;
-%         metricminus = zeros(dimension);
-%         for i = 1:dimension
-%             for k = 1:dimension
-%                 metricminus(i,k) = interpn(interpmetricgrid{:},s.metricfield.metric_eval.content.metric{i,k},shapeminus(1),shapeminus(2),'spline');
-%             end
-%         end
-% 
-%         shapeplus = shape;
-%         shapeplus(j) = shape(j) + shapestep;
-%         metricplus = zeros(dimension);
-%         for i = 1:dimension
-%             for k = 1:dimension
-%                 metricplus(i,k) = interpn(interpmetricgrid{:},s.metricfield.metric_eval.content.metric{i,k},shapeplus(1),shapeplus(2),'spline');
-%             end
-%         end
-% 
-%         thisgrad = (metricplus-metricminus)/(2*shapestep);
-%         
-%         %Use formula
-%         %dMetric/dCoeffs = dMetric/dShape*dShape/dCoeffs
-%         for i = 1:numel(grad_alpha)
-%             metricgrad{i} = metricgrad{i}+thisgrad*grad_alpha{i}(j);
-%         end
-%         
-%     end
 
 end
