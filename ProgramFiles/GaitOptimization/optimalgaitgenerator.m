@@ -794,97 +794,6 @@ pause(0.05)
 stop=false;
 end
 
-function [net_disp_orig, net_disp_opt, cost] = evaluate_displacement_and_cost1(s,p,tspan,ConnectionEval,IntegrationMethod,resolution)
-% Evaluate the displacement and cost for the gait specified in the
-% structure GAIT when executed by the system described in the structure
-% S.
-%
-% S should be a sysplotter 's' structure loaded from a file
-% sysf_FILENAME_calc.mat (note the _calc suffix)
-%
-% P should be a structure with fields "phi_def" and "dphi_def", returning a
-% vector of shapes and shape velocities respectively. If it is not
-% convenient to analytically describe the shape velocity function,
-% gait.dphi should be defined as 
-%
-% p.dphi =  @(t) jacobianest(@(T) p.phi (T),t)
-%
-% as is done automatically by sysplotter, but note that this will be slower
-% than specifying a function directly
-%
-% ConnectionEval can specify whether the local connection should be generated from
-% its original function definiton, or by interpolation into the evaluated
-% matrix, but is optional. Valid options are 'functional' or
-% 'interpolated'. Defaults to "interpolated", which significantly faster
-% when calculating the local connection or metric from scratch takes
-% appreciable computational time
-%
-% IntegrationMethod can specify whether ODE45 or a fixed point
-% (euler-exponential) integration method should be employed. Defaults to
-% fixed point, to reduce interpolation overhead computational times.
-%
-% RESOLUTION specifies the number of points for fixed-point resolution
-% evaluation. A future option may support autoconvergence, but ODE
-% performance with interpolated evaluation appears to be fast enough that
-% refinement of fixed-point performance is on hold.
-	
-
-	% if no ConnectionEval method is specified, default to interpolated
-	if ~exist('ConnectionEval','var')
-		ConnectionEval = 'interpolated';
-	end
-    
-    % if no IntegrationMethod is specified, default to ODE
-	if ~exist('IntegrationMethod','var')
-		IntegrationMethod = 'fixed_step';
-	end
-
-    % if no resolution is specified, default to 100 (this only affects
-    % fixed_step integration)
-	if ~exist('resolution','var')
-		resolution = 100;
-	end
-
-    
-    
-	switch IntegrationMethod
-		
-		case 'fixed_step'
-			
-			[net_disp_orig, cost] = fixed_step_integrator(s,p,tspan,ConnectionEval,resolution);
-        
-        case 'ODE'
-
-            % Calculate the system motion over the gait
-            sol = ode45(@(t,y) helper_function(t,y,s,p,ConnectionEval),tspan,[0 0 0 0]');
-
-            % Extract the final motion
-            disp_and_cost = deval(sol,tspan(end));
-
-            net_disp_orig = disp_and_cost(1:3);
-            cost = disp_and_cost(end);
-            
-        otherwise
-			error('Unknown method for integrating motion');
-	end
-
-	
-	% Convert the final motion into its representation in optimal
-	% coordinates
-    startshape = zeros(size(s.grid.eval));
-	startshape_def = readGait(p.phi_def,0);
-        
-    actual_size = min(numel(startshape),numel(startshape_def));
-    startshape(1:actual_size) = startshape_def(1:actual_size);
-    
-	startshapelist = num2cell(startshape);
-	beta_theta = interpn(s.grid.eval{:},s.B_optimized.eval.Beta{3},startshapelist{:},'spline');
-	net_disp_opt = [cos(beta_theta) sin(beta_theta) 0;...
-		-sin(beta_theta) cos(beta_theta) 0;...
-		0 0 1]*net_disp_orig;
-
-	
-end
 
 % Evaluate the body velocity and cost velocity (according to system metric)
 % at a given time
@@ -1006,6 +915,98 @@ function dcost = power_quality_cost(M,dM,shape,dshape,ddshape)
     % Calculate power quality
     dcost = (dshape(:)'*dtau)^2 - ((dshape(:)').^2*dtau.^2);
     dcost = dcost + 100;
+end
+
+function [net_disp_orig, net_disp_opt, cost] = evaluate_displacement_and_cost1(s,p,tspan,ConnectionEval,IntegrationMethod,resolution)
+% Evaluate the displacement and cost for the gait specified in the
+% structure GAIT when executed by the system described in the structure
+% S.
+%
+% S should be a sysplotter 's' structure loaded from a file
+% sysf_FILENAME_calc.mat (note the _calc suffix)
+%
+% P should be a structure with fields "phi_def" and "dphi_def", returning a
+% vector of shapes and shape velocities respectively. If it is not
+% convenient to analytically describe the shape velocity function,
+% gait.dphi should be defined as 
+%
+% p.dphi =  @(t) jacobianest(@(T) p.phi (T),t)
+%
+% as is done automatically by sysplotter, but note that this will be slower
+% than specifying a function directly
+%
+% ConnectionEval can specify whether the local connection should be generated from
+% its original function definiton, or by interpolation into the evaluated
+% matrix, but is optional. Valid options are 'functional' or
+% 'interpolated'. Defaults to "interpolated", which significantly faster
+% when calculating the local connection or metric from scratch takes
+% appreciable computational time
+%
+% IntegrationMethod can specify whether ODE45 or a fixed point
+% (euler-exponential) integration method should be employed. Defaults to
+% fixed point, to reduce interpolation overhead computational times.
+%
+% RESOLUTION specifies the number of points for fixed-point resolution
+% evaluation. A future option may support autoconvergence, but ODE
+% performance with interpolated evaluation appears to be fast enough that
+% refinement of fixed-point performance is on hold.
+	
+
+	% if no ConnectionEval method is specified, default to interpolated
+	if ~exist('ConnectionEval','var')
+		ConnectionEval = 'interpolated';
+	end
+    
+    % if no IntegrationMethod is specified, default to ODE
+	if ~exist('IntegrationMethod','var')
+		IntegrationMethod = 'fixed_step';
+	end
+
+    % if no resolution is specified, default to 100 (this only affects
+    % fixed_step integration)
+	if ~exist('resolution','var')
+		resolution = 100;
+	end
+
+    
+    
+	switch IntegrationMethod
+		
+		case 'fixed_step'
+			
+			[net_disp_orig, cost] = fixed_step_integrator(s,p,tspan,ConnectionEval,resolution);
+        
+        case 'ODE'
+
+            % Calculate the system motion over the gait
+            sol = ode45(@(t,y) helper_function(t,y,s,p,ConnectionEval),tspan,[0 0 0 0]');
+
+            % Extract the final motion
+            disp_and_cost = deval(sol,tspan(end));
+
+            net_disp_orig = disp_and_cost(1:3);
+            cost = disp_and_cost(end);
+            
+        otherwise
+			error('Unknown method for integrating motion');
+	end
+
+	
+	% Convert the final motion into its representation in optimal
+	% coordinates
+    startshape = zeros(size(s.grid.eval));
+	startshape_def = readGait(p.phi_def,0);
+        
+    actual_size = min(numel(startshape),numel(startshape_def));
+    startshape(1:actual_size) = startshape_def(1:actual_size);
+    
+	startshapelist = num2cell(startshape);
+	beta_theta = interpn(s.grid.eval{:},s.B_optimized.eval.Beta{3},startshapelist{:},'spline');
+	net_disp_opt = [cos(beta_theta) sin(beta_theta) 0;...
+		-sin(beta_theta) cos(beta_theta) 0;...
+		0 0 1]*net_disp_orig;
+
+	
 end
 
 % Function to integrate up system velocities using a fixed-step method
@@ -1283,7 +1284,7 @@ for i = 1:num_coeffs
 end
 end
 
-function cost_grad = inertia_cost_gradient(s,n,y,g,p,EvaluationMethod)
+function cost_grad = inertia_cost_gradient(s,n,y,g,gait,EvaluationMethod)
 % Calculates the gradient of cost for inertial systems.
 % Inputs:
 %   s: System struct used by sysplotter.
@@ -1291,7 +1292,7 @@ function cost_grad = inertia_cost_gradient(s,n,y,g,p,EvaluationMethod)
 %       space.
 %   y: Fourier coefficients that parametrize the gait.
 %   g: Time period over which gait is executed.
-%   p: Struct containing fields:
+%   gait: Struct containing fields:
 %       phi_def: array function that returns shape at time value t
 %       dphi_def: array function that returns shape velocity at time t
 %       ddphi_def: array function that returns shape acceleration at time t
@@ -1310,25 +1311,83 @@ function cost_grad = inertia_cost_gradient(s,n,y,g,p,EvaluationMethod)
         num_pts = 100;
         t_pts = linspace(0,g,num_pts);
         del_t = t_pts(2) - t_pts(1);
+        
+        %Prep interpolation inputs for gradient calcs
+        shape = zeros(size(s.grid.eval));
+        shape_gait_def_0 = readGait(gait.phi_def,0);
+        actual_size = min(numel(shape),numel(shape_gait_def_0));
+        
+        samplePoints = {};
+        for dim = 1:actual_size
+            samplePoints{dim} = [];
+        end
+        
+        for time = t_pts
+            shape_gait_def = readGait(gait.phi_def,time);
+            shape(1:actual_size) = shape_gait_def(1:actual_size);
+            for dim = 1:numel(shape)
+                samplePoints{dim}(end+1) = shape(dim);
+            end
+        end
+        
+        %Batch interpolate the metric at each point along the gait
+        metrics = cellfun(@(C) interpn(s.grid.metric_eval{:},C,...
+            samplePoints{:},'spline'),s.metricfield.metric_eval.content.metric,...
+            'UniformOutput',false);
+        metrics = celltensorconvert(metrics);
+        
+        dM_set = {};
+        for dim = 1:actual_size
+            dM_holder = cellfun(@(C) interpn(s.grid.metric_eval{:},C,...
+                samplePoints{:},'spline'),s.coriolisfield.coriolis_eval.content.dM{dim},...
+                'UniformOutput',false);
+            dM_holder = celltensorconvert(dM_holder);
+            dM_set{dim} = dM_holder;
+        end
+        dMs = {};
+        for i = 1:numel(t_pts)
+            dMs{i} = {};
+            for dim = 1:actual_size
+                dMs{i}{dim} = dM_set{dim}{i};
+            end
+        end
+        
+        empty_ddM = cell(size(s.coriolisfield.coriolis_eval.content.ddM));
+        ddM_set = empty_ddM;
+        for dim = 1:numel(ddM_set)
+            ddM_holder = cellfun(@(C) interpn(s.grid.metric_eval{:},C,...
+                samplePoints{:},'spline'),s.coriolisfield.coriolis_eval.content.ddM{dim},...
+                'UniformOutput',false);
+            ddM_holder = celltensorconvert(ddM_holder);
+            ddM_set{dim} = ddM_holder;
+        end
+        ddMs = {};
+        for i = 1:numel(t_pts)
+            ddMs{i} = empty_ddM;
+            for dim = 1:numel(empty_ddM)
+                ddMs{i}{dim} = ddM_set{dim}{i};
+            end
+        end
+                
         switch s.costfunction
             case 'torque'
                 for k = 1:length(t_pts)
-                    del_cost = inertia_gradient_helper(t_pts(k),[],s,p,grad_alpha,grad_alphadot,grad_alphaddot);
+                    del_cost = inertia_gradient_helper(t_pts(k),[],s,gait,grad_alpha,grad_alphadot,grad_alphaddot,metrics{k},dMs{k},ddMs{k});
                     cost_grad = cost_grad + reshape(del_cost,size(cost_grad)).*del_t;
                 end
             case 'covariant acceleration'
                 for k = 1:length(t_pts)
-                    del_cost = acceleration_gradient_helper(t_pts(k),[],s,p,grad_alpha,grad_alphadot,grad_alphaddot);
+                    del_cost = acceleration_gradient_helper(t_pts(k),[],s,gait,grad_alpha,grad_alphadot,grad_alphaddot,metrics{k},dMs{k},ddMs{k});
                     cost_grad = cost_grad + reshape(del_cost,size(cost_grad)).*del_t;
                 end
             case 'acceleration coord'
                 for k = 1:length(t_pts)
-                    del_cost = accelerationcoord_gradient_helper(t_pts(k),[],s,p,grad_alphaddot);
+                    del_cost = accelerationcoord_gradient_helper(t_pts(k),[],s,gait,grad_alphaddot,metrics{k},dMs{k},ddMs{k});
                     cost_grad = cost_grad + reshape(del_cost,size(cost_grad)).*del_t;
                 end
             case 'power quality'
                 for k = 1:length(t_pts)
-                    del_cost = powerquality_gradient_helper(t_pts(k),[],s,p,grad_alpha,grad_alphadot,grad_alphaddot);
+                    del_cost = powerquality_gradient_helper(t_pts(k),[],s,gait,grad_alpha,grad_alphadot,grad_alphaddot,metrics{k},dMs{k},ddMs{k});
                     cost_grad = cost_grad + reshape(del_cost,size(cost_grad)).*del_t;
                 end
         end
@@ -1338,13 +1397,13 @@ function cost_grad = inertia_cost_gradient(s,n,y,g,p,EvaluationMethod)
     elseif strcmpi(EvaluationMethod,'ode45')
         switch s.costfunction
             case 'torque'
-                sol = ode45(@(t,y) inertia_gradient_helper(t,y,s,p,grad_alpha,grad_alphadot,grad_alphaddot),tspan,cost_grad);
+                sol = ode45(@(t,y) inertia_gradient_helper(t,y,s,gait,grad_alpha,grad_alphadot,grad_alphaddot),tspan,cost_grad);
             case 'covariant acceleration'
-                sol = ode45(@(t,y) acceleration_gradient_helper(t,y,s,p,grad_alpha,grad_alphadot,grad_alphaddot),tspan,cost_grad);
+                sol = ode45(@(t,y) acceleration_gradient_helper(t,y,s,gait,grad_alpha,grad_alphadot,grad_alphaddot),tspan,cost_grad);
             case 'acceleration coord'
-                sol = ode45(@(t,y) accelerationcoord_gradient_helper(t,y,s.p,grad_alphaddot),tspan,cost_grad);
+                sol = ode45(@(t,y) accelerationcoord_gradient_helper(t,y,s,gait,grad_alphaddot),tspan,cost_grad);
             case 'power quality'
-                sol = ode45(@(t,y) powerquality_gradient_helper(t,y,s,p,grad_alpha,grad_alphadot,grad_alphaddot),tspan,cost_grad);
+                sol = ode45(@(t,y) powerquality_gradient_helper(t,y,s,gait,grad_alpha,grad_alphadot,grad_alphaddot),tspan,cost_grad);
         end
         % Extract the final motion
         cost_grad = reshape(deval(sol,tspan(end)),size(cost_grad));
@@ -1487,7 +1546,7 @@ end
 
 end
 
-function del_cost = inertia_gradient_helper(t,X,s,gait,grad_alpha,grad_alphadot,grad_alphaddot)
+function del_cost = inertia_gradient_helper(t,X,s,gait,grad_alpha,grad_alphadot,grad_alphaddot,metric,dM,ddM)
 % Helper function to calculate the gradient of cost for inertia systems.
 % Designed to work with ode45; solves for the gradient of cost at an
 % instant of time t.
@@ -1530,25 +1589,9 @@ function del_cost = inertia_gradient_helper(t,X,s,gait,grad_alpha,grad_alphadot,
 
     shapelist = num2cell(shape);
     
-    [metric,metricgrad] = getMetricGrad(s,shape,grad_alpha_eval);
+    metricgrad = getMetricGrad(s,shape,dM,grad_alpha_eval);
     
-    % Get mass and partial mass matrices
-    M = cellfun(@(C) interpn(s.grid.metric_eval{:},C,...
-        shapelist{:},'spline'),s.metricfield.metric_eval.content.metric);
-    
-    dM = cell(size(s.coriolisfield.coriolis_eval.content.dM));
-    for idx_component = 1:numel(dM)
-        dM{idx_component} = cellfun(@(C) interpn(s.grid.metric_eval{:},C,...
-            shapelist{:},'spline'),s.coriolisfield.coriolis_eval.content.dM{idx_component});
-                %calc_partial_mass(s,shapelist);
-    end
-    
-    ddM = cell(size(s.coriolisfield.coriolis_eval.content.ddM));
-    for idx_component = 1:numel(ddM)    
-        ddM{idx_component} = cellfun(@(C) interpn(s.grid.metric_eval{:},C,...
-            shapelist{:},'spline'),s.coriolisfield.coriolis_eval.content.ddM{idx_component});
-                %calc_second_partial_mass(s,shapelist);
-    end
+    M = metric;
     
     % Regular torque calculation
     C = calc_coriolis_matrix(dM,shape,dshape);
@@ -1607,7 +1650,7 @@ function del_cost = inertia_gradient_helper(t,X,s,gait,grad_alpha,grad_alphadot,
     del_cost = del_cost(:);
 end
 
-function del_cost = acceleration_gradient_helper(t,X,s,gait,grad_alpha,grad_alphadot,grad_alphaddot)
+function del_cost = acceleration_gradient_helper(t,X,s,gait,grad_alpha,grad_alphadot,grad_alphaddot,metric,dM,ddM)
 % Helper function to calculate the gradient of covariant acceleration cost
 % Designed to work with ode45; solves for the gradient of cost at an
 % instant of time t.
@@ -1648,31 +1691,14 @@ function del_cost = acceleration_gradient_helper(t,X,s,gait,grad_alpha,grad_alph
     dshape(1:actual_size) = dshape_gait_def(1:actual_size);
     ddshape(1:actual_size) = ddshape_gait_def(1:actual_size);
             
-    
 	shapelist = num2cell(shape);
     
-    [metric,metricgrad] = getMetricGrad(s,shape,grad_alpha_eval);
+    metricgrad = getMetricGrad(s,shape,dM,grad_alpha_eval);
     
-    % Get mass and partial mass matrices
-    M = cellfun(@(C) interpn(s.grid.metric_eval{:},C,...
-        shapelist{:},'spline'),s.metricfield.metric_eval.content.metric);
+    M = metric;
     
     % Using inverse enough that it's worth it to calc once upfront
     M_inv = inv(M);
-    
-    dM = cell(size(s.coriolisfield.coriolis_eval.content.dM));
-    for idx_component = 1:numel(dM)
-        dM{idx_component} = cellfun(@(C) interpn(s.grid.metric_eval{:},C,...
-            shapelist{:},'spline'),s.coriolisfield.coriolis_eval.content.dM{idx_component});
-                %calc_partial_mass(s,shapelist);
-    end
-    
-    ddM = cell(size(s.coriolisfield.coriolis_eval.content.ddM));
-    for idx_component = 1:numel(ddM)    
-        ddM{idx_component} = cellfun(@(C) interpn(s.grid.metric_eval{:},C,...
-            shapelist{:},'spline'),s.coriolisfield.coriolis_eval.content.ddM{idx_component});
-                %calc_second_partial_mass(s,shapelist);
-    end
     
     % Regular torque calculation
     C = calc_coriolis_matrix(dM,shape,dshape);
@@ -1746,7 +1772,7 @@ function del_cost = acceleration_gradient_helper(t,X,s,gait,grad_alpha,grad_alph
     del_cost = del_cost(:);
 end
 
-function del_cost = accelerationcoord_gradient_helper(t,X,s,gait,grad_alphaddot)
+function del_cost = accelerationcoord_gradient_helper(t,X,s,gait,grad_alphaddot,metric,dM,ddM)
 % Helper function to calculate the gradient of shape-space acceleration
 % cost
 % Designed to work with ode45; solves for the gradient of cost at an
@@ -1773,8 +1799,6 @@ function del_cost = accelerationcoord_gradient_helper(t,X,s,gait,grad_alphaddot)
     ddshape = zeros(size(s.grid.eval));
     
     ddshape(1:actual_size) = ddshape_def(1:actual_size);
-    
-    
    
     % Regular cost calculation
     cost = sqrt(ddshape(:)'*ddshape(:));
@@ -1789,7 +1813,7 @@ function del_cost = accelerationcoord_gradient_helper(t,X,s,gait,grad_alphaddot)
     del_cost = del_cost(:);
 end
 
-function del_cost = powerquality_gradient_helper(t,X,s,gait,grad_alpha,grad_alphadot,grad_alphaddot)
+function del_cost = powerquality_gradient_helper(t,X,s,gait,grad_alpha,grad_alphadot,grad_alphaddot,metric,dM,ddM)
 % Helper function to calculate the gradient of cost for inertia systems.
 % Designed to work with ode45; solves for the gradient of cost at an
 % instant of time t.
@@ -1823,13 +1847,10 @@ function del_cost = powerquality_gradient_helper(t,X,s,gait,grad_alpha,grad_alph
     ddshape = readGait(gait.ddphi_def,t);
     
     % Get mass and partial mass matrices
-    M = cellfun(@(C) interpn(s.grid.mass_eval{:},C,...
-        shapelist{:},'spline'),s.massfield.mass_eval.content.M_alpha);
-    dM_alphadalpha = calc_partial_mass(s,shapelist);
-    ddM_alphadalpha = calc_second_partial_mass(s,shapelist);
+    M = metric;
     
     % Regular torque calculation
-    C = calc_coriolis_matrix(dM_alphadalpha,shape,dshape);
+    C = calc_coriolis_matrix(dM,shape,dshape);
     tau = M*ddshape(:) + C;
     
     for i = 1:numel(grad_alpha_eval)
@@ -1842,7 +1863,7 @@ function del_cost = powerquality_gradient_helper(t,X,s,gait,grad_alpha,grad_alph
         % Start with effect of gradient on M_alpha*alphaddot
         M_temp = zeros(length(shapelist));
         for j = 1:length(shapelist)
-            M_temp = M_temp + dM_alphadalpha{j}*del_shape(j);
+            M_temp = M_temp + dM{j}*del_shape(j);
         end
         % Catching for debugging
         try
@@ -1858,12 +1879,12 @@ function del_cost = powerquality_gradient_helper(t,X,s,gait,grad_alpha,grad_alph
         for j = 1:length(shapelist)
             Cj_temp = zeros(length(shapelist));
             for k = 1:length(shapelist)
-                Cj_temp = Cj_temp + ddM_alphadalpha{j,k}*del_shape(k);
+                Cj_temp = Cj_temp + ddM{j,k}*del_shape(k);
             end
             del_dM_alphadalpha{j} = Cj_temp;
             C1_partialgrad = C1_partialgrad + Cj_temp*dshape(j);
-            C1_shapegrad = C1_shapegrad + dM_alphadalpha{j}*del_dshape(j);
-            C1_outergrad = C1_outergrad + dM_alphadalpha{j}*dshape(j);
+            C1_shapegrad = C1_shapegrad + dM{j}*del_dshape(j);
+            C1_outergrad = C1_outergrad + dM{j}*dshape(j);
         end
         C1_grad = (C1_partialgrad + C1_shapegrad)*dshape(:) + ...
             C1_outergrad*del_dshape(:);
@@ -1871,9 +1892,9 @@ function del_cost = powerquality_gradient_helper(t,X,s,gait,grad_alpha,grad_alph
         % Effect of gradient on -(1/2)*alphadot'*dM_alphadalpha*alphadot
         C2_grad = zeros(size(shapelist(:)));
         for j = 1:length(shapelist)
-            C2_grad(j) = del_dshape(:)'*dM_alphadalpha{j}*dshape(:) + ...
+            C2_grad(j) = del_dshape(:)'*dM{j}*dshape(:) + ...
                 dshape(:)'*del_dM_alphadalpha{j}*dshape(:) + ...
-                dshape(:)'*dM_alphadalpha{j}*del_dshape(:);
+                dshape(:)'*dM{j}*del_dshape(:);
         end
         
         % Gradient of torque
@@ -1893,38 +1914,23 @@ function del_cost = powerquality_gradient_helper(t,X,s,gait,grad_alpha,grad_alph
     del_cost = del_cost(:);
 end
 
-function [metric,metricgrad] = getMetricGrad(s,shape,grad_alpha)
+function metricgrad = getMetricGrad(s,shape,dM,grad_alpha)
 %Returns metric at a shape position, and gradient of metric w.r.t. fourier
 %coefficients
 
 %s - structure containing metric function
 %shape - array of shape values
+%dM - derivative of matrix with respect to shape variables
 %grad_alpha - gradient of shape values w.r.t. fourier coefficients
 
     n_dim = numel(s.grid.eval);
     actual_size = min(size(shape,2),n_dim);
-
-    procrustes_shape = zeros(1,n_dim);
-    procrustes_shape(1:actual_size) = shape(1:actual_size);
-
-    shapelist = mat2cell(procrustes_shape,size(procrustes_shape,1),ones(1,size(procrustes_shape,2)));
-
-    metric = zeros(n_dim);
-    metricgrad_temp = repmat({metric}, size(procrustes_shape));
-    for i = 1:n_dim
-        for j = 1:n_dim
-            metric(i,j) = interpn(s.grid.metric_eval{:},s.metricfield.metric_eval.content.metric{i,j},shapelist{:},'spline');
-            for k=1:numel(metricgrad_temp)
-                metricgrad_temp{k}(i,j) = interpn(s.grid.metric_eval{:},s.coriolisfield.coriolis_eval.content.dM{k}{i,j},shapelist{:},'spline');
-            end
-        end
-    end
     
-    metricgrad = repmat({zeros(n_dim)},size(grad_alpha));
-    for j = 1:n_dim
+    metricgrad = repmat({zeros(actual_size)},size(grad_alpha));
+    for j = 1:actual_size
         
         for k = 1:numel(grad_alpha)
-            metricgrad{k} = metricgrad{k}+ metricgrad_temp{j}*grad_alpha{k}(j);
+            metricgrad{k} = metricgrad{k}+ dM{j}*grad_alpha{k}(j);
         end
     end
 
