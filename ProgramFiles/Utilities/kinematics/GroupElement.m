@@ -1,12 +1,25 @@
 % generalization of a Lie Group element in SE(2) or SE(3)
 classdef GroupElement
+    % relevant representations
     properties
         is_planar;
         vector;
         matrix;
     end
     
-    %TODO: add basic transforms (rotation, displacement)
+    % static transforms, for convenience
+    properties (Constant)
+        % planar
+        LINEAR = GroupElement([1 0 0]);
+        ROTARY = GroupElement([0 0 1]);
+        % 3d
+        LINEAR_X = GroupElement([1 0 0 0 0 0]);
+        LINEAR_Y = GroupElement([0 1 0 0 0 0]);
+        LINEAR_Z = GroupElement([0 0 1 0 0 0]);
+        ROTARY_X = GroupElement([0 0 0 1 0 0]);
+        ROTARY_Y = GroupElement([0 0 0 0 1 0]);
+        ROTARY_Z = GroupElement([0 0 0 0 0 1]);
+    end
     
     methods
         % produces a GroupElement with vector in 2D or 3D
