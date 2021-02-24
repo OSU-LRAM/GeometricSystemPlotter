@@ -54,11 +54,17 @@ classdef AlgebraElement
             obj.vector = rep;
         end
         % exponentiate to convert to group element
-        function lge = to_GroupElement(obj, time)
-            if ~exist('time','var')
-                time = 1;
+        function lge = to_GroupElement(obj)
+            lge = GroupElement(expm(obj.matrix));
+        end
+        function lge = to_GroupElement_Taylor(obj, order)
+            last = eye(size(obj.matrix));
+            res = last;
+            for k = 1:order
+                last = last*obj.matrix/k;
+                res = res + last;
             end
-            lge = GroupElement(expm(time * obj.matrix));
+            lge = GroupElement(res);
         end
     end
 end
