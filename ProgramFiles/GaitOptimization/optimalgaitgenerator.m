@@ -122,6 +122,7 @@ end
 
 printstuff = 1;
 if printstuff
+    disp(['Optimal Efficiency: ',num2str(bestEff)]);
     disp(['Optimal Displacement: ',num2str(bestDisp)]);
     disp(['Optimal Cost: ',num2str(bestCost)]);
 end
@@ -799,8 +800,6 @@ end
 % at a given time
 function [gcirc, dcost] = get_velocities(t,s,gait,ConnectionEval,A,metric,dM)
 
-    M_a = metric;
-
 	% Get the shape and shape derivative at the current time
     shape = zeros(size(s.grid.eval));
     dshape = zeros(size(s.grid.eval));
@@ -814,7 +813,8 @@ function [gcirc, dcost] = get_velocities(t,s,gait,ConnectionEval,A,metric,dM)
     shape(1:actual_size) = shape_gait_def(1:actual_size);
     dshape(1:actual_size) = dshape_gait_def(1:actual_size);
     ddshape(1:actual_size) = ddshape_gait_def(1:actual_size);
-            
+  
+    M_a = metric;
     
 	shapelist = num2cell(shape);
 	
@@ -866,17 +866,12 @@ function dcost = torque_cost(M,dM,shape,dshape,ddshape,metric)
 %   dshape: Current shape velocity of system
 %   ddshape: Current shape acceleration of system
 
-    findLeftPoint = 0;
-    if sqrt((shape(1)+1)^2 + shape(2)^2) < .03 && findLeftPoint
-        disp('Close to point');
-    end
-
     % Start by calculating the coriolis matrix
     C = calc_coriolis_matrix(dM,shape,dshape);
     % Calculate the torque for this instant of time and return the inner
     % product of the torque with itself
     dtau = M*ddshape(:) + C;
-    dcost = dtau'*metric*dtau;
+    dcost = dtau'*dtau;
 end
 
 function dcost = acceleration_cost(M,dM,shape,dshape,ddshape,metric)
@@ -1643,9 +1638,8 @@ function del_cost = inertia_gradient_helper(t,X,s,gait,grad_alpha,grad_alphadot,
         
         % Gradient of torque
         del_tau = M_grad + C1_grad - (1/2)*C2_grad;
-        del_cost(i) = del_tau(:)'*metric*tau(:)...
-                    + tau(:)'*metricgrad{i}*tau(:)...
-                    + tau(:)'*metric*del_tau(:);
+        del_cost(i) = del_tau(:)'*tau(:)...
+                    + tau(:)'*del_tau(:);
     end
     del_cost = del_cost(:);
 end

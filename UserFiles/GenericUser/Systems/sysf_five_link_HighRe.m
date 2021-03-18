@@ -57,8 +57,8 @@ function output = sysf_five_link_HighRe(input_mode,pathnames)
                         s.physics,...                            % Physics properties
                         [alpha1,alpha2,alpha3,alpha4]);                        % Joint angles
 
-            %s.metric = @(alpha1,alpha2,alpha3,alpha4) Inertial_energy_metric(s.geometry,s.physics,[alpha1,alpha2,alpha3,alpha4]);
-            s.metric = @(alpha1,alpha2,alpha3,alpha4) eye(4);
+            s.metric = @(alpha1,alpha2,alpha3,alpha4) Inertial_energy_metric(s.geometry,s.physics,[alpha1,alpha2,alpha3,alpha4]);
+            %s.metric = @(alpha1,alpha2,alpha3,alpha4) eye(4);
              
 %             % TODO: These should probably be calculated as part of a larger
 %             % wrapping function that's meant to return M and C matrices for

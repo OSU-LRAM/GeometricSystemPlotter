@@ -63,8 +63,8 @@ function output = sysf_two_mode_serpenoid(input_mode,pathnames)
                         s.physics,...                            % Physics properties
                         [alpha1,alpha2]);                        % Joint angles
 
-            %s.metric = @(alpha1,alpha2) Inertial_energy_metric(s.geometry,s.physics,[alpha1,alpha2]);
-            s.metric = @(alpha1,alpha2) eye(2);
+            s.metric = @(alpha1,alpha2) Inertial_energy_metric(s.geometry,s.physics,[alpha1,alpha2]);
+            %s.metric = @(alpha1,alpha2) eye(2);
                     
 			%%%
 			%Processing details

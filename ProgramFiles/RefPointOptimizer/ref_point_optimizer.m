@@ -354,6 +354,9 @@ function [Sinv,nodes,cubes] = preprocessor(grid,Vt,weight,data_storage_location)
 		
         try
             load(fullfile(datadir, [input_hash '.mat']),'Sinv','nodes','cubes')
+            %Sometimes Sinv doesn't load if the file is too large.  This is to make it trigger an
+            %error to recalc if it doesn't
+            Sinv;
         catch
 
 
