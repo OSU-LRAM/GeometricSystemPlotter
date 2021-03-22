@@ -199,6 +199,7 @@ function h = create_elements_shapespace(info_needed)
         'stretch',0,...
         'stretchpath', 'null',...
 		'CCFtype','DA',...
+        'stretch_name','none',...
         'style','contour');
 
 	% Identify the data file to draw the plot information from
@@ -314,17 +315,9 @@ function frame_info = execute_gait(frame_info,tau)
     % If there are shape axes, draw the curve from the start time up to the
     % current time onto the axes, and put dots at the beginning and end
 	shapeh = [frame_info{ishape}];
-    if size(frame_info{irobot}.shapedata) > 2
-        zdata_info = frame_info{irobot}.shapedata(1:ceil(tau*end),3);
-        zdata_dot = [frame_info{irobot}.shapedata(1,3) config.shape(3)];
-    else
-        zdata_info = 5*ones(size(frame_info{irobot}.shapedata(1:ceil(tau*end),1)));
-        zdata_dot = [5,5];
-    end
-    
     if ~isempty(shapeh)
-        set([shapeh.tl],'XData',frame_info{irobot}.shapedata(1:ceil(tau*end),1),'YData',frame_info{irobot}.shapedata(1:ceil(tau*end),2),'ZData',zdata_info);
-        set([shapeh.tld],'XData',[frame_info{irobot}.shapedata(1,1) config.shape(1)],'YData',[frame_info{irobot}.shapedata(1,2) config.shape(2)],'ZData',zdata_dot);
+        set([shapeh.tl],'XData',frame_info{irobot}.shapedata(1:ceil(tau*end),1),'YData',frame_info{irobot}.shapedata(1:ceil(tau*end),2),'ZData',5*ones(size(frame_info{irobot}.shapedata(1:ceil(tau*end),1))));
+        set([shapeh.tld],'XData',[frame_info{irobot}.shapedata(1,1) config.shape(1)],'YData',[frame_info{irobot}.shapedata(1,2) config.shape(2)],'ZData',[5,5]);
     end
     
     % Set the print method for the frames
