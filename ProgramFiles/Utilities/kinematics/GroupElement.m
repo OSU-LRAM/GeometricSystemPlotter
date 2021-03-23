@@ -75,15 +75,35 @@ classdef GroupElement
         end
         
         % group actions (convenience functions)
-        function obj = rightAction(obj, other)
+        function obj = right_action(obj, other)
             obj.matrix = obj.matrix * other.matrix;
             obj.vector = [];
             warning("GroupElement constructed from matrix; no vector representation available")
         end
-        function obj = leftAction(obj, other)
+        function obj = left_action(obj, other)
             obj.matrix = other.matrix * obj.matrix;
             obj.vector = [];
             warning("GroupElement constructed from matrix; no vector representation available")
+        end
+        
+        % constructs vector from SE matrix with small angle approximation
+        function [obj, vec] = vector_small_angles(obj)
+            if obj.is_planar
+                vec = [obj.matrix(1:2,3)' -obj.matrix(1,2)]';
+            else
+                angles = [obj.matrix(3,2) -obj.matrix(3,1) obj.matrix(2,1)];
+                vec = [obj.matrix(1:3,4)' angles]';
+            end
+            obj.vector = vec;
+        end
+        function [obj, vec] = vector_true(obj)
+            if obj.is_planar
+                vec = mat_to_vec_SE2(obj.matrix)';
+            else
+                angles = rotm2eul(obj.matrix(1:3, 1:3));
+                vec = [obj.matrix(1:3,4)', flip(angles)]';
+            end
+            obj.vector = vec;
         end
     end
     
