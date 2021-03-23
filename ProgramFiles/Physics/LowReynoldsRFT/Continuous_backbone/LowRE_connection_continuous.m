@@ -1,4 +1,4 @@
-function [A, h, J,Omega] = LowRE_connection_continuous(geometry,physics,shapeparams)
+function [A, h, J,J_full,Omega]= LowRE_connection_continuous(geometry,physics,shapeparams)
 % Calculate the local connection for a set of curvature bases
 %
 % Inputs:
@@ -16,13 +16,13 @@ function [A, h, J,Omega] = LowRE_connection_continuous(geometry,physics,shapepar
 
 
 %Generate backbone geometry and Jacobian from its local definition
-[h,J] = backbone(geometry,shapeparams);
+[h,J,J_full] = backbone(geometry,shapeparams);
 
 % Itegrate from one halflength before the midpoint to one halflength after it
 int_limit = [-0.5 0.5];
 
 % Now integrate to get the pfaffian
-Omega_sol = ode45( @(s,Omega) LowRE_Pfaffian_infinitesimal(s,h(s),J(s),geometry.length,physics.drag_coefficient,physics.drag_ratio),int_limit,zeros(3,3+length(shapeparams)));
+Omega_sol = ode45( @(s,Omega) LowRE_Pfaffian_infinitesimal(s,h(s),J(s),J_full(s),geometry.length,physics.drag_coefficient,physics.drag_ratio),int_limit,zeros(3,3+length(shapeparams)));
 
 % Reshape the terms of the Pfaffian into a matrix of the correct dimension
 Omega = reshape(deval(Omega_sol,int_limit(end)),3,[]);
@@ -35,7 +35,7 @@ A = Omega(:,1:3)\Omega(:,4:end);
 end
 
 
-function dOmega = LowRE_Pfaffian_infinitesimal(s,h,J,lambda,c,drag_ratio) %#ok<INUSL>
+function dOmega = LowRE_Pfaffian_infinitesimal(s,h,J,J_full,lambda,c,drag_ratio) %#ok<INUSL>
 % Calculate the derivative of the local connection as it's built up along
 % the backbone
 

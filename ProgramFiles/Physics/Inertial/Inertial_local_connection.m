@@ -1,5 +1,6 @@
+%function [A, M_a,J_full, local_inertias,M_full,h,J] = Inertial_local_connection(geometry,physics,shapeparams)
 function [A, h, J,J_full,Omega,M_full] = Inertial_local_connection(geometry,physics,shapeparams)
-% Calculate the local connection for an inertial system.
+% Calculate the local connection for a set of curvature bases
 %
 % Inputs:
 % geometry: structure defining system geometry
@@ -9,8 +10,9 @@ function [A, h, J,J_full,Omega,M_full] = Inertial_local_connection(geometry,phys
 %         deformation (e.g., curvature or joint angles)
 %      geometry.length: total length of swimmer
 % physics: structure defining system physics
-%      drag_ratio: ratio of lateral to longitudinal drag
-%      drag_coefficient: drag per unit length
+%      fluid_density: fluid density relative to body density
+%      interactions: boolean as to whether the added mass interactions
+%           between body panels should be considered
 % cparams: value of shape variables
 
 
@@ -23,12 +25,12 @@ switch geometry.type
     case {'curvature basis','curvature bases','general curvature'}
         physics_function = @Inertial_connection_continuous;
         
-    case {'n-link chain'}
+    case {'n-link chain','branched chain'}
         physics_function = @Inertial_connection_discrete;
         
 end
 
 % Call the physics function identified for the system
-[A, h, J,J_full,Omega,M_full] = physics_function(geometry,physics,shapeparams);
+[A, h, J,Omega,J_full,M_full] = physics_function(geometry,physics,shapeparams);
 
 end
