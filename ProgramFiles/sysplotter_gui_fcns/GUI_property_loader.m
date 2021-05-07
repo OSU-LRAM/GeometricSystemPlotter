@@ -16,6 +16,12 @@ for i = 1:numel(props)
             currentProp = handles.(tagNames{j}).(props{i}); % current object property
             userProp = propertyList.(props{i}){j};          % user defined property
             
+            %Stop refresh button from automatically resizing to cover
+            %export button
+            if strcmp(tagNames{j},'refresh_gui')
+                continue
+            end
+            
             % I really need to make this cleaner. Too many if statements
             if ~isequal(currentProp,userProp)
                 % don't change the position of the window
