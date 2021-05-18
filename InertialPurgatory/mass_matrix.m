@@ -1,4 +1,4 @@
-function M_alpha = mass_matrix(geometry,physics,jointangles)
+function M_alpha = mass_matrix(geometry,physics,jointangles,s)
 % Calculates the mass matrix necessary for optimizing the gaits of
 % inertia-dominated swimmers.
 % 
@@ -18,7 +18,7 @@ function M_alpha = mass_matrix(geometry,physics,jointangles)
 %   size (k by k).
 
 % Obtain the general mass matrix and local connection
-[A, ~,~,~,~, M_full, ~] = Inertial_connection_discrete(geometry,physics,jointangles);
+[A, h, J, J_full, omega, M_full, local_inertias] = Inertial_connection_discrete(geometry,physics,jointangles);
 % Pull back the mass matrix to be in terms of the shape variables only
 M_alpha = [-A' eye(size(A,2))]*M_full*[-A; eye(size(A,2))];
 end

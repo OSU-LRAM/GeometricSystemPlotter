@@ -55,6 +55,7 @@ function Mp = LowRE_metric_discrete(geometry,physics,jointangles)
     %%%%%%%
     % 	To calculate this metric, first get the Local Connection, link
     % 	configurations, and full Jacobians for the links
+
     [A,h,~,J_full] = LowRE_local_connection(geometry,physics,jointangles);
 
     %%%%%%%%

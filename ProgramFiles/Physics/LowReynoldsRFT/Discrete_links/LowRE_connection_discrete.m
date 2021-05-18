@@ -93,7 +93,7 @@ function [A, h, J, J_full, omega] = LowRE_connection_discrete(geometry,physics,j
     % shape velocities to forces acting on the body
     for idx = 1:numel(link_force_maps)
         
-        link_force_maps{idx} = LowRE_body_drag_link(h.pos(idx,:),...            % Position of this link relative to the base frame
+        link_force_maps{idx}= LowRE_body_drag_link(h.pos(idx,:),...            % Position of this link relative to the base frame
                                                     J_full{idx},...             % Jacobian from body velocity of base link and shape velocity to body velocity of this link
                                                     h.lengths(idx),...          % Length of this link
                                                     physics.drag_ratio,...      % Ratio of lateral to longitudinal drag
@@ -196,8 +196,6 @@ function omega = LowRE_body_drag_link(h,J_full,L,drag_ratio,c)
         [-L      0               0;
         0    -drag_ratio*L       0;
         0        0           -drag_ratio/12*L^3]*c;
-	
-    
     
     %%%%%%%%%%
     % Mapping from system body and shape velocity to body velocity of the
@@ -207,6 +205,5 @@ function omega = LowRE_body_drag_link(h,J_full,L,drag_ratio,c)
     % therefore
     % product of the two matrices calculated above and J_full
     omega = F_local_to_F_baseframe * gcirc_local_to_F_local * J_full;
-	
 
 end

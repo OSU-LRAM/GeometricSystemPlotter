@@ -1,4 +1,4 @@
-function T = evaluate_tensor_over_grid(tensorfunction,grid,ignore_singular_warning,A_eval,A_grid)
+function T = evaluate_tensor_over_grid(tensorfunction,grid,ignore_singular_warning)
 
 % Check what type of output the tensorfunction produces in response to a
 % grid input (block format in which each section is one component evaluated
@@ -12,23 +12,14 @@ if ~exist('ignore_singular_warning','var')
     ignore_singular_warning = 0;
 end
 
-if exist('A_eval','var') && ~isempty(A_eval)
-    super_special_condition = 1;
-else
-    super_special_condition = 0;
-end
-
 
 % Extract the grid range from the grid
 grid_range = cellfun(@(g) [min(g(:)) max(g(:))],grid,'UniformOutput',false);
 grid_range = cell2mat(grid_range(:)');
 
 % Test the output of the function
-if super_special_condition
-    tensorfunctiontype = test_function_type(tensorfunction,grid_range,ignore_singular_warning,A_eval,A_grid);
-else
-    tensorfunctiontype = test_function_type(tensorfunction,grid_range,ignore_singular_warning);
-end
+tensorfunctiontype = test_function_type(tensorfunction,grid_range,ignore_singular_warning);
+
 
 
 %%%%%%%%%%%%
@@ -79,29 +70,17 @@ switch tensorfunctiontype
             a_point = cellfun(@(ai) ai(par_idx),grid,'UniformOutput',false);
 
             % Evaluate the function at the idx'th point
-            if super_special_condition
-                A_cell{par_idx} = tensorfunction(a_point{:},A_eval,A_grid);
-            else
-                A_cell{par_idx} = tensorfunction(a_point{:});
-            end
+            A_cell{par_idx} = tensorfunction(a_point{:});
             
             warning('on','MATLAB:singularMatrix');
             warning('on','MATLAB:illConditionedMatrix');
             
         end
 
-        if super_special_condition
-            T_temp = cell_layer_swap(A_cell);
-            T = cell(size(T_temp));
-            for i = 1:length(T_temp)
-                T{i} = celltensorconvert(T_temp{i});
-            end
-        else
-            % Swap the inner and outer structure of the cell so
-            % that outer layer is position in the tensor and
-            % inner layer is position in the grid.
-            T = celltensorconvert(A_cell);
-        end
+        % Swap the inner and outer structure of the cell so
+        % that outer layer is position in the tensor and
+        % inner layer is position in the grid.
+        T = celltensorconvert(A_cell);
 
     case 'cell block'
         
