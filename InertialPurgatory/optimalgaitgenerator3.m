@@ -1,4 +1,4 @@
-function y=optimalgaitgenerator4(s,dimension,npoints,a1,a2,a3,a4,lb,ub)
+function y=optimalgaitgenerator3(s,dimension,npoints,a1,a2,a3,lb,ub,direction,handles)
 %%%%%%%%%%%%%%
 % This function takes an input gait and runs fmincon to find the neareast locally 
 % optimal gait
@@ -14,6 +14,7 @@ function y=optimalgaitgenerator4(s,dimension,npoints,a1,a2,a3,a4,lb,ub)
 % a2: Values of the points forming the gait along the second shape dimension
 % lb: Lower bound of shape variables for each point which is obtained from the grid inside which an optimal gait is desired
 % ub: Upper bound of shape variables for each point which is obtained from the grid inside which an optimal gait is desired
+% direction: Direction to optimize travel: 1=x,2=y,3=theta
 % 
 % 
 % Outputs: 
@@ -22,11 +23,16 @@ function y=optimalgaitgenerator4(s,dimension,npoints,a1,a2,a3,a4,lb,ub)
 %%%%%%%%%%%%
 n=npoints;
 
+% for i=1:1:npoints
+%     a1(1,i)=0.1*cos(2*pi*(i-1)/n);
+%     a2(1,i)=0.5*cos(2*pi*(i-1)/n+pi/2);
+%     a3(1,i)=0.5*cos(2*pi*(i-1)/n);
+% end
+
 n=npoints;
 P1(:,1)=a1(1,1:n)';
 P1(:,2)=a2(1,1:n)';
 P1(:,3)=a3(1,1:n)';
-P1(:,4)=a4(1,1:n)';
 %% Finding fourier coeffecients.
 % The first step is to go from a direct transcription of the initial gait
 % to a fourier based parametrization. 
@@ -66,7 +72,7 @@ for i=1:dimension
 end
 
  options = optimoptions('fmincon','SpecifyObjectiveGradient',true,'Display','iter','Algorithm','sqp','SpecifyObjectiveGradient',true,'CheckGradients',false,'FiniteDifferenceType','central','MaxIter',4000,'MaxFunEvals',20000,'TolCon',10^-2,'OutputFcn', @outfun);
- [yf fval exitflag output]=fmincon(@(y) solvedifffmincon(y,s,n,dimension,lb,ub),y0,A,b,Aeq,beq,lb1,ub1,@(y) nonlcon(y,s,n,dimension,lb,ub),options);
+ [yf fval exitflag output]=fmincon(@(y) solvedifffmincon(y,s,n,dimension,direction,lb,ub),y0,A,b,Aeq,beq,lb1,ub1,@(y) nonlcon(y,s,n,dimension,lb,ub),options);
 
 
 %% Getting point position values from the result of fmincon
@@ -101,7 +107,7 @@ y=y1(:);
 
 end
 
-function [f,g]=solvedifffmincon(y,s,n,dimension,lb,ub)
+function [f,g]=solvedifffmincon(y,s,n,dimension,direction,lb,ub)
 %%%%%%%%%%%%%
 % This function calculates efficiency (or displacement, if
 % that is the objective function) and its gradient with respect to the coefficients obtained
@@ -156,7 +162,7 @@ p.dphi_def = @(t) interp1( linspace(0,g,n), [velocityvalues], t); % Shape space 
 
 
 [net_disp_orig, net_disp_opt, cost] = evaluate_displacement_and_cost1(s,p,[0, g],'interpolated','ODE'); % Call to the function that obtains displacement, cost and efficiency of a gait
-lineint=net_disp_opt(1); % displacement produced in the x-direction produced on executing the gait measured in the optimal coordinates 
+lineint=net_disp_opt(direction); % displacement produced in the chosen direction produced on executing the gait measured in the optimal coordinates 
 totalstroke=cost; % Cost of executing the gait ones
 
 % If efficiency is negative, reversing the order of points so that
@@ -200,13 +206,13 @@ end
 
 
 for j=1:dimension*(dimension-1)/2
-    ccf(:,j)=interpn(interpstateccf{:},s.DA_optimized{1,j},y(:,1),y(:,2),y(:,3),y(:,4),'spline');
+    ccf(:,j)=interpn(interpstateccf{:},s.DA_optimized{directions,j},y(:,1),y(:,2),y(:,3),'spline');
 end
 
 
 for j=1:1:dimension
     for k=1:1:dimension
-        metric1(:,j,k)=interpn(interpmetricgrid{:},s.metricfield.metric_eval.content.metric{j,k},y(:,1),y(:,2),y(:,3),y(:,4),'spline');
+        metric1(:,j,k)=interpn(interpmetricgrid{:},s.metricfield.metric_eval.content.metric{j,k},y(:,1),y(:,2),y(:,3),'spline');
     end
 end
 % metric{i}=eye(2);
@@ -230,7 +236,7 @@ for l=1:1:dimension
     end
     for j=1:1:dimension
         for k=1:1:dimension
-            metricgrad1(:,l,j,k)=(interpn(interpmetricgrid{:},s.metricfield.metric_eval.content.metric{j,k},y2(:,1),y2(:,2),y(:,3),y(:,4),'spline')-interpn(interpmetricgrid{:},s.metricfield.metric_eval.content.metric{j,k},y1(:,1),y1(:,2),y(:,3),y(:,4),'spline'))/(2*afactor);
+            metricgrad1(:,l,j,k)=(interpn(interpmetricgrid{:},s.metricfield.metric_eval.content.metric{j,k},y2(:,1),y2(:,2),y(:,3),'spline')-interpn(interpmetricgrid{:},s.metricfield.metric_eval.content.metric{j,k},y1(:,1),y1(:,2),y(:,3),'spline'))/(2*afactor);
         end
     end
     for i=1:n
@@ -616,7 +622,7 @@ Aeq=y(end,:)-2*pi/n*ones(size(y(end,:)));
 
 end
 
-function stop=outfun(y,optimValues,state)
+function stop=outfun(y,optimValues,state,handles)
 %%%%%%%%% 
 %
 %This function plots the current state of the gait on the sysplotter GUI
@@ -626,35 +632,38 @@ function stop=outfun(y,optimValues,state)
 n=100;
 dimension=length(y(1,:));
 
-% The if else statement below deletes gaits 2 iterations after they have been plotted
-if optimValues.iteration>2
-    children=get(gca,'children');
-    delete(children(2));
-else
-end
-
-% The if else statement below fades the gait plotted during the previous iteration
-if optimValues.iteration>1
-    children=get(gca,'children');
-    children(1).Color=[0.5 0.5 0.5];
-    children(1).LineWidth=4;
-else
-end
-% 
-% % The if else statement below plots the gait after every iteration
- if optimValues.iteration>0
-    for i=1:1:n+1
-        for j=1:dimension
-            y1(i,j)=y(1,j)+y(2,j)*cos(i*y(end,j))+y(3,j)*sin(i*y(end,j))+y(4,j)*cos(2*i*y(end,j))+...
-                +y(5,j)*sin(2*i*y(end,j))+y(6,j)*cos(3*i*y(end,j))+y(7,j)*sin(3*i*y(end,j))+...
-                +y(8,j)*cos(4*i*y(end,j))+y(9,j)*sin(4*i*y(end,j));%+y(10,j)*cos(5*i*y(end,j))+y(11,j)*sin(5*i*y(end,j));%+y(12,j)*cos(6*i*y(end,j))+y(13,j)*sin(6*i*y(end,j));
-        end    
+for thisAxes = [1:numel(handles.plot_thumbnails.Children)]
+    
+    axes(handles.plot_thumbnails.Children(thisAxes));
+    % The if else statement below deletes gaits 2 iterations after they have been plotted
+    if optimValues.iteration>2
+        children=get(gca,'children');
+        delete(children(2));
+    else
     end
-    hold on
-    handle1=plot3(y1(:,1),y1(:,2),y1(:,3),'k','linewidth',3);
-else
-end
 
+    % The if else statement below fades the gait plotted during the previous iteration
+    if optimValues.iteration>1
+        children=get(gca,'children');
+        children(1).Color=[0.5 0.5 0.5];
+        children(1).LineWidth=4;
+    else
+    end
+    % 
+    % % The if else statement below plots the gait after every iteration
+     if optimValues.iteration>0
+        for i=1:1:n+1
+            for j=1:dimension
+                y1(i,j)=y(1,j)+y(2,j)*cos(i*y(end,j))+y(3,j)*sin(i*y(end,j))+y(4,j)*cos(2*i*y(end,j))+...
+                    +y(5,j)*sin(2*i*y(end,j))+y(6,j)*cos(3*i*y(end,j))+y(7,j)*sin(3*i*y(end,j))+...
+                    +y(8,j)*cos(4*i*y(end,j))+y(9,j)*sin(4*i*y(end,j));%+y(10,j)*cos(5*i*y(end,j))+y(11,j)*sin(5*i*y(end,j));%+y(12,j)*cos(6*i*y(end,j))+y(13,j)*sin(6*i*y(end,j));
+            end    
+        end
+        hold on
+        handle1=plot3(y1(:,1),y1(:,2),y1(:,3),'k','linewidth',3);
+    else
+     end
+end
 
 pause(0.1)
 stop=false;

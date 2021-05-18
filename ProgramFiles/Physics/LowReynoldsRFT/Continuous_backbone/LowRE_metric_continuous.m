@@ -8,7 +8,7 @@ function Mp = LowRE_metric_continuous(geometry,physics,shapeparams)
 	drag_matrix = [1 0; 0 physics.drag_ratio]*physics.drag_coefficient;
 
 	% Get the backbone locus, Jacobian, and Local Connection functions
-	[A, h, J] = LowRE_local_connection(geometry,physics,shapeparams);
+    [A,~,~,~,~,h,J] = LowRE_local_connection(geometry,physics,shapeparams);
 
 	% Integrate along the body for the power metric
 	Mp_sol = ode45(@(s,Mp) dMetric(s,Mp,A,h(s/geometry.length),J(s/geometry.length),drag_matrix),int_limit,zeros(length(shapeparams)));%zeros(length(shapeparams)^2,1));

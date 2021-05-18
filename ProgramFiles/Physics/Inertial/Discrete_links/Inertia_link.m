@@ -1,4 +1,4 @@
-function [Inertia_link_system,Inertia_link_local] = Inertia_link(h,J_full,L,link_shape,link_shape_parameters,fluid_density)
+function [Inertia_link_system,Inertia_link_local] = Inertia_link(h,J_full,L,link_shape_parameters,fluid_density)
 % Calculate the matrix that maps from system body and shape velocities to
 % forces acting on the base frame of the system
 

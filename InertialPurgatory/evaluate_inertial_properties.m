@@ -62,7 +62,7 @@ function s = evaluate_mass_second_derivative_numerical(s)
     ddM_alphadalpha = cell(num_joints);
     for first_partial = 1:num_joints
         dM_first_partial = s.coriolisfield.coriolis_eval.content.dM_alphadalpha{first_partial};
-        [ddM_alphadalpha{[2,1,3:num_joints]}] = cellfun(@(C) gradient(C,grid_baseline{[2,1,3:num_joints]}),dM_first_partial,'UniformOutput',false);
+        [ddM_alphadalpha{first_partial,[2,1,3:num_joints]}] = cellfun(@(C) gradient(C,grid_baseline{[2,1,3:num_joints]}),dM_first_partial,'UniformOutput',false);
 %         ddM_alphadalpha{first_partial,1} = dA1;
 %         ddM_alphadalpha{first_partial,2} = dA2;
     end
