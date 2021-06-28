@@ -1,4 +1,4 @@
-function output = shchf_diffdrive_cyclic(input_mode,pathnames)
+function output = shchf_diffdrive_cyclic_aligned(input_mode,pathnames)
 	% Default argument
     if ~exist('input_mode','var')
 		input_mode = 'initialize';

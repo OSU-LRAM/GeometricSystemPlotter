@@ -68,9 +68,9 @@ function output = sysf_three_link_lowRe(input_mode,pathnames)
 			s.grid_range = [-1,1,-1,1]*2.5;
 
 			%densities for various operations
-			s.density.vector = [21 21 ]; %density to display vector field
-			s.density.scalar = [51 51 ]; %density to display scalar functions
-			s.density.eval = [31 31 ];   %density for function evaluations
+			s.density.vector = [21 21]; %density to display vector field
+			s.density.scalar = [51 51]; %density to display scalar functions
+			s.density.eval = [31 31];   %density for function evaluations
             s.density.metric_eval = [11 11]; %density for metric evaluation
             s.density.finite_element=31;
             s.density.coriolis_eval = [31 31];

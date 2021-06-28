@@ -1,4 +1,4 @@
-function output = shchf_circle_family_loose(input_mode,pathnames)
+function output = shchf_circle_family_phase(input_mode,pathnames)
 
 
 	% Default argument
@@ -12,20 +12,16 @@ function output = shchf_circle_family_loose(input_mode,pathnames)
 		
 		case 'name'
 			
-			output = 'Family of circular strokes for three-link swimmers';
+			output = 'Family of circular strokes (by phase) for three-link swimmers';
 			
 		case 'dependency'
 			
 			output.dependency = {};
 			
 		case 'initialize'
-
-			%%%%
-			%%
-			%Path definitions
 			
 			%path definition
-			A=.25:.5:2.25; % Amplitdude of circle
+			P= 0:pi/2:2*pi; % starting phase
 			
             % Multiple gaits (or piecewise definitions of gaits) can be
             % specified in a single file by making a nested
@@ -38,8 +34,8 @@ function output = shchf_circle_family_loose(input_mode,pathnames)
             % specified for individual gaits by making the relevant fields
             % likewise cell structures, but a single value will be dealt
             % out to all the gaits and segments.
-			for i = 1:1:numel(A)
-				p.phi_def{i,1}{1} = @(t) strokedef(t,A(i));		
+			for i = 1:1:numel(P)
+				p.phi_def{i,1}{1} = @(t) strokedef(t,P(i));		
 				
 				% Calculate the cBVI for this gait
 				p.cBVI_method{i}{1} = 'simple';
@@ -68,10 +64,10 @@ function output = shchf_circle_family_loose(input_mode,pathnames)
 	
 end
 
-function [stroke] = strokedef(t,A)
+function [stroke] = strokedef(t,P)
 
-	t = -t(:)';
+	t = t(:)';
 
-	stroke = (sqrt(2)/2*[1 -1;1 1]*(A*[cos(t); sin(t)]))';
+	stroke = (sqrt(2)/2*[1 -1;1 1]*([cos(t + P); sin(t + P)]))';
 
 end

@@ -12,7 +12,8 @@ function output = shchf_diffdrive_cyclic(input_mode,pathnames)
 		case 'initialize'
             % path definition
             % equivalent to example motion, but cyclic (parallel parking)
-            side_lengths = pi/32:pi/64:pi/8;
+            %side_lengths = pi/32:pi/64:pi/8;
+            side_lengths = pi/12;
             p.phi_def = cell(1,length(side_lengths));
             for i = 1:length(side_lengths)
                 p.phi_def{i} = {@(t) drive_forward(t, side_lengths(i)),...
@@ -25,7 +26,7 @@ function output = shchf_diffdrive_cyclic(input_mode,pathnames)
 			p.phi_marker = []; % No marker on this path (can put, e.g. endpoints of path if desired)
 			
 			%arrows to plot
-			p.phi_arrows = {{1,1,1,1}};
+			p.phi_arrows = 4;
 
 			%time to run path
 			p.time_def = [0 1]; % Duration of each segment
@@ -45,7 +46,7 @@ end
 
 function [alpha] = drive_forward(t,len)
 	t = t(:)*len;
-    start = [0 -1];
+    start = [0 -len];
 	alpha = start + [t t];
 end
 
