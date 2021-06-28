@@ -13,6 +13,11 @@ function [third_order, third_order_opt] = calc_tlb_thirdorder(s,p,is_square)
     [third_order, third_order_opt] = deal(cell(size(p.phi_def)));
     % iterate thru shape changes
     for shch = 1:length(third_order)
+        % skip if no cBVI
+        if isempty(p.cBVI{shch}) || isempty(p.cBVI_opt{shch})
+            warning('No cBVI available for gait, skipping third order calculation');
+            continue;
+        end
         % get unit tangent from beginning of gait (FD approx.)
         first_two = p.phi_fun_full{shch}(p.time_full{shch}(1:2))';
         init_vel = (first_two(:,2) - first_two(:,1));
@@ -66,6 +71,8 @@ function [third_order, third_order_opt] = calc_tlb_thirdorder(s,p,is_square)
         third_order{shch}{1} = lb(alpha{1}+beta{1}, p.cBVI{shch})/2;
         third_order_opt{shch}{1} = lb(alpha{2}+beta{2}, p.cBVI_opt{shch})/2;
         % worst-case
+        % lie bracket definition (worst-case)
+        lb = @(x,y) [abs(y(3)*x(2)) + abs(x(3)*y(2)); abs(x(3)*y(1)) + abs(y(3)*x(1)); 0];
         pos_worst = lb(abs(alpha{1}) + abs(beta{1}), p.cBVI{shch})/2;
         pos_worst_opt = lb(abs(alpha{2}) + abs(beta{2}), p.cBVI_opt{shch})/2;
         % combinations of worst-case in +/- x,y only
