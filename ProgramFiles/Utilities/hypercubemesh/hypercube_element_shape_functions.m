@@ -1,25 +1,21 @@
-function [shape_functions, shape_dfunctions] = hypercube_element_shape_functions(N)
-% Make the shape functions for an N-dimensional hypercubic element
+% generate shape functions for an N-dimensional hypercubic element
 
-	% Prime the arrays of shape functions and dfunctions
+function [shape_functions, shape_dfunctions] = hypercube_element_shape_functions(N)
+
+	% prime arrays of shape functions and dfunctions
 	shape_functions = cell(2^N,1);
 	shape_dfunctions = cell(2^N,N);
 	
-	% Set up the node orderings for the shape functions, up to 3d elements
-	ordering(:,1) = [-1, 1, 1,-1,-1, 1, 1,-1,-1, 1, 1,-1,-1, 1, 1,-1]';
-	ordering(:,2) = [-1,-1, 1, 1,-1,-1, 1, 1,-1,-1, 1, 1,-1,-1, 1, 1]';
-	ordering(:,3) = [-1,-1,-1,-1, 1, 1, 1, 1,-1,-1,-1,-1, 1, 1, 1, 1]';
-    ordering(:,4) = [-1,-1,-1,-1,-1,-1,-1,-1, 1, 1, 1, 1, 1, 1, 1, 1]';
+	% set up node orderings for the shape functions
+    % uses similar binary setup as in hypercube_mesh.m
+    bin_strs = dec2bin(0:2^N - 1);
+    bin_mat = zeros(size(bin_strs));
+    bin_mat(:) = arrayfun(@str2num, bin_strs(:));
+    ordering = fliplr(2*bin_mat-1);
 	
-	% error if the ordering hasn't been specified to high enough dimension
-	if N>4
-		error('This function only specified up to 4 dimensions so far')
-	end
-	
-	% Turn the ordering into a cell array for processing inside the shape
+	% convert ordering into a cell array for processing inside the shape
 	% functions
 	ordering = num2cell(ordering);
-	
 	
 	% construct the shape functions and dfunctions
 	for i = 1:length(shape_functions)
