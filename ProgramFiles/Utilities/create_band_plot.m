@@ -38,11 +38,11 @@ poly_y = [cbvi_plot_data + to_true_data, fliplr(cbvi_plot_data - to_true_data)];
 to_plot_data = polyshape(poly_x, poly_y);
 
 % generate bound
-[~, cBVI_fun, to_fun] = bound_third_order(s, [0 0], @A_est_center, @cBVI_est_taylor, 0.2);
+[~, cBVI_fun, to_fun] = bound_third_order(s, [0 0], @A_est_taylor, @cBVI_est_taylor, 0.1);
 to_est_data = vecnorm(cell2mat(arrayfun(to_fun, 2*A, 'UniformOutput', false)));
 cbvi_est_data = vecnorm(cBVI_fun(2*A));
 to_est_corr = to_est_data./cbvi_est_data.*cbvi_plot_data;
-poly_y = [cbvi_est_data + to_est_data, fliplr(cbvi_est_data - to_est_data)];
+poly_y = [cbvi_plot_data + to_est_data, fliplr(cbvi_plot_data - to_est_data)];
 bound_data = polyshape(poly_x, poly_y);
 
 % plotting
@@ -50,14 +50,15 @@ figure(1);
 clf;
 hold on;
 hc = plot(A, cbvi_plot_data, 'Color', cbvi.Color, 'LineWidth', cbvi.LineWidth, 'LineStyle', cbvi.LineStyle);
-he = plot(A, cbvi_est_data, 'Color', bound.FaceColor, 'LineWidth', cbvi.LineWidth, 'LineStyle', cbvi.LineStyle);
+%he = plot(A, cbvi_est_data, 'Color', bound.FaceColor, 'LineWidth', cbvi.LineWidth, 'LineStyle', cbvi.LineStyle);
 ht = plot(to_plot_data, 'FaceColor', to.FaceColor, 'LineStyle', to.LineStyle, 'FaceAlpha', to.FaceAlpha);
 hb = plot(bound_data, 'FaceColor', bound.FaceColor, 'LineStyle', bound.LineStyle, 'FaceAlpha', bound.FaceAlpha);
 set(gca, 'Children', flipud(get(gca, 'Children'))); %flip drawing order
 hold off;
 xlabel('Gait Amplitude');
 ylabel('Resulting Displacement Norm');
-legend([hc ht he hb], 'cBVI Estimate', 'Maximum Third Order Contribution', 'cBVI Taylor Series Approximation', 'Estimated Third Order Bound');
+%legend([hc ht he hb], 'cBVI Estimate', 'Maximum Third Order Contribution', 'cBVI Taylor Series Approximation', 'Estimated Third Order Bound');
+legend([hc ht hb], 'cBVI Estimate', 'Maximum Third Order Contribution', 'Estimated Third Order Bound');
 [num, dem] = rat(A);
 labels = arrayfun(@(n,d) [num2str(n) '/' num2str(d)], num, dem, 'UniformOutput', false);
 xticks(A);

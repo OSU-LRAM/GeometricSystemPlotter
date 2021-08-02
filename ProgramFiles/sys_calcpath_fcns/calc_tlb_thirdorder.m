@@ -28,21 +28,30 @@ function [third_order, third_order_opt] = calc_tlb_thirdorder(s,p,is_square)
         % find center of gait
         alphas = p.phi_fun_full{shch}(p.time_full{shch});
         center = mean(alphas, 1);
-
-        % evaluate LC at center (mean) of gait, in orig. and opt. coords
-        % interp assumes two shape vars
+        
+        % local connection estimates
         LC_center = {zeros(3,2), zeros(3,2)};
         A = {s.vecfield.eval.content.Avec,...;
              s.vecfield.eval.content.Avec_optimized};
-        for shvar = 1:length(init_vel)
-            for dim = 1:3
-                for i = 1:2 %orig, opt. coords
-                    LC_interp = interp2(s.grid.eval{2}, s.grid.eval{1},...
-                                        A{i}{dim, shvar},...
-                                        center(1), center(2));
-                    LC_center{i}(dim, shvar) = LC_center{i}(dim, shvar) +...
-                                               LC_interp;
-                end
+        % evaluate LC at center (mean) of gait, in orig. and opt. coords
+        % interp assumes two shape vars
+        %for shvar = 1:length(init_vel)
+        %    for dim = 1:3
+        %        for i = 1:2 %orig, opt. coords
+        %            LC_interp = interp2(s.grid.eval{2}, s.grid.eval{1},...
+        %                                A{i}{dim, shvar},...
+        %                                center(1), center(2));
+        %            LC_center{i}(dim, shvar) = LC_center{i}(dim, shvar) +...
+        %                                       LC_interp;
+        %        end
+        %    end
+        %end
+        
+        % use mean of entire LC, communicating magnitude and direction
+        % jury's out on whether using the entire LC is a good idea
+        for i = 1:numel(A{1})
+            for c = 1:2 %orig, opt. coords
+                LC_center{c}(i) = mean(A{c}{i}, 'all');
             end
         end
 

@@ -1,5 +1,5 @@
 % estimates local connection matrix using grid value at center
-function A_mat = A_est_center(s, shape, do_opt)
+function A_est = A_est_center(s, shape, do_opt)
     % sanitize
     if ~exist('do_opt', 'var')
         do_opt = true;
@@ -20,4 +20,5 @@ function A_mat = A_est_center(s, shape, do_opt)
             A_mat(dim, shvar) = contrib;
         end
     end
+    A_est = @(len) A_mat;
 end

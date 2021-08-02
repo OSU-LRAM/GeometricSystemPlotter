@@ -36,8 +36,9 @@ function [l, cBVI_fun, third_order_fun] = bound_third_order(s, shape, A_est, cBV
     init_tan = [cos(phi); sin(phi)];
     % construct worst-case alpha+beta
     l_sym = sym('l', {'real' 'positive'});
-    a_b_wc = pi/4 * l_sym * (abs(A_est(s, shape) * R(pi/8) * init_tan) +...
-                             abs(A_est(s, shape) * R(5*pi/8) * init_tan));
+    A_fun = A_est(s, shape);
+    a_b_wc = pi/4 * l_sym * (abs(A_fun(l_sym) * R(pi/8) * init_tan) +...
+                             abs(A_fun(l_sym) * R(5*pi/8) * init_tan));
     % estimate integral of DA inside circle of diameter l
     cBVI_fun = cBVI_est(s, shape);
     % do worst-case lie bracket
