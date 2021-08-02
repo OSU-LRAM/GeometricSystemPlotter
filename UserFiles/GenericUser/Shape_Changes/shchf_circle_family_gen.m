@@ -10,7 +10,7 @@ function output = shchf_circle_family_gen(input_mode,pathnames)
 			output.dependency = {};
 		case 'initialize'
 			%path definition
-			A=0.25:0.5:2; %amplitude of circle
+			A=0.25:0.25:2; %amplitude of circle
             phi=pi/4:pi/4:2*pi; %starting phase
 			
             % define gait family
