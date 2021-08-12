@@ -77,8 +77,8 @@ function output = sysf_three_link_lowRe(input_mode,pathnames)
             s.density.mass_eval = [31 31]; % density for mass matrix evaluation
 
 			%shape space tic locations
-			s.tic_locs.x = [-1 0 1]*1;
-			s.tic_locs.y = [-1 0 1]*1;
+			s.tic_locs.x = [-1 0 1];
+			s.tic_locs.y = [-1 0 1];
 
             % Set system type variable for gait optimization
             s.system_type = 'drag';

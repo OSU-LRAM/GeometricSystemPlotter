@@ -10,7 +10,7 @@ function output = shchf_circle_family_gen(input_mode,pathnames)
 			output.dependency = {};
 		case 'initialize'
 			%path definition
-			A=0.25:0.25:2; %amplitude of circle
+			A=linspace(2/5, 2, 4); %amplitude of circle
             phi=pi/4:pi/4:2*pi; %starting phase
 			
             % define gait family
@@ -29,7 +29,7 @@ function output = shchf_circle_family_gen(input_mode,pathnames)
 			p.phi_marker = [];
 			
 			%arrows to plot
-			p.phi_arrows = 1; %[repmat({{0}},numel(A)-1,1);{{0}}];
+			p.phi_arrows = 0; %[repmat({{0}},numel(A)-1,1);{{0}}];
 
 			%time to run path
 			p.time_def = [0 2*pi];
