@@ -1,5 +1,6 @@
 %% styling (change me!)
-is_opt = true;
+is_opt = false;
+is_square = true;
 
 net.LineStyle = 'none';
 net.LineWidth = 1;
@@ -29,7 +30,7 @@ assert(exist('p','var'));
 axes = gca;
 
 % add third-order effects
-add_tlb_plot(s,p,is_opt,false,true);
+add_tlb_plot(s,p,is_opt,is_square,true);
 
 % store net, third order
 to_data = [];
@@ -63,15 +64,15 @@ end
 
 % add bound
 [len, cBVI_fun, to_fun] = bound_third_order(s, [0 0],...
-                                            @(a,b) A_est_taylor(a,b,is_opt),...
+                                            @(a,b) A_est_center(a,b,is_opt),...
                                             @(a,b) cBVI_est_taylor(a,b,is_opt),...
-                                            0.5);
+                                            0.5, is_square);
 amps = linspace(0, len, 20);
 bound_data = -cell2mat(arrayfun(@(a) cBVI_fun(a), amps, 'UniformOutput', false)) +...
              cell2mat(arrayfun(@(a) to_fun(a), amps, 'UniformOutput', false));
 bound_data_neg = bound_data.*[1 -1 1]';
-line(axes, bound_data(1,:), bound_data(2,:), 'Color', [234 14 30]/255, 'LineStyle', '--');
-line(axes, bound_data_neg(1,:), bound_data_neg(2,:), 'Color', [234 14 30]/255, 'LineStyle', '--');
+%line(axes, bound_data(1,:), bound_data(2,:), 'Color', [234 14 30]/255, 'LineStyle', '--');
+%line(axes, bound_data_neg(1,:), bound_data_neg(2,:), 'Color', [234 14 30]/255, 'LineStyle', '--');
 
 function edit_properties(child, type)
     fields = fieldnames(type);

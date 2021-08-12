@@ -22,11 +22,20 @@
     % third_order_fun:
         % function, returning worst-case third-order estimate with respect
         % to length
-function [l, cBVI_fun, third_order_fun] = bound_third_order(s, shape, A_est, cBVI_est, P, phi)
+function [l, cBVI_fun, third_order_fun] = bound_third_order(s, shape, A_est, cBVI_est, P, is_square, phi)
     % sanitize
     if ~exist('phi', 'var')
         phi = 0;
     end
+    if ~exist('is_square', 'var')
+        is_square = false;
+    end
+    if is_square
+        theta = [pi/4 3*pi/4];
+    else
+        theta = [pi/8 5*pi/8];
+    end
+    
     % anonymous helper functions
     R = @(theta) [cos(theta) -sin(theta); sin(theta) cos(theta)];
     lb_wc = @(x,y) [abs(x(2)*y(3)) + abs(y(2)*x(3));...
@@ -37,8 +46,9 @@ function [l, cBVI_fun, third_order_fun] = bound_third_order(s, shape, A_est, cBV
     % construct worst-case alpha+beta
     l_sym = sym('l', {'real' 'positive'});
     A_fun = A_est(s, shape);
-    a_b_wc = pi/4 * l_sym * (abs(A_fun(l_sym) * R(pi/8) * init_tan) +...
-                             abs(A_fun(l_sym) * R(5*pi/8) * init_tan));
+    factor = double(~is_square) * pi/4 + double(is_square);
+    a_b_wc = factor * l_sym * (abs(A_fun(l_sym) * R(theta(1)) * init_tan) +...
+                               abs(A_fun(l_sym) * R(theta(2)) * init_tan));
     % estimate integral of DA inside circle of diameter l
     cBVI_fun = cBVI_est(s, shape);
     % do worst-case lie bracket
