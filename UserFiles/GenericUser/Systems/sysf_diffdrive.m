@@ -36,7 +36,7 @@ function output = sysf_diffdrive(input_mode,pathnames)
 			%Processing details
 
 			%Range over which to evaluate connection
-			s.grid_range = [-1,1,-1,1]*3*pi/24;
+			s.grid_range = [-1,1,-1,1]*4*pi/24;
 
 			%densities for various operations
 			s.density.vector = [10 10]; %density to display vector field
@@ -48,8 +48,8 @@ function output = sysf_diffdrive(input_mode,pathnames)
 			%Display parameters
 
 			%shape space tic locations
-			s.tic_locs.x = pi/12*[-1 -0.5 0 0.5 1];
-			s.tic_locs.y = pi/12*[-1 -0.5 0 0.5 1];
+			s.tic_locs.x = pi/12*[-1 0 1];
+			s.tic_locs.y = pi/12*[-1 0 1];
 
 
 			%Don't optimize the reference point (turn this off for

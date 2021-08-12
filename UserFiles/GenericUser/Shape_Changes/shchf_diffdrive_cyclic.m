@@ -13,26 +13,31 @@ function output = shchf_diffdrive_cyclic(input_mode,pathnames)
             % path definition
             % equivalent to example motion, but cyclic (parallel parking)
             %side_lengths = pi/32:pi/64:pi/8;
-            side_lengths = pi/12;
-            p.phi_def = cell(1,length(side_lengths));
+            side_lengths = pi/24:pi/24:pi/6;
+            p.phi_def = cell(1,4*length(side_lengths));
+            ctr = 0;
             for i = 1:length(side_lengths)
-                p.phi_def{i} = {@(t) drive_forward(t, side_lengths(i)),...
-                                @(t) turn_left(t, side_lengths(i)),...
-                                @(t) drive_backward(t, side_lengths(i)),...
-                                @(t) turn_right(t, side_lengths(i))};
+                % phase
+                for j = 0:3
+                    ctr = ctr + 1;
+                    cycle = {@(t) drive_forward(t, side_lengths(i)),...
+                             @(t) turn_left(t, side_lengths(i)),...
+                             @(t) drive_backward(t, side_lengths(i)),...
+                             @(t) turn_right(t, side_lengths(i))};
+                    p.phi_def{ctr} = circshift(cycle, j);
+                    % enable area integration
+                    p.cBVI_method{ctr}{1} = 'simple';
+                end
             end
             
 			%marker locations
 			p.phi_marker = []; % No marker on this path (can put, e.g. endpoints of path if desired)
 			
 			%arrows to plot
-			p.phi_arrows = 4;
+			p.phi_arrows = 1;
 
 			%time to run path
 			p.time_def = [0 1]; % Duration of each segment
-
-			% enable area integration
-			p.cBVI_method{1}{1} = 'simple';
 
 			%number of points in each path.
 			p.phi_res = 20;
@@ -41,8 +46,6 @@ function output = shchf_diffdrive_cyclic(input_mode,pathnames)
 			output = p;
     end
 end
-
-% TODO: center-align, not corner
 
 function [alpha] = drive_forward(t,len)
 	t = t(:)*len;
