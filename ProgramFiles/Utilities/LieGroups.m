@@ -19,18 +19,26 @@ classdef LieGroups
         end
         % matrix mapping
         function fn = mat_fn(group)
-            if group == SE2
+            if group == LieGroups.SE2
                 fn = @vec_to_mat_SE2;
-            elseif group == SO3
+            elseif group == LieGroups.SO3
                 fn = @vec_to_mat_SO3;    
             end
         end
         % vector mapping
         function fn = vec_fn(group)
-            if group == SE2
+            if group == LieGroups.SE2
                 fn = @mat_to_vec_SE2;
-            elseif group == SO3
+            elseif group == LieGroups.SO3
                 fn = @mat_to_vec_SO3;
+            end
+        end
+        % optimizer
+        function fn = optimizer_fn(group)
+            if group == LieGroups.SE2
+                fn = @optimize_coordinate_choice;
+            elseif group == LieGroups.SO3
+                fn = @optimize_so3_sys;
             end
         end
     end
