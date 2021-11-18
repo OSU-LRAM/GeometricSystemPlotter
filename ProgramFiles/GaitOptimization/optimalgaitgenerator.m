@@ -783,6 +783,9 @@ for thisAxes = [1:numel(handles.plot_thumbnails.Children)]
             x_temp = y1(:,1);
             y_temp = y1(:,2);
             z_temp = zeros(size(y1(:,1)));
+            if size(y1,2) > 2
+                z_temp = y1(:,3);
+            end
         end
         handle1=line('XData',x_temp,'YData',y_temp,'ZData',z_temp,'color','k','linewidth',3,'UserData',{'OptimizeTracer',2}); %#ok<NASGU>
         %plot_dir_arrows(y1(:,1),y1(:,2),2,'Color',[0 0 0],'LineWidth',3);
