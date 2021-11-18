@@ -78,8 +78,8 @@ function h = create_elements(info_needed)
 	h.ax = axes('Parent',h.f);                      % Create axes for the plot
  	axis(h.ax,'equal','off');                       % Make the plot isometric and make the axes invisible
   	set(h.ax,...
-        'XLim',[-1,1]*.7/.45*info_needed.s.geometry.length,...  % Axes scaled to system scale
-        'YLim',[-1,1]*.7*info_needed.s.geometry.length);
+        'XLim',[-1,1]*.7/.45*info_needed.s.geometry.length*3,...  % Axes scaled to system scale
+        'YLim',[-1,1]*.7*info_needed.s.geometry.length*3);
  	set(h.ax,'Position',[0 0 1 1])                  % Make the axes fill the whole window
 
     data_source = info_needed.datapath;
