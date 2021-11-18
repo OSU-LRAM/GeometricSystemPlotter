@@ -13,12 +13,14 @@
 % outputs:
     % grid:
         % ndgrid cell array representaion of grid_points
-    % X, Y, Z:
-        % beta transform in each SO(3) dimension, expressed at grid points
     % A_opt:
         % local connection tensoral object, in optimal coordinates
+    % X, Y, Z:
+        % beta transform in each SO(3) dimension, expressed at grid points
+    % grad_X, grad_Y, grad_Z:
+        % gradients of the beta transform, in each dimension
 
-function [grid, X, Y, Z, A_opt] = optimize_so3(grid_points, A_orig, ref)
+function [grid, A_opt, X, Y, Z, grad_X, grad_Y, grad_Z] = optimize_so3(grid_points, A_orig, ref)
     % dimensionality
     n_dim = length(grid_points);
     
