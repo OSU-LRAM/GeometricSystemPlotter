@@ -1,4 +1,4 @@
-function output = sys_calcsystem(input_mode,systemfilename,stretch)
+function output = sys_calcsystem(input_mode,systemfilename)
 %Numerically evaluate the local connection and height function from the
 %symbolic defination, including special accounting for singularities.
 
