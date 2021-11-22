@@ -2,16 +2,6 @@
 % sysplotter wrapper for constraint curvature function
 
 function s = calc_ccf_sys(s)
-    % catch singularities
-    if s.singularity
-        if s.conf_space == LieGroups.SE2
-            % can use legacy CCF calculation
-            s = calc_constraint_curvature(s);
-            return;
-        else
-            error('Singularities are unsupported for non-SE(2) configuration spaces.');
-        end
-    end
     % get grid points in ea. dim
     grid = s.grid.eval;
     samples = cellfun(@(x) unique(x), grid, 'UniformOutput', false);
