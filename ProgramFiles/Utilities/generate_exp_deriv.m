@@ -8,8 +8,8 @@ function f = generate_exp_deriv
     assume(beta_vec, 'real');
     assume(d_beta_vec, 'real');
     % generate matrices
-    beta_mat = rot_mat(beta_vec);
-    d_beta_mat = rot_mat(d_beta_vec);
+    beta_mat = vec_to_mat_SO3(beta_vec);
+    d_beta_mat = vec_to_mat_SO3(d_beta_vec);
     % compute integral
     t = sym('t');
     grand = expm(-t*beta_mat) * d_beta_mat * expm(t*beta_mat);

@@ -26,7 +26,9 @@ function output = sysf_twin_rotor(input_mode,pathnames)
 			s.A_num = @(a1, a2) [zeros(size(a1)) zeros(size(a1));
                                  zeros(size(a1)) zeros(size(a1));
                                  ones(size(a1)) -ones(size(a1))];
-
+            %%%
+            % Configuration space
+            s.conf_space = LieGroups.SO3;
 
 			%%%
 			%Processing details

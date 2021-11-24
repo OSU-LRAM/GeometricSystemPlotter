@@ -29,7 +29,7 @@ function [g_circ, g] = so3_integrator(t_vec, alpha_fun, d_alpha_fun, grid, A)
             A_mat(entry) = interpn(grid{:},A{entry},alpha_cell{:});
         end
         % use d_alpha to produce xyz velocity
-        g_circ_mat = rot_mat(A_mat * d_alpha_vec);
+        g_circ_mat = vec_to_mat_SO3(A_mat * d_alpha_vec);
         % exponentiate
         g_mat_t = expm((t_vec(i)-t_vec(i-1))*g_circ_mat);
         % cumprod with previous cell
@@ -41,6 +41,6 @@ function [g_circ, g] = so3_integrator(t_vec, alpha_fun, d_alpha_fun, grid, A)
     % take matrix log of ea. cell for return
     g_circ = zeros(3,length(t_vec));
     for i = 1:length(t_vec)
-        g_circ(:,i) = rot_vec(logm(g{i}));
+        g_circ(:,i) = mat_to_vec_SO3(logm(g{i}));
     end
 end

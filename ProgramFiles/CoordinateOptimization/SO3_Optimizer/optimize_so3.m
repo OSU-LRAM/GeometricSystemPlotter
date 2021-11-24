@@ -263,12 +263,12 @@ function [grid, A_opt, X, Y, Z, grad_X, grad_Y, grad_Z] = optimize_so3(grid_poin
         for d = 1:n_dim
             % compute rotation term
             beta_vec = [X(i) Y(i) Z(i)];
-            trans = expm(rot_mat(beta_vec));
-            rot = rot_vec(trans'*rot_mat(A_orig{i}(:,d))*trans);
+            trans = expm(vec_to_mat_SO3(beta_vec));
+            rot = mat_to_vec_SO3(trans'*vec_to_mat_SO3(A_orig{i}(:,d))*trans);
             % get time derivative of exponential map
             grad_vec = [grad_X{d}(i) grad_Y{d}(i) grad_Z{d}(i)];
             d_exp_mat = exp_deriv(beta_vec, grad_vec);
-            d_exp_vec = rot_vec(d_exp_mat);
+            d_exp_vec = mat_to_vec_SO3(d_exp_mat);
             % calc new LC
             A_opt{i}(:,d) = rot - d_exp_vec;
         end
