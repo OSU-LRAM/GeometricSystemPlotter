@@ -86,6 +86,6 @@ function [DA, dA, lb] = calc_ccf(grid_points, A, mat_fun, vec_fun)
     %% combine for DA
     DA = cell(size(dA));
     for i = 1:numel(dA)
-        DA{i} = dA{i} + lb{i};
+        DA{i} = -(dA{i} + lb{i}); %sign choice for consistency
     end
 end
