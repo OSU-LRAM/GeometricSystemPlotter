@@ -13,29 +13,31 @@ function plot_info = sys_draw(plot_structure,sys,shch,stretch2,progress,update,r
         resolution.scalar_range = get(handles.scalarresolution,'UserData');
     end
 
+    % Get the setup configuration file
+    configfile = './sysplotter_config';
+    load(configfile,'datapath')
+
+    %merge the system and shape change file names into one
+    plot_data_file = [sys '__' shch];
+
+    %load the system and path data
+    load(fullfile(datapath, plot_data_file),'s','p')
     
-    
-	% Get the setup configuration file
-	configfile = './sysplotter_config';
-	load(configfile,'datapath')
+    if s.conf_space == LieGroups.SE2
+        %plot all plots called for
+        for i = 1:length(plot_structure)
 
-	
-	%merge the system and shape change file names into one
-	plot_data_file = [sys '__' shch];
+            %generate the handle of a specific plot command from the structure
+            eval(['plot_command = @' plot_structure(i).category '_draw;']);
 
-	%load the system and path data
-	load(fullfile(datapath, plot_data_file),'s','p')
+            %call that plot command
+            plot_info(i,1) = plot_command(s,p,plot_structure(i),sys,shch,resolution);
 
-	%plot all plots called for
-	for i = 1:length(plot_structure)
-
-		%generate the handle of a specific plot command from the structure
-		eval(['plot_command = @' plot_structure(i).category '_draw;']);
-
-		%call that plot command
-		plot_info(i,1) = plot_command(s,p,plot_structure(i),sys,shch,resolution);
-
-	end
+        end
+    else
+        warning('Native plotting not yet supported for non-SE2 position spaces');
+        plot_info = [];
+    end
 
 	%Show full progress bar
 	waitbar2a(1,progress,'Finished plotting')
