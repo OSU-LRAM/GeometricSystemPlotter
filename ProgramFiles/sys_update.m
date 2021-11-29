@@ -60,7 +60,7 @@ function sys_update(sys,shch,stretch,progress,handles)
 	end
 	
 	if update.sys_calc
-		sys_calcsystem('calculate',sys,stretch);
+		sys_calcsystem('calculate',sys);
     end
 	
 	if exist('progress','var')

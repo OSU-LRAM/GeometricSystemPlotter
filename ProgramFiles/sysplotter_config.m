@@ -68,8 +68,6 @@ addpath('Utilities');
     
 	% Default values for HH and refpoint paths
     set(handles.inputpathconfig,'String',GetFullPath('../UserFiles/GenericUser'))
-	set(handles.HodgeHelmholtzconfig,'String','HodgeHelmholtz')
-	set(handles.Refpointconfig,'String','RefPointOptimizer')
 	set(handles.Colorconfig,'String','sys_draw_fcns/colorsets/color_Red.m')
 	
 
@@ -78,8 +76,6 @@ addpath('Utilities');
     if exist(configfile,'file')
         load(configfile);
         set(handles.inputpathconfig,'String',inputpath)
-        set(handles.HodgeHelmholtzconfig,'String',HHpath)
-        set(handles.Refpointconfig,'String',Refpointpath)
         set(handles.Colorconfig,'String',Colorpath)
     end
     

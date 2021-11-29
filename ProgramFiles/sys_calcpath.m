@@ -51,7 +51,7 @@ function [output] = sys_calcpath(input_mode,systemfilename,shchfilename)
 				p = find_loci(s,p);
 				
 				%Get the resulting fiber motion
-				p = find_g(s,p); %#ok<NASGU>
+				p = find_g_sys(s,p); %#ok<NASGU>
 				
 				
 				

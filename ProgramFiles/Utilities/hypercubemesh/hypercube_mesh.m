@@ -1,77 +1,46 @@
-function [nodes,cubes] = hypercube_mesh(grid)
-% Generate a normalized tetrahedral mesh over a hypercubic region with a
-% given density
+% generate a hypercubic mesh over an arbitrarily-dimensional space
 
+% inputs:
+    % grid: ndgrid
+% outputs:
+    % nodes:
+        % list (matrix) of points. each row contains columns of
+        % [x, y, z, w, ...]
+    % cubes:
+        % list (matrix) of points in each cube. each row contains columns
+        % of [corner1, corner2, ...] points
+
+function [nodes,cubes] = hypercube_mesh(grid)
+
+    %% generate node information
 	% turn grid into node list
 	nodes = grid_to_columns(grid);
-
-	% Number the nodes
+    
+	% node list metadata
 	node_nums = zeros(size(grid{1}));
-	node_nums(:) = 1:numel(node_nums);
+	node_nums(:) = 1:numel(node_nums); %indexing of nodes
+	nodes_per_cube = 2^numel(grid); %2^N nodes per cube
+	l = size(grid{1}); %lengths of dimensions
 	
-	% 2^N nodes per cube
-	nodes_per_cube = 2^numel(grid);
+	%% build list of nodes in each hypercube
 	
-	% number of nodes in each direction
-	l = size(grid{1});
-	
-	% Build the list of nodes in each hypercube
-	
-	% Prime cubes array (one fewer cube than node in each direction
+	% prime cubes array (one fewer cube than node in each direction)
 	cubes = zeros(prod(size(node_nums)-1),nodes_per_cube);
-	
-	% number of cubes
 	n_cubes = size(cubes,1);
-			
-	% Expand algorithm for higher dimensions
-	switch (numel(grid))
-		
-		case 2
-			
-			cubes(:,1) = reshape(node_nums(1:l(1)-1,1:l(2)-1),n_cubes,1);
-			cubes(:,2) = reshape(node_nums(2:l(1),1:l(2)-1),n_cubes,1);
-			cubes(:,3) = reshape(node_nums(2:l(1),2:l(2)),n_cubes,1);
-			cubes(:,4) = reshape(node_nums(1:l(1)-1,2:l(2)),n_cubes,1);
-			
-		case 3
-			
-			cubes(:,1) = reshape(node_nums(1:l(1)-1,1:l(2)-1,1:l(3)-1),n_cubes,1);
-			cubes(:,2) = reshape(node_nums(2:l(1),1:l(2)-1,1:l(3)-1),n_cubes,1);
-			cubes(:,3) = reshape(node_nums(2:l(1),2:l(2),1:l(3)-1),n_cubes,1);
-			cubes(:,4) = reshape(node_nums(1:l(1)-1,2:l(2),1:l(3)-1),n_cubes,1);
-			
-			cubes(:,5) = reshape(node_nums(1:l(1)-1,1:l(2)-1,2:l(3)),n_cubes,1);
-			cubes(:,6) = reshape(node_nums(2:l(1),1:l(2)-1,2:l(3)),n_cubes,1);
-			cubes(:,7) = reshape(node_nums(2:l(1),2:l(2),2:l(3)),n_cubes,1);
-			cubes(:,8) = reshape(node_nums(1:l(1)-1,2:l(2),2:l(3)),n_cubes,1);
-            
-        case 4
-            
- 			cubes(:,1) = reshape(node_nums(1:l(1)-1,1:l(2)-1,1:l(3)-1,1:l(4)-1),n_cubes,1);
-			cubes(:,2) = reshape(node_nums(2:l(1),1:l(2)-1,1:l(3)-1,1:l(4)-1),n_cubes,1);
-			cubes(:,3) = reshape(node_nums(2:l(1),2:l(2),1:l(3)-1,1:l(4)-1),n_cubes,1);
-			cubes(:,4) = reshape(node_nums(1:l(1)-1,2:l(2),1:l(3)-1,1:l(4)-1),n_cubes,1);
-			
-			cubes(:,5) = reshape(node_nums(1:l(1)-1,1:l(2)-1,2:l(3),1:l(4)-1),n_cubes,1);
-			cubes(:,6) = reshape(node_nums(2:l(1),1:l(2)-1,2:l(3),1:l(4)-1),n_cubes,1);
-			cubes(:,7) = reshape(node_nums(2:l(1),2:l(2),2:l(3),1:l(4)-1),n_cubes,1);
-			cubes(:,8) = reshape(node_nums(1:l(1)-1,2:l(2),2:l(3),1:l(4)-1),n_cubes,1);           
-
-			cubes(:,9) = reshape(node_nums(1:l(1)-1,1:l(2)-1,1:l(3)-1,2:l(4)),n_cubes,1);
-			cubes(:,10) = reshape(node_nums(2:l(1),1:l(2)-1,1:l(3)-1,2:l(4)),n_cubes,1);
-			cubes(:,11) = reshape(node_nums(2:l(1),2:l(2),1:l(3)-1,2:l(4)),n_cubes,1);
-			cubes(:,12) = reshape(node_nums(1:l(1)-1,2:l(2),1:l(3)-1,2:l(4)),n_cubes,1);
-			
-			cubes(:,13) = reshape(node_nums(1:l(1)-1,1:l(2)-1,2:l(3),2:l(4)),n_cubes,1);
-			cubes(:,14) = reshape(node_nums(2:l(1),1:l(2)-1,2:l(3),2:l(4)),n_cubes,1);
-			cubes(:,15) = reshape(node_nums(2:l(1),2:l(2),2:l(3),2:l(4)),n_cubes,1);
-			cubes(:,16) = reshape(node_nums(1:l(1)-1,2:l(2),2:l(3),2:l(4)),n_cubes,1);
-			
-		otherwise
-			
-			error('hypercube_mesh not yet implemented for N>4 dimensions');
-			
-	end			
-			
-
+    
+    % get possible ways to vary start/end points (done with binary)
+    bin_strs = dec2bin(0:nodes_per_cube - 1);
+    bin_mat = zeros(size(bin_strs));
+    bin_mat(:) = arrayfun(@str2num, bin_strs(:));
+    % use binary values to assign cube vertices
+    for vertex = 1:nodes_per_cube
+        % get nodes (in each dimension)
+        idxs = cell(size(l));
+        for dim = 1:length(l)
+            offset = bin_mat(vertex, dim);
+            idxs{dim} = 1 + offset : l(dim) - 1 + offset;
+        end
+        % get the id of each node stored by matlab (rather than coordinate)
+        cubes(:, vertex) = reshape(node_nums(idxs{:}), n_cubes, 1);
+    end
 end

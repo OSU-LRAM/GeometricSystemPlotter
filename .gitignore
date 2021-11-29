@@ -9,7 +9,7 @@ ehthumbs.db
 Thumbs.db
 
 # Sysplotter data and configuration files #
-######################
+###########################################
 sysplotter_config.mat
 sysplotter_data
 
@@ -22,3 +22,6 @@ UserFiles/GenericUser/Shape_Changes/shchf_params_*
 UserFiles/GenericUser/Shape_Changes/opt_*
 UserFiles/GenericUser/Shape_Changes/shchf_opt_*
 
+# Generated Files #
+###################
+exp_deriv.m
