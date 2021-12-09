@@ -132,89 +132,14 @@ s = create_grids(s);
 directions_possible = ff2n(nlinks);
 directions_key = ["SSS","SSR","SRS","SRR","RSS","RSR","RRS","RRR","AXES"];
 
-center = 1; amplitude = 0.5;
+center = 0; amplitude = 0.5;
 gait = {@(t) center + amplitude * [cos(t); -sin(t)], ...
                  @(t) amplitude * [-sin(t); -cos(t)]};
-sol = asym_solve_gait(s, gait);
-
-% when is it going forward all links
-
-t = 0; % time
-shape = gait{1}(t);
-directions_possible = ff2n(nlinks);
-[~, ~, J_full, ~, ~] = N_link_chain(s.geometry, shape);
-i = 1; % SSS
-links_backwards = directions_possible(i,:);
-friction_directions = ones(1,nlinks) - 2 * links_backwards;
-% [A, ~, ~, ~, ~] = LowRE_connection_discrete(s.geometry,s.physics, shape% , links_backwards);
-% body_vel = A * shapechange;
-
-
-% trajectory_plot(sol,3)
 
 gait_cycles = 3;
-gait_period = 2*pi;
 frames_per_cycle = 100;
+[consistent_with_SSS, consistent_subsystem, trajectory, t_solution] = when_do_scales_change_things(s,gait, gait_cycles, frames_per_cycle);
 nframes = gait_cycles * frames_per_cycle;
-
-t_solution = linspace(0, gait_period*gait_cycles, nframes);
-g_solution = deval(sol, mod(t_solution, gait_period));
-
-gait_displacement = vec_to_mat_SE2(deval(sol, gait_period))
-
-
-trajectory = zeros(size(g_solution));
-consistency_on_path = zeros(1,nframes);
-consistent_subsystem = zeros(1,nframes);
-
-for frame = 1:nframes
-    t = t_solution(frame);
-    gaits_finished = floor(t/gait_period);
-    
-    accumulated_displacement = gait_displacement ^ gaits_finished;
-    g = accumulated_displacement * vec_to_mat_SE2(g_solution(:, frame));
-    
-    
-    trajectory(:, frame) = mat_to_vec_SE2(g);
-    
-    % now color code with the current consistency
-    shape = gait{1}(t);
-    [~, ~, J_full, ~, ~] = N_link_chain(s.geometry, shape);
-    shapechange = gait{2}(t);
-    link_directions = [0 0 0];
-    [A, ~, ~, ~, ~] = LowRE_connection_discrete(s.geometry,s.physics, shape);
-    body_vel = -A * shapechange;
-    for link = 1:length(s.geometry.linklengths)
-        link_body_vel = J_full{link} * [body_vel; shapechange];
-        dx_direction = sign(link_body_vel(1));
-        link_directions(link) = dx_direction;
-    end
-    all_links_agree = all(~link_directions | ~(link_directions - friction_directions));
-    if all(link_directions)
-        % get the numbered subsystem currently being observed according to
-        % link motion
-        consistent_subsystem(frame) = bin2dec(num2str( (-link_directions+1)/2 )) + 1;
-    else
-        % if any link direction is currently zero, use a dummy value
-        consistent_subsystem(frame) = 9;
-    end
-    
-    
-%     % redone above
-%     for link = 1:length(s.geometry.linklengths)
-%         link_body_vel = J_full{link} * [g_solution(:, frame); shapechange];
-%         dx_direction = sign(link_body_vel(1));
-%         if(dx_direction == 0) % non-if way to do this?
-%             agreement = 1;
-%         else
-%             agreement = friction_directions(link) * dx_direction;
-%         end_
-%         all_links_agree = all_links_agree && (1 + agreement);
-%     end
-    
-    consistency_on_path(frame) = all_links_agree;
-    
-end
 
 s.physics.drag_ratio
 % Say which subsystems appear
@@ -226,6 +151,7 @@ percent_in_direction = [directions_key(C)' 100*a_counts/sum(a_counts)]
 
 max_subsystem = max(consistent_subsystem);
 min_subsystem = min(consistent_subsystem);
+%%
 
 % hold on
 % plot(trajectory(1,:), trajectory(2, :));
@@ -272,40 +198,3 @@ axis square
 % cd = single(consistency_on_path + 2);
 % drawnow
 % set(p.Edge, 'ColorBinding','interpolated', 'ColorData',cd)
-
-%%
-% Attempt to compare com mean and centered baseframes. Are their link
-% velocities the same as expected?
-% c_m = sysf_three_link_lowRe;
-% c_m.geometry.baseframe = 'com-mean';
-% 
-% % Define Drags
-% c_m.physics.drag_ratio = 2; % vary this later
-% c_m.physics.drag_coefficient = 1;
-% c_m.physics.drag_bw_ratio = 1; % makes it always SSS
-% 
-% c_l = sysf_three_link_lowRe;
-% %s.geometry.baseframe = 'com-mean';
-% 
-% % Define Drags
-% c_l.physics.drag_ratio = 2; % vary this later
-% c_l.physics.drag_coefficient = 1;
-% c_l.physics.drag_bw_ratio = 1; % makes it always SSS
-% 
-% for frame = 1:nframes
-%     t = t_solution(frame);
-%     gaits_finished = floor(t/gait_period);
-%     
-%     % now color code with the current consistency
-%     shape = gait{1}(t);
-%     shapechange = gait{2}(t);
-%     link_directions = [0 0 0];
-%     [A_c_m, ~, ~, ~, ~] = LowRE_connection_discrete(c_m.geometry,c_m.physics, shape);
-%     body_vel = -A * shapechange;
-%     for link = 1:length(c_m.geometry.linklengths)
-%         link_body_vel = J_full{link} * [body_vel; shapechange];
-%     end
-%     
-% end
-
-% FIXED I had failed to update J_Full!!!!
