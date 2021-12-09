@@ -1,11 +1,11 @@
 function A = get_correct_A(s, shape, shapechange)
 %GET_CORRECT_A Summary of this function goes here
 %   Detailed explanation goes here
-% RANGES BETWEEN -PI AND PI ONLY
 
 nlinks = length(s.geometry.linklengths);
 
 if nlinks == 1
+    % RANGES BETWEEN -PI AND PI ONLY
     opening = sign(shape) == sign(shapechange);
 
     if opening
