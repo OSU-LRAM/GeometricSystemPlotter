@@ -28,6 +28,9 @@ direction_names = ["FF","BF","FB","BB"];
 s = sysf_two_link_lowRe;
 nlinks = length(s.geometry.linklengths);
 
+% FOR NULL CASE
+s.physics.drag_bw_ratio = 1;
+
 s = ensure_connection_and_metric(s); % required for create_grids
 s = create_grids(s)
 a_grid = s.grid.eval{1};
@@ -97,8 +100,8 @@ colorbar('Ticks',[1, 2, 3, 4],...
 % Pick an a and adot on the grid. I can't remember if this is required for
 % any of the code-- it might not be.
 i = 20; j = 30;
-a = a_grid(i);
-adot = adot_grid(j);
+a = a_grid(i)
+adot = adot_grid(j)
 
 % get a body velocity. The relevant sub-system is automatically chosen.
 bvel = apply_piecewise_system(s, system_map, a, adot);
@@ -114,7 +117,7 @@ for link = 1:nlinks
 end
 
 % plot
-velocity_diagram(s, lvel, bvel, a, adot, 0, 0);
+velocity_diagram(s, lvel, bvel, a, adot, 0, 0, 1);
 
 %% Some example gaits.
 % Input: generate_1D_gait(amplitude, center, phase). The parameters
@@ -410,6 +413,8 @@ axis equal
 
 %% Experimenting with integrating Adif to get a prediction of the net
 % displacement produced by a gait.
+% TODO: explain this process, and maybe a little about the observed error
+% between Adif and ODE methods.
 %%%%%%%%%%%%%%%%%%%
 
 Ax_dif = A.difference(:,1);

@@ -43,6 +43,8 @@ tiledlayout(3,1)
 for i=1:3
     ax = nexttile;
     plot(ax, slope_x_pos, slope_y_pos(:,i), 'r', slope_x_neg, slope_y_neg(:,i), 'k');
+    xticks([-2.5:1:2.5])
+    xlim([-pi*1.1 pi*1.1])
 end
 
 end

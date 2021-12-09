@@ -1,4 +1,4 @@
-function [body_velocity] = apply_piecewise_system(s, piecewise_system_map, shape, shapechange)
+function [body_velocity] = apply_piecewise_system(s, shape, shapechange)
 %APPLY_PIECEWISE_SYSTEM Summary of this function goes here
 %   Detailed explanation goes here
 

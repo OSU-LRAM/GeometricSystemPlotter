@@ -1,9 +1,8 @@
-function trajectory_plot(solution)
+function trajectory_plot(solution, gait_cycles)
 %TRAJECTORY_PLOT Summary of this function goes here
 %   Detailed explanation goes here
 
 gait_period = 2*pi;
-gait_cycles = 3;
 frames_per_cycle = 10;
 nframes = gait_cycles * frames_per_cycle;
 
