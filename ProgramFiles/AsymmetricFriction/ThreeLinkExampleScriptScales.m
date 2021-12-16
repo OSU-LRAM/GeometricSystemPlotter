@@ -44,7 +44,68 @@ adot_grid = s.grid.eval{1}*adot_scale;
 directions_key = ["SSS","SSR","SRS","SRR","RSS","RSR","RRS","RRR","AXES"];
 %% Calculate the consistency of the entire 4D space
 
-[consistent_system,consistency_count] = full_consistency_space_3link(s, adot_scale);
+[consistent_system,consistency_count,consistent_A] = full_consistency_space_3link(s, adot_scale);
+
+%% This script confirms slopes on the slope plot will be constant
+% squeeze(consistent_A(1,1,1,1,:,:)) will get you an individual A
+% j and k refer to a1 and a2
+% I want to confirm that for each of the j and k combinations, A is equal
+% for all of the l and m values (when in the same subsystem)
+for j = 1:size(consistent_A,1)
+    for k = 1:size(consistent_A,2)
+        for subsystem_to_check = 1:8
+            previous_A = zeros(3,2);
+            mismatch_count = 0;
+            for l = 1:size(consistent_A,3)
+                for m = 1:size(consistent_A,4)
+                    if consistent_system(j,k,l,m) == subsystem_to_check
+                        A = squeeze(consistent_A(j,k,l,m,:,:));
+                        if any(abs(A - previous_A) > 0.0001)
+                            mismatch_count = mismatch_count + 1;
+                        end
+                        previous_A = A;
+                    end
+                end
+            end
+            if mismatch_count > 1
+                [j k subsystem_to_check]
+            end
+        end
+    end
+end
+
+%% An algorithm to get the consistent system at each angle of shapechange
+% gradient(squeeze(consistent_system(5,5,:,:)))
+
+% first get a circle of shapechange values
+shape = [1; 1];
+n = 100;
+T = linspace(0,2*pi,n);
+X = zeros(n); Y = zeros(n); Z = zeros(n);
+C = zeros(n);
+for i = 1:n
+    theta = T(i);
+    shapechange = [cos(theta); sin(theta)];
+    X(i) = shapechange(1);
+    Y(i) = shapechange(2);
+    % and determine its subsystem and A value
+    [~, ~, J_full, ~, ~] = N_link_chain(s.geometry, shape);
+    [subsystem, A] = determine_subsystem(s,shape,shapechange,J_full);
+    x_slope = A(1,:) * shapechange;
+    C(i) = subsystem;
+    Z(i) = x_slope;
+end
+
+max_subsystem = max(C,[],'all');
+min_subsystem = min(C(C~=0),[],'all');
+
+surf(X,Y,Z,C)
+
+colormap(jet(max_subsystem - min_subsystem + 1))
+colorbar
+colorbar('Ticks',min_subsystem:max_subsystem,...
+         'TickLabels', directions_key(min_subsystem:max_subsystem))
+
 
 %%
 % Trying to visualize the consistent_system four-dimensional array:
@@ -149,9 +210,10 @@ s.physics.drag_ratio
 a_counts = accumarray(ic,1);
 percent_in_direction = [directions_key(C)' 100*a_counts/sum(a_counts)]
 
+%%
 max_subsystem = max(consistent_subsystem);
 min_subsystem = min(consistent_subsystem);
-%%
+
 
 % hold on
 % plot(trajectory(1,:), trajectory(2, :));
