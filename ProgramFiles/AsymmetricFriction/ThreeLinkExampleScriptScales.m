@@ -78,16 +78,16 @@ end
 % gradient(squeeze(consistent_system(5,5,:,:)))
 
 % first get a circle of shapechange values
-shape = [1; 1];
-n = 100;
+shape = [1; -0.5];
+n = 200;
 T = linspace(0,2*pi,n);
-X = zeros(n); Y = zeros(n); Z = zeros(n);
-C = zeros(n);
+x = zeros(n,1); y = zeros(n,1); Z = zeros(n,1);
+C = zeros(n,1);
 for i = 1:n
     theta = T(i);
     shapechange = [cos(theta); sin(theta)];
-    X(i) = shapechange(1);
-    Y(i) = shapechange(2);
+    x(i) = shapechange(1);
+    y(i) = shapechange(2);
     % and determine its subsystem and A value
     [~, ~, J_full, ~, ~] = N_link_chain(s.geometry, shape);
     [subsystem, A] = determine_subsystem(s,shape,shapechange,J_full);
@@ -96,10 +96,23 @@ for i = 1:n
     Z(i) = x_slope;
 end
 
-max_subsystem = max(C,[],'all');
-min_subsystem = min(C(C~=0),[],'all');
+% max_subsystem = max(C,[],'all');
+% min_subsystem = min(C(C~=0),[],'all');
+max_subsystem = 8; min_subsystem = 1;
 
-surf(X,Y,Z,C)
+% scatter3(x,y,Z,[],C)
+hold on
+for i = 1:8
+    if C(1)==i && C(size(C,1))==i% special case for the piece going around 0=2pi
+         fill3([x(1:find(C~=i,1,'first')-1);0; x(find(C~=i,1,'last')+1:size(C,1))], ...
+                 [y(1:find(C~=i,1,'first')-1); 0; y(find(C~=i,1,'last')+1:size(C,1))], ...
+                 [Z(1:find(C~=i,1,'first')-1); 0; Z(find(C~=i,1,'last')+1:size(C,1))], ...
+                 [C(1:find(C~=i,1,'first')-1); i; C(find(C~=i,1,'last')+1:size(C,1))])
+    else
+        fill3([0; x(C==i)],[0; y(C==i)],[0; Z(C==i)],[i; C(C==i)])
+    end
+end
+hold off
 
 colormap(jet(max_subsystem - min_subsystem + 1))
 colorbar
