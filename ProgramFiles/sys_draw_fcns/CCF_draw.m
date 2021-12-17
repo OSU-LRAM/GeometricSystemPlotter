@@ -571,10 +571,14 @@ function plot_info = CCF_draw(s,p,plot_info,sys,shch,resolution)
             switch plot_info.stretch
                 
                 case 1 % 2-d stretch
+                    
+                    if ~strcmp(plot_info.style,'surface')
             
-                    [x_edge,y_edge] = s.convert.stretch.old_to_new_points(oldx_edge,oldy_edge);
+                        [x_edge,y_edge] = s.convert.stretch.old_to_new_points(oldx_edge,oldy_edge);
 
-                    l_edge = line('Parent',ax,'Xdata',x_edge,'YData',y_edge,'Color','k','LineWidth',1);
+                        l_edge = line('Parent',ax,'Xdata',x_edge,'YData',y_edge,'Color','k','LineWidth',1);
+                        
+                    end
 
                 case 2 % 3-d surface embedding
             
