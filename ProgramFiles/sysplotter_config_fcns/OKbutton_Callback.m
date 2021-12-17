@@ -15,13 +15,6 @@ function OKbutton_Callback(hObject, eventdata, handles)
 	shchpath = fullfile(inputpath,'Shape_Changes');
 	stretchpath = fullfile(inputpath,'Stretches');
 	datapath = fullfile(inputpath,  '/sysplotter_data/');
-	
-	
-	% Get the location of the Hodge-Helmholtz function
-	HHpath = get(handles.HodgeHelmholtzconfig,'String');
-	
-	% Get the location of the Refpoint function
-	Refpointpath = get(handles.Refpointconfig,'String');
     
     % Get the colors to use in plots
     [~,colorfunction, ~ ] = fileparts2(get(handles.Colorconfig,'String'));
@@ -35,7 +28,7 @@ function OKbutton_Callback(hObject, eventdata, handles)
     propertyfilepath = fullfile(sysplotterpath,get(handles.displayConfigFile,'String'));
 
     % Save the path info to a file for sysplotter to refer to
-    save('sysplotter_config','inputpath','syspath','shchpath','stretchpath','datapath','HHpath','Refpointpath','Colorset','Colorpath','sysplotterpath','propertyfilepath');
+    save('sysplotter_config','inputpath','syspath','shchpath','stretchpath','datapath','Colorset','Colorpath','sysplotterpath','propertyfilepath');
     
     % Update the sysplotter_inputpath variable in the workspace
     assignin('base','sysplotter_inputpath',inputpath);
