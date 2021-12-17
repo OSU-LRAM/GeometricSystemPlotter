@@ -9,16 +9,16 @@ function overlay_shape_change_2d(ax,p,stretch,convert,isomap,s)
 	for i = 1:numel(p.phi_locus)
 
 
-% 		if stretch
-%             if stretch==1
-%                 [p.phi_locus_full{i}.shape(:,1), p.phi_locus_full{i}.shape(:,2)] ...
-%                     = convert.stretch.old_to_new_points(p.phi_locus_full{i}.shape(:,1), p.phi_locus_full{i}.shape(:,2));
-%             else
-%                 [p.phi_locus_full{i}.shape(:,1), p.phi_locus_full{i}.shape(:,2)] ...
-%                     = convert.surface.old_to_new_points(p.phi_locus_full{i}.shape(:,1), p.phi_locus_full{i}.shape(:,2));
-%             end
-% 
-% 		end
+		if stretch
+            if stretch==1
+                [p.phi_locus_full{i}.shape(:,1), p.phi_locus_full{i}.shape(:,2)] ...
+                    = convert.stretch.old_to_new_points(p.phi_locus_full{i}.shape(:,1), p.phi_locus_full{i}.shape(:,2));
+            else
+                [p.phi_locus_full{i}.shape(:,1), p.phi_locus_full{i}.shape(:,2)] ...
+                    = convert.surface.old_to_new_points(p.phi_locus_full{i}.shape(:,1), p.phi_locus_full{i}.shape(:,2));
+            end
+
+		end
 
 
 		%draw the path itself
