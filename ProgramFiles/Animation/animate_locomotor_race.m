@@ -42,6 +42,8 @@ function animate_locomotor_race(export,info_needed)
     frame_info{1}.sysname = info_needed.current_system2;
     frame_info{1}.pathname = info_needed.current_shch2;
     frame_info{1}.s = info_needed.s;
+    frame_info{1}.drawing_baseframe_inserted = repmat({0},[numel(info_needed.current_system2),1]);
+
 
 	% Animate the movie
 	[frame_info, endframe]...
@@ -153,7 +155,6 @@ function frame_info = execute_gait(frame_info,tau)
 	
 	%%%%%%
     % Get the system position and shape at fractional time tau
-    
     for idx_system = 1:numel(frame_info{irobot}.shapedata)
     
         % Generate a core timing vector from zero to 1, with as many entries as
@@ -180,7 +181,6 @@ function frame_info = execute_gait(frame_info,tau)
 
         % If a drawing baseframe has been specified, append the original
         % system baseframe with the one that has been specified
-        frame_info{irobot}.drawing_baseframe_inserted = repmat({0},[numel(frame_info{irobot}.shapedata),1]);
         if isfield(frame_info{irobot},'drawing_baseframe') && ~frame_info{irobot}.drawing_baseframe_inserted{idx_system}
             if ~iscell(frame_info{irobot}.s(idx_system).geometry.baseframe)
                 frame_info{irobot}.s(idx_system).geometry.baseframe ...
