@@ -177,7 +177,7 @@ function [frame_info, endframe] = sysplotter_animation_race(frame_gen_function,f
 % 			% Print out the frame into the newframes directory if the
 % 			% export flag is set
             % Save animation datastructures for all 
-			for j = 1:numel(destination)
+			for j = 1%:numel(destination)
 				
 %				if calc(j)
             
@@ -240,7 +240,7 @@ function [frame_info, endframe] = sysplotter_animation_race(frame_gen_function,f
     
     warning('off','MATLAB:audiovideo:VideoWriter:mp4FramePadded')
     % Export:
-    for j = 1:numel(destination)
+    for j = 1%:numel(destination)
         %if export(j)
 
             if ispc || ismac

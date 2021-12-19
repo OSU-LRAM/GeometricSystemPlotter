@@ -2,14 +2,14 @@ function animate_locomotor_race(export,info_needed)
     
     % Look up the geometry specification for the systems:
     for idx_system = 1:numel(info_needed.current_system2)
-        sysfile = fullfile(info_needed.datapath, ['sysf_', info_needed.current_system2{idx}, '_calc.mat']);
+        sysfile = fullfile(info_needed.datapath, ['sysf_', info_needed.current_system2{idx_system}, '_calc.mat']);
         load(sysfile,'s')
         info_needed.s(idx_system) = s;
     end
         
   	% Declare a directory name file names for the movies
 	destination_root = fullfile(info_needed.datapath,'Animation','swimrace');
-	destination_list = 'Swimmers';
+	destination_list = fieldnames(info_needed.Movies);
             
         if strcmp(info_needed.Coordinates,'minperturbation_coords')
             destinationsuffix = 'min_perturb';
@@ -17,8 +17,12 @@ function animate_locomotor_race(export,info_needed)
             destinationsuffix = 'original_coords';
         end
 
-	destination = fullfile(destination_root,[destination_list '__' destinationsuffix]); 
+	destination = cellfun(@(x) fullfile(destination_root,['race' '__' 'race' '__' x '__' destinationsuffix]),destination_list,'UniformOutput',false); 
 
+    % Flag movies that should be generated, don't skip any movies
+    export_list = cellfun(@(x) info_needed.Movies.(x), destination_list);
+    skip_list = zeros(size(export_list));
+    info_needed.export_list = export_list;
     
     %%%%%%%%
 	% Create animation elements, and store them in the frame_info structure
@@ -37,11 +41,11 @@ function animate_locomotor_race(export,info_needed)
     % Pass the system and gait names to the frame_info struct
     frame_info{1}.sysname = info_needed.current_system2;
     frame_info{1}.pathname = info_needed.current_shch2;
-    frame_info{1}.s = s;
+    frame_info{1}.s = info_needed.s;
 
 	% Animate the movie
 	[frame_info, endframe]...
-		= sysplotter_animation(frame_gen_function,frame_info,timing,destination,export_list,skip_list,0);
+		= sysplotter_animation_race(frame_gen_function,frame_info,timing,destination,export_list,skip_list,0);
 
 end
 
@@ -70,8 +74,8 @@ function h = create_elements(info_needed)
 	h.ax = axes('Parent',h.f);                      % Create axes for the plot
  	axis(h.ax,'equal','off');                       % Make the plot isometric and make the axes invisible
   	set(h.ax,...
-        'XLim',[-1,1]*.7/.45*info_needed.s.geometry.length,...  % Axes scaled to system scale
-        'YLim',[-1,1]*.7*info_needed.s.geometry.length);
+        'XLim',[-1,4]*.7/.45*info_needed.s(1).geometry.length,...  % Axes scaled to system scale
+        'YLim',[-2.5,2.5]*.7*info_needed.s(1).geometry.length);
  	set(h.ax,'Position',[0 0 1 1])                  % Make the axes fill the whole window
 
     data_source = info_needed.datapath;
@@ -81,11 +85,13 @@ function h = create_elements(info_needed)
     for idx_system = 1:numel(info_needed.current_system2)
         
         %Create the locomotor
+        info_needed2 = info_needed;
+        info_needed2.s = info_needed.s(idx_system);
         h.robot{idx_system} = create_locomotor(...
             h.ax,...
             data_source,...
             system_name{idx_system},...
-            info_needed);
+            info_needed2);
 	
         %%%%%%%%
         % Create the tracer objects
@@ -94,19 +100,19 @@ function h = create_elements(info_needed)
         h.tl{idx_system} = line('Parent',h.ax,'XData',[],'YData',[],'ZData',[],'LineWidth',5,'Color',Colorset.spot); %Tracer line for translation
 
         % Extract the position, shape, and cost data
-        load(fullfile(data_source,['sysf_' system_name{idx_system} '__shchf_' gait_name]));
+        load(fullfile(data_source,['sysf_' system_name{idx_system} '__shchf_' gait_name{idx_system}]));
         shaperaw{idx_system} = p.phi_locus_full{1}.shape;
 
         if strcmp(info_needed.Coordinates,'minperturbation_coords')
             posraw{idx_system} = p.G_locus_full{1}.G_opt;
-            h.drawing_baseframe{idx_system} = info_needed.current_system2;
+            h.drawing_baseframe{idx_system} = info_needed.current_system2{idx_system};
         else
             posraw{idx_system} = p.G_locus_full{1}.G;
         end
         
         costraw{idx_system} = p.G_locus_full{1}.S;
         
-        speedraw{idx_system} = posraw{idx_system}(end)/costraw{idx_system}(end);
+        speedraw{idx_system} = abs(posraw{idx_system}(end,1))/costraw{idx_system}(end);
         
     end
     
@@ -124,8 +130,8 @@ function h = create_elements(info_needed)
 	% Specify the number of times to repeat the cycle, and the number of
 	% negative cycle-displacements to start from
     maxdisp = 3;
-	n_gaits_max = ceil(maxdisp/posraw{fastestsystem}(end));
-    t_max = costscaled{fastestsystem}*n_gaits_max;
+	n_gaits_max = ceil(maxdisp/abs(posraw{fastestsystem}(end,1)));
+    t_max = costscaled{fastestsystem}(end)*n_gaits_max;
 	start_pos = 0;
 	
 	% get full configuration history
@@ -144,15 +150,16 @@ function frame_info = execute_gait(frame_info,tau)
 	% data
 	irobot = 1;
 
-	% Generate a core timing vector from zero to 1, with as many entries as
-	% data points in the kinematic history
-	timing_base = linspace(0,1,size(frame_info{irobot}.shapedata,1));
 	
 	%%%%%%
     % Get the system position and shape at fractional time tau
     
-    for idx_system = 1:numel(frame_info.shapedata)
+    for idx_system = 1:numel(frame_info{irobot}.shapedata)
     
+        % Generate a core timing vector from zero to 1, with as many entries as
+        % data points in the kinematic history
+        timing_base = linspace(0,1,size(frame_info{irobot}.shapedata{idx_system},1));
+
         % Interpolate the shape variables at the specified time
         config.shape = zeros(size(frame_info{irobot}.shapedata{idx_system},2),1);
         for idx = 1:numel(config.shape)
@@ -163,43 +170,47 @@ function frame_info = execute_gait(frame_info,tau)
         config.x = interp1(timing_base,frame_info{irobot}.posdata{idx_system}(:,1),tau);
         config.y = interp1(timing_base,frame_info{irobot}.posdata{idx_system}(:,2),tau);
         config.theta = interp1(timing_base,frame_info{irobot}.posdata{idx_system}(:,3),tau);
+        
+        % offset the y values to put the systems next to each other
+        yoffset = + (idx_system - 1) - (numel(frame_info{irobot}.shapedata)-1)/2;
+        config.y = config.y + yoffset;
 	
         %%%%
         % Place the locomotor at the position
 
         % If a drawing baseframe has been specified, append the original
         % system baseframe with the one that has been specified
-        if isfield(frame_info{irobot},'drawing_baseframe') && ~isfield(frame_info{irobot},'drawing_baseframe_inserted')
-            if ~iscell(frame_info{irobot}.s.geometry.baseframe)
-                frame_info{irobot}.s.geometry.baseframe ...
-                    = {frame_info{irobot}.s.geometry.baseframe};
+        frame_info{irobot}.drawing_baseframe_inserted = repmat({0},[numel(frame_info{irobot}.shapedata),1]);
+        if isfield(frame_info{irobot},'drawing_baseframe') && ~frame_info{irobot}.drawing_baseframe_inserted{idx_system}
+            if ~iscell(frame_info{irobot}.s(idx_system).geometry.baseframe)
+                frame_info{irobot}.s(idx_system).geometry.baseframe ...
+                    = {frame_info{irobot}.s(idx_system).geometry.baseframe};
             end
-            if ~iscell(frame_info{irobot}.s.geometry.baseframe)
+            if ~iscell(frame_info{irobot}.s(idx_system).geometry.baseframe)
                 frame_info{irobot}.drawing_baseframe ...
                     = {frame_info{irobot}.drawing_baseframe};
             end
-            frame_info{irobot}.s.geometry.baseframe = [frame_info{irobot}.s.geometry.baseframe frame_info{irobot}.drawing_baseframe];
-            frame_info{irobot}.drawing_baseframe_inserted = 1;
+            frame_info{irobot}.s(idx_system).geometry.baseframe = [frame_info{irobot}.s(idx_system).geometry.baseframe frame_info{irobot}.drawing_baseframe{idx_system}];
+            frame_info{irobot}.drawing_baseframe_inserted{idx_system} = 1;
         end
     
         % Use the configuration to place the locomotor
-        frame_info{irobot}.robot{idx_system} = place_locomotor(frame_info{irobot}.robot{idx_system},config,frame_info{irobot}.s);
+        frame_info{irobot}.robot{idx_system} = place_locomotor(frame_info{irobot}.robot{idx_system},config,frame_info{irobot}.s(idx_system));
 
         % draw the locomotor
         frame_info{irobot}.robot{idx_system} = draw_locomotor(frame_info{irobot}.robot{idx_system},0);
 
         % Draw the tracer dot
-        set(frame_info{irobot}.tld{idx_system},'XData',[frame_info{irobot}.posdata{idx_system}(1,1) config.x],'YData',[frame_info{irobot}.posdata{idx_system}(1,2) config.y],'ZData',[5,5]);
+        set(frame_info{irobot}.tld{idx_system},'XData',[frame_info{irobot}.posdata{idx_system}(1,1) config.x],'YData',[frame_info{irobot}.posdata{idx_system}(1,2)+yoffset config.y],'ZData',[5,5]);
 
         % Draw the tracer
-        set(frame_info{irobot}.tl{idx_system},'XData',frame_info{irobot}.posdata{idx_system}(1:floor(tau*end),1),'YData',frame_info{irobot}.posdata{idx_system}(1:floor(tau*end),2),'ZData',5*ones(size(frame_info{irobot}.posdata{idx_system}(1:floor(tau*end),1))));
+        set(frame_info{irobot}.tl{idx_system},'XData',frame_info{irobot}.posdata{idx_system}(1:floor(tau*end),1),'YData',frame_info{irobot}.posdata{idx_system}(1:floor(tau*end),2)+yoffset,'ZData',5*ones(size(frame_info{irobot}.posdata{idx_system}(1:floor(tau*end),1))));
 
 
     end
     
-% 	% Declare a print method (in this case, print 150dpi png files of
-% 	frame_info{irobot}.printmethod = @(dest) print(frame_info{irobot}.f,'-r 150','-painters',dest);
-
+	% Declare a print method (in this case, print 150dpi png files of
+	frame_info{irobot}.printmethod = @(dest) print(frame_info{irobot}.f,'-r 150','-painters',dest);
 	
 
 end
@@ -221,14 +232,14 @@ function [shapedata, posdata] = gait_concatenator(shaperaw,posraw,n_gaits_max,st
         % Concatenate the gait displacements together.
 
         % Get the displacement over one cycle
-        cyclic_displacement = posraw{idx}(end,:);
+        cyclic_displacement = posraw{idx_system}(end,:);
 	
         % convert this cyclic displacement into an SE(2) matrix
         cyclic_displacement_m = vec_to_mat_SE2(cyclic_displacement);
 
         % Add a set of ones onto the xy values, so that they can be
         % translated/rotated by SE(2) matrices
-        posraw_xy_augmented = cat(1, posraw(:,1:2)', ones(1,size(posraw,1)));
+        posraw_xy_augmented = cat(1, posraw{idx_system}(:,1:2)', ones(1,size(posraw{idx_system},1)));
 	    
         % Chain n iterations of the gait together, offsetting the start of each
         % by the displacement at the end of the previous gait, and avoiding a
@@ -263,7 +274,7 @@ function [shapedata, posdata] = gait_concatenator(shaperaw,posraw,n_gaits_max,st
 
             % theta component (always starts at zero orientation)		
             posdata_theta = ...
-                posraw(first_index:end,3)'... % Take the theta values from the within-gait displacement
+                posraw{idx_system}(first_index:end,3)'... % Take the theta values from the within-gait displacement
                 +cyclic_displacement(3)*(i-1); % Add as many net theta changes as there are previous gait cycles
 
             % merge xy and theta data (stripping off ones from xy position at the same time)
