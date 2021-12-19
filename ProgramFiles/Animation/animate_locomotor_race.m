@@ -4,6 +4,7 @@ function animate_locomotor_race(export,info_needed)
     for idx_system = 1:numel(info_needed.current_system2)
         sysfile = fullfile(info_needed.datapath, ['sysf_', info_needed.current_system2{idx_system}, '_calc.mat']);
         load(sysfile,'s')
+        s.costfunction = info_needed.costfunction{idx_system};
         info_needed.s(idx_system) = s;
     end
         
@@ -112,32 +113,31 @@ function h = create_elements(info_needed)
             posraw{idx_system} = p.G_locus_full{1}.G;
         end
         
-        costraw{idx_system} = p.G_locus_full{1}.S;
+        h.normalizedPeriod{idx_system} = getNormalizedPeriod(s,p,info_needed.s(idx_system).costfunction);
+        h.disp{idx_system} = norm(posraw{idx_system}(end,1:2));
         
-        speedraw{idx_system} = abs(posraw{idx_system}(end,1))/costraw{idx_system}(end);
+        h.speed{idx_system} = h.disp{idx_system}/h.normalizedPeriod{idx_system};
+
         
     end
     
-    [maxspeed,fastestsystem] = max(cell2mat(speedraw));
+    %speedraw = 
     
-    for idx_system = 1:numel(info_needed.current_system2)
-        
-       costscaled{idx_system} = costraw{idx_system} * maxspeed;
-       speedscaled{idx_system} = speedraw{idx_system}/maxspeed;
-        
-    end
+    [maxspeed,fastestsystem] = max(cell2mat(h.speed));
+    
+
 
 	
 	
 	% Specify the number of times to repeat the cycle, and the number of
 	% negative cycle-displacements to start from
     maxdisp = 3;
-	n_gaits_max = ceil(maxdisp/abs(posraw{fastestsystem}(end,1)));
-    t_max = costscaled{fastestsystem}(end)*n_gaits_max;
+	n_gaits_max = ceil(maxdisp/h.disp{fastestsystem});
+    t_max = h.normalizedPeriod{fastestsystem}*n_gaits_max;
 	start_pos = 0;
 	
 	% get full configuration history
-	[h.shapedata, h.posdata] = gait_concatenator(shaperaw,posraw,n_gaits_max,start_pos,t_max,costscaled);
+	[h.shapedata, h.posdata] = gait_concatenator(shaperaw,posraw,start_pos,t_max,h.normalizedPeriod);
 	
 
 end
@@ -216,14 +216,14 @@ function frame_info = execute_gait(frame_info,tau)
 end
 
 %%%%%%
-function [shapedata, posdata] = gait_concatenator(shaperaw,posraw,n_gaits_max,start_pos,t_max,costscaled)
+function [shapedata, posdata] = gait_concatenator(shaperaw,posraw,start_pos,t_max,normalizedPeriod)
 
 
 	
 	% Store the shape and data to the frameinfo structure
     for idx_system = 1:numel(shaperaw)
         
-        n_gaits = ceil(t_max/costscaled{idx_system}(end));
+        n_gaits = ceil(t_max/normalizedPeriod{idx_system}(end));
         
         shapedata{idx_system} = cat(1,shaperaw{idx_system}(1,:),repmat(shaperaw{idx_system}(2:end,:),[n_gaits,1]));
     
@@ -292,3 +292,214 @@ function [shapedata, posdata] = gait_concatenator(shaperaw,posraw,n_gaits_max,st
     end
 
 end
+
+% % Function to integrate up system velocities using a fixed-step method
+% function [net_disp_orig, cost] = fixed_step_integrator(s,gait,tspan,ConnectionEval,resolution)
+% 
+% 	% Duplicate 'resolution' to 'res' if it is a number, or place res at a
+% 	% starting resolution if an automatic convergence method is selected
+% 	% (automatic convergence not yet enabled)
+% 	default_res = 100;
+% 	if isnumeric(resolution)
+% 		res = resolution;
+% 	elseif ischar(resolution) && strcmp(resolution,'autoconverge')
+% 		res = default_res;
+% 	else
+% 		error('Unexpected value for resolution');
+% 	end
+% 	
+% 	% Generate the fixed points from the time span and resolution
+% 	tpoints = linspace(tspan(1),tspan(2),res);
+% 	tsteps = gradient(tpoints);
+%     
+%     %Prep interpolation inputs for velocities function
+%     shape = zeros(size(s.grid.eval));
+%     shape_gait_def_0 = readGait(gait.phi_def,0);
+%     actual_size = min(numel(shape),numel(shape_gait_def_0));
+%     
+%     samplePoints = {};
+%     for dim = 1:actual_size
+%         samplePoints{dim} = [];
+%     end
+%     
+%     for time = tpoints
+%         shape_gait_def = readGait(gait.phi_def,time);
+%         shape(1:actual_size) = shape_gait_def(1:actual_size);
+%         for dim = 1:numel(shape)
+%             samplePoints{dim}(end+1) = shape(dim); 
+%         end
+%     end
+%     
+%     indexList = 1:numel(tpoints);
+%     id = eye(actual_size);
+%     
+%     As = cellfun(@(C) -interpn(s.grid.eval{:},C,...
+%         samplePoints{:},'spline'),s.vecfield.eval.content.Avec,...
+%         'UniformOutput',false);
+%     As = celltensorconvert(As);
+%     
+%     switch s.costfunction
+%         case {'pathlength coord','acceleration coord'}
+%             %In the case of these two cost functions, we only care about
+%             %the connection field, and the metric is always identity.
+%             %dM is passed a filler value
+%             [xi,dcost] = arrayfun(@(t,i) get_velocities(t,s,gait,ConnectionEval,As{i},id,1),...
+%                 tpoints,indexList,'UniformOutput',false);
+%         case {'torque','covariant acceleration','power quality'}
+%             %In the inertial cases, we need to calculate dM, and the metric
+%             metrics = cellfun(@(C) interpn(s.grid.metric_eval{:},C,...
+%                 samplePoints{:},'spline'),s.metricfield.metric_eval.content.metric,...
+%                 'UniformOutput',false);
+%             metrics = celltensorconvert(metrics);
+%             
+%             dM_set = {};
+%             for dim = 1:actual_size
+%                 dM_holder = cellfun(@(C) interpn(s.grid.metric_eval{:},C,...
+%                     samplePoints{:},'spline'),s.coriolisfield.coriolis_eval.content.dM{dim},...
+%                     'UniformOutput',false);
+%                 dM_holder = celltensorconvert(dM_holder);
+%                 dM_set{dim} = dM_holder;
+%             end
+%             dMs = {};
+%             for i = 1:numel(tpoints)
+%                 dMs{i} = {};
+%                 for dim = 1:actual_size
+%                     dMs{i}{dim} = dM_set{dim}{i};
+%                 end
+%             end
+%             
+%             [xi,dcost] = arrayfun(@(t,i) get_velocities(t,s,gait,ConnectionEval,...
+%                 As{i},metrics{i},dMs{i}),tpoints,indexList,'UniformOutput',false);
+%         otherwise
+%             %Otherwise, we're not doing inertial so don't need dM, but we
+%             %do care about the metric and connection
+%             metrics = cellfun(@(C) interpn(s.grid.metric_eval{:},C,...
+%                 samplePoints{:},'spline'),s.metricfield.metric_eval.content.metric,...
+%                 'UniformOutput',false);
+%             metrics = celltensorconvert(metrics);
+%             
+%             [xi,dcost] = arrayfun(@(t,i) get_velocities(t,s,gait,ConnectionEval,...
+%                 As{i},metrics{i},1),tpoints,indexList,'UniformOutput',false);
+%     end
+% 
+% 	%%%%%%%
+% 	% Integrate cost and displacement into final values
+% 	
+% 	%%
+% 	% Exponential integration for body velocity
+% 	
+% 	% Exponentiate each velocity over the corresponding time step
+% 	expXi = cellfun(@(xi,timestep) se2exp(xi*timestep),xi,num2cell(tsteps),'UniformOutput',false);
+% 	
+% 	% Start off with zero position and displacement
+% 	net_disp_matrix = eye(size(expXi{1}));
+% 	
+% 	% Loop over all the time steps from 1 to n-1, multiplying the
+% 	% transformation into the current displacement
+% 	for i = 1:(length(expXi)-1)
+% 		
+% 		net_disp_matrix = net_disp_matrix * expXi{i};
+% 		
+% 	end
+% 	
+% 	% De-matrixafy the result
+% 	g_theta = atan2(net_disp_matrix(2,1),net_disp_matrix(1,1));
+% 	g_xy = net_disp_matrix(1:2,3);
+% 	
+% 	net_disp_orig = [g_xy;g_theta];
+% 	
+% 	%%
+% 	% Trapezoidal integration for cost
+% 	dcost = [dcost{:}];
+% 	cost = trapz(tpoints,dcost);
+% 
+% end
+% 
+% function state = readGait(gaitFun,t)
+% 
+%         state = gaitFun{1}{1}(t);
+% 
+% end
+% 
+% % Evaluate the body velocity and cost velocity (according to system metric)
+% % at a given time
+% function [gcirc, dcost] = get_velocities(t,s,gait,ConnectionEval,A,metric,dM)
+% 
+% 	% Get the shape and shape derivative at the current time
+%     shape = zeros(size(s.grid.eval));
+%     dshape = zeros(size(s.grid.eval));
+%     %ddshape = zeros(size(s.grid.eval));
+%     
+% 	shape_gait_def = readGait(gait.phi_def,t);
+% 	dshape_gait_def = readGait(gait.dphi_def,t);
+%     %ddshape_gait_def = readGait(gait.ddphi_def,t);
+%     
+%     actual_size = min(numel(shape),numel(shape_gait_def));
+%     shape(1:actual_size) = shape_gait_def(1:actual_size);
+%     dshape(1:actual_size) = dshape_gait_def(1:actual_size);
+%     %ddshape(1:actual_size) = ddshape_gait_def(1:actual_size);
+%   
+%     M_a = metric;
+%     
+% 	shapelist = num2cell(shape);
+% 	
+%     % If doing functional eval of system (not recommended)
+% 	% Get the local connection and metric at the current time, in the new coordinates
+% 	if strcmpi(ConnectionEval,'functional')
+% 			
+%         A = s.A_num(shapelist{:})./s.A_den(shapelist{:});
+% 
+%         switch s.system_type
+%             case 'drag'
+%                 metric = s.metric(shapelist{:});
+%             case 'inertia'
+%                 error('Functional ConnectionEval method not supported for inertia systems!')
+%         end
+% 
+%     end
+% 	
+% 	% Get the body velocity at the current time
+% 	%t;
+%     gcirc = - A * dshape(:);
+% 
+%     switch s.costfunction
+%         case {'pathlength metric','pathlength coord'}
+%             dcost = sqrt(dshape(:)'*metric*dshape(:));
+%         case 'pathlength metric2'
+%             dcost = sqrt(dshape(:)'*metric*metric*dshape(:));
+%         case 'torque'
+%             dcost = torque_cost(M_a,dM,shape,dshape,ddshape,metric);
+%         case 'covariant acceleration'
+%             dcost = acceleration_cost(M_a,dM,shape,dshape,ddshape,metric);
+%         case 'acceleration coord'
+%             dcost = ddshape(:)'*metric*ddshape(:);
+%         case 'power quality'
+%             dcost = power_quality_cost(M_a,dM,shape,dshape,ddshape);
+%     end
+% 	
+% end
+% 
+% 
+% function expXi = se2exp(xi)
+% 
+% 	% Make sure xi is a column
+% 	xi = xi(:);
+% 
+% 	% Special case non-rotating motion
+% 	if xi(3) == 0
+% 		
+% 		expXi = [eye(2) xi(1:2); 0 0 1];
+% 		
+% 	else
+% 		
+% 		z_theta = xi(3);
+% 		
+% 		z_xy = 1/z_theta * [sin(z_theta), 1-cos(z_theta); cos(z_theta)-1, sin(z_theta)] * xi(1:2);
+% 		
+% 		expXi = [ [cos(z_theta), -sin(z_theta); sin(z_theta), cos(z_theta)], z_xy;
+% 			0 0 1];
+% 		
+% 	end
+% 
+% 
+% end
