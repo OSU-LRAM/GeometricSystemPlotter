@@ -223,9 +223,10 @@ function [shapedata, posdata] = gait_concatenator(shaperaw,posraw,start_pos,t_ma
 	% Store the shape and data to the frameinfo structure
     for idx_system = 1:numel(shaperaw)
         
-        n_gaits = ceil(t_max/normalizedPeriod{idx_system}(end));
+        f_gaits = t_max/normalizedPeriod{idx_system}(end);
+        n_gaits = ceil(f_gaits);
+        lastfrac = f_gaits-n_gaits;
         
-        shapedata{idx_system} = cat(1,shaperaw{idx_system}(1,:),repmat(shaperaw{idx_system}(2:end,:),[n_gaits,1]));
     
         
         %%%%%%
@@ -247,6 +248,7 @@ function [shapedata, posdata] = gait_concatenator(shaperaw,posraw,start_pos,t_ma
 
         % Initialize the position data with an empty matrix
         posdata{idx_system} = [];
+        shapedata{idx_system} = [];
 
         % Iterate over the n gait cycles
         for i = 1:n_gaits
@@ -259,6 +261,20 @@ function [shapedata, posdata] = gait_concatenator(shaperaw,posraw,start_pos,t_ma
             else
                 first_index = 2;
             end
+            
+            % For the last gait, only include a fraction of the gait
+            if i == n_gaits
+                
+               last_index = ceil(size(posraw{idx_system},1)*lastfrac);
+               
+            else
+                
+                last_index = size(posraw{idx_system},1);
+                
+            end
+            
+            shapedata_new = shaperaw{idx_system}(first_index:last_index,:);
+            shapedata{idx_system} = cat(1,shapedata{idx_system},shapedata_new);
 
             % Offset the displacements, using low-level implementation of SE(2)
             % action 
@@ -270,11 +286,11 @@ function [shapedata, posdata] = gait_concatenator(shaperaw,posraw,start_pos,t_ma
                 powerm_pade(cyclic_displacement_m,...  % Take the displacement over one gait cycle
                     +start_pos...                      % Raise it to the negative power of the starting offset (so that we start back from the origin
                     +(i-1))...                         % For each subsequent gait, shift if forward by one gait cycle
-                *posraw_xy_augmented(:,first_index:end); % Apply the starting offset for this cycle (calculated in the lines above) to the within-cycle displacements
+                *posraw_xy_augmented(:,first_index:last_index); % Apply the starting offset for this cycle (calculated in the lines above) to the within-cycle displacements
 
             % theta component (always starts at zero orientation)		
             posdata_theta = ...
-                posraw{idx_system}(first_index:end,3)'... % Take the theta values from the within-gait displacement
+                posraw{idx_system}(first_index:last_index,3)'... % Take the theta values from the within-gait displacement
                 +cyclic_displacement(3)*(i-1); % Add as many net theta changes as there are previous gait cycles
 
             % merge xy and theta data (stripping off ones from xy position at the same time)

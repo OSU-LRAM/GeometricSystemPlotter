@@ -5,8 +5,9 @@ function normalizedPeriod = getNormalizedPeriod(s,gait,costfun)
     
     s.costfunction = costfun;
 
-    t = [0:.001:1];
+    t = gait.time_full{1};
     phi_def = gait.phi_def{1}{1}(t);
+    t = linspace(0,1,numel(t));
     
     dimension = size(phi_def,2);
 
@@ -32,8 +33,16 @@ function normalizedPeriod = getNormalizedPeriod(s,gait,costfun)
     
     p = makeGait(y);
     
-    [~,cost] = fixed_step_integrator(s,p,[0,1],'interpolated',100);
-    normalizedPeriod = cost^(1/4);
+    [~,cost] = fixed_step_integrator(s,p,[0,1],'interpolated',1000);
+    
+    if strcmpi(s.costfunction,'torque') || strcmpi(s.costfunction,'covariant acceleration') || strcmpi(s.costfunction,'acceleration coord') || strcmpi(s.costfunction,'power quality')
+        % With cost as time period, period of the gait is the cost to execute
+        % the gait at unit torque squared to the 1/4th power
+        normalizedPeriod = cost^(1/4);
+    else
+        % Drag systems have cost as path length, so no modification is needed
+        normalizedPeriod = cost;
+    end
 
 end
 
@@ -336,4 +345,25 @@ function expXi = se2exp(xi)
 	end
 
 
+end
+
+function dcost = power_quality_cost(M,dM,shape,dshape,ddshape)
+% Calculates the incremental cost for an inertial system where cost is power quality.
+% Inputs:
+%   M: Mass matrix
+%   dM_alphadalpha: Partial of mass matrix with respect to shape variables;
+%       must be cell where the ith entry is the partial with respect to the
+%       ith shape variable
+%   shape: Current shape configuration of system, at which M and
+%       dM_alphadalpha were evaluated
+%   dshape: Current shape velocity of system
+%   ddshape: Current shape acceleration of system
+
+    % Start by calculating the coriolis matrix
+    C = calc_coriolis_matrix(dM,shape,dshape);
+    % Calculate the torque for this instant of time 
+    dtau = M*ddshape(:) + C;
+    % Calculate power quality
+    dcost = (dshape(:)'*dtau)^2 - ((dshape(:)').^2*dtau.^2);
+    dcost = dcost + 100;
 end
