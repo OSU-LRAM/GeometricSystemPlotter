@@ -100,6 +100,7 @@ end
 % min_subsystem = min(C(C~=0),[],'all');
 max_subsystem = 8; min_subsystem = 1;
 
+
 % scatter3(x,y,Z,[],C)
 hold on
 for i = 1:8
@@ -118,7 +119,6 @@ colormap(jet(max_subsystem - min_subsystem + 1))
 colorbar
 colorbar('Ticks',min_subsystem:max_subsystem,...
          'TickLabels', directions_key(min_subsystem:max_subsystem))
-
 
 %%
 % Trying to visualize the consistent_system four-dimensional array:
