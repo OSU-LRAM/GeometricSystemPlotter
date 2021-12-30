@@ -72,12 +72,13 @@ function output = sysf_three_link_HighRe(input_mode,pathnames)
 			%Processing details
 
 			%Range over which to evaluate connection
-			s.grid_range = [-1,1,-1,1]*2.5;
+			s.grid_range = [-1,1,-1,1]*2/3*pi;
 
 			%densities for various operations
 			s.density.vector = [21 21]; %density to display vector field
 			s.density.scalar = [51 51]; %density to display scalar functions
 			s.density.eval = [31 31];   %density for function evaluations
+
             %Bump up this value
             s.density.metric_eval = [31 31]; %density for metric evaluation
 %            s.density.mass_eval = [31 31]; % density for mass matrix evaluation

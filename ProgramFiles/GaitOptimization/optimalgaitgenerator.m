@@ -1766,7 +1766,7 @@ function del_cost = acceleration_gradient_helper(t,X,s,gait,grad_alpha,grad_alph
     del_cost = del_cost(:);
 end
 
-function del_cost = accelerationcoord_gradient_helper(t,X,s,gait,grad_alphaddot,metric,dM,ddM)
+function del_cost = accelerationcoord_gradient_helper(t,X,s,gait,grad_alphaddot,metric,~,ddM)
 % Helper function to calculate the gradient of shape-space acceleration
 % cost
 % Designed to work with ode45; solves for the gradient of cost at an

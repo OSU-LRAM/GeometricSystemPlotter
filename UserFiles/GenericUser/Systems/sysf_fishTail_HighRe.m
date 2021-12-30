@@ -1,4 +1,4 @@
-function output = sysf_three_link_HighRe(input_mode,pathnames)
+function output = sysf_two_mode_CC(input_mode,pathnames)
 
 	% Default arguments
 	if ~exist('input_mode','var')
@@ -13,7 +13,7 @@ function output = sysf_three_link_HighRe(input_mode,pathnames)
 
 		case 'name'
 
-			output = '5-Link Flapper with Passive Joints'; % Display name
+			output = 'Fish Tail Swimmer'; % Display name
 
 		case 'dependency'
 
@@ -26,15 +26,24 @@ function output = sysf_three_link_HighRe(input_mode,pathnames)
             %%%%%%
             % Define system geometry
             s.geometry.type = 'n-link chain';
-            s.geometry.linklengths = [1 1 1 1 1];
-            s.geometry.activelinks = [1 0 1 0 1];
+            headRatio = 1/3;
+            nLinksTail = 21;
+            s.geometry.linklengths = [(1-headRatio)/nLinksTail*ones(1,nLinksTail),headRatio];
             s.geometry.baseframe = 'center';
             s.geometry.length = 1;
-            s.geometry.link_shape = {'ellipse','ellipse','ellipse','ellipse','ellipse'};
-                st = struct('aspect_ratio',0.1);
-            s.geometry.link_shape_parameters = {st,st,st,st,st};
-            s.geometry.modes = [1,0;0,1;0,1;1,0];
-            s.geometry.linkSeparation = .1;
+            s.geometry.link_shape = {};
+            st = struct('aspect_ratio',0.1);
+            for i = 1:22
+                s.geometry.link_shape{i} = 'ellipse';
+                s.geometry.link_shape_parameters{i} = st;
+            end
+            modeSetup = [];
+            for i = 1:20
+                modeSetup(i,:) = [(1-headRatio)/20,0];
+            end
+            modeSetup(21,:) = [0,1];
+            s.geometry.modes = modeSetup;
+            
             
             %%%
             % Define properties for visualizing the system
@@ -42,7 +51,8 @@ function output = sysf_three_link_HighRe(input_mode,pathnames)
             % Make a grid of values at which to visualize the system in
             % illustrate_shapespace. (Use a cell of gridpoints along each
             % axis to use different spacings for different axes)
-            s.visual.grid_spacing = [-1  0  1];
+            passiveRange = 2*pi/(1-headRatio);
+            s.visual.grid_spacing = [-1  0  1]*passiveRange;
             
             %%%
             %%%%%%
@@ -53,29 +63,22 @@ function output = sysf_three_link_HighRe(input_mode,pathnames)
  
             %Functional Local connection and dissipation metric
 
+
             s.A = @(alpha1,alpha2) Inertial_local_connection( ...
                         s.geometry,...                           % Geometry of body
                         s.physics,...                            % Physics properties
                         [alpha1,alpha2]);                        % Joint angles
-            
-            s.metric = @(alpha1,alpha2) Inertial_energy_metric(s.geometry,s.physics,[alpha1,alpha2]);
-            %s.metric = @(alpha1,alpha2)eye(2);%@(alpha1,alpha2) LowRE_dissipation_metric(...
-%                         s.geometry,...                           % Geometry of body
-%                         s.physics,...                            % Physics properties
-%                         [alpha1,alpha2]);                        % Joint angles
 
-            % TODO: These should probably be calculated as part of a larger
-            % wrapping function that's meant to return M and C matrices for
-            % a set of points
-%             s.dJdq = @(alpha1,alpha2) mobile_jacobian_derivative(s.J_full);
-%             s.dMdq = @(alpha1,alpha2) partial_mass_matrix(s.J,s.dJdq,local_inertias,'mobile');
+            s.metric = @(alpha1,alpha2) Inertial_energy_metric(s.geometry,s.physics,[alpha1,alpha2]);
+            %s.metric = @(alpha1,alpha2) eye(2);
+          
                     
 			%%%
 			%Processing details
 
 			%Range over which to evaluate connection
-			s.grid_range = [-1,1,-1,1]*2;
-
+			s.grid_range = [-5,5,-pi,pi];
+            
 			%densities for various operations
 			s.density.vector = [21 21]; %density to display vector field
 			s.density.scalar = [51 51]; %density to display scalar functions
@@ -87,12 +90,12 @@ function output = sysf_three_link_HighRe(input_mode,pathnames)
 
 
 			%shape space tic locations
-			s.tic_locs.x = [-1 0 1]*1;
-			s.tic_locs.y = [-1 0 1]*1;
+			s.tic_locs.x = [-1 0 1]*pi;
+			s.tic_locs.y = [-1 0 1]*pi;
+
 
             % System type flag
             s.system_type = 'inertia';
-            
 			%%%%
 			%Save the system properties
 			output = s;

@@ -22,22 +22,9 @@ function s = calc_constraint_curvature(s)
 		
 		%Extract the high density grid
 		grid = s.grid.eval;
-
-		if n_col <= 4
 	
-			s.(['dA' Avec_names{i}]) = cell(n_rows,(n_col^2 - n_col)/2);
-			s.(['DA' Avec_names{i}]) = cell(n_rows,(n_col^2 - n_col)/2);
-			
-				
-		
-		else % For dimensions not yet implemented. The 'return' skips over the processing that would break for string input
-					
-			s.(['dA' Avec_names{i}]) = 'Exterior derivative for n>4 not yet implemented';
-			s.(['DA' Avec_names{i}]) = 'Exterior derivative for n>4 not yet implemented';
-				
-			return
-				
-		end
+        s.(['dA' Avec_names{i}]) = cell(n_rows,(n_col^2 - n_col)/2);
+        s.(['DA' Avec_names{i}]) = cell(n_rows,(n_col^2 - n_col)/2);
 		
 		% Build a selection matrix for pairs of vectors to form the
 		% exterior-derivative basis
