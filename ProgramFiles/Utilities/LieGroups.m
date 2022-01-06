@@ -20,7 +20,7 @@ classdef LieGroups
         % matrix mapping
         function fn = mat_fn(group)
             if group == LieGroups.SE2
-                fn = @vec_to_mat_SE2;
+                fn = @vec_to_mat_SE2_lie;
             elseif group == LieGroups.SO3
                 fn = @vec_to_mat_SO3;    
             end
@@ -28,7 +28,7 @@ classdef LieGroups
         % vector mapping
         function fn = vec_fn(group)
             if group == LieGroups.SE2
-                fn = @mat_to_vec_SE2;
+                fn = @mat_to_vec_SE2_lie;
             elseif group == LieGroups.SO3
                 fn = @mat_to_vec_SO3;
             end
