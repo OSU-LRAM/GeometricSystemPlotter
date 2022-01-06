@@ -36,8 +36,10 @@ function [DA, dA, lb] = calc_ccf(grid_points, A, mat_fun, vec_fun)
         end
         % iter. thru J (all rows, col < row):
         entry = 1;
-        for r = 1:size(A,2)
-            for c = 1:r
+%         for r = 1:size(A,2)
+%             for c = 1:r
+        for c = 1:size(A,2)
+            for r = c:size(A,2)
                 % combine like bases (respecting wedge product rules)
                 % if doing a different choice of basis, change:
                     % which entry (r,c) pairs are saved in
@@ -47,7 +49,7 @@ function [DA, dA, lb] = calc_ccf(grid_points, A, mat_fun, vec_fun)
                     continue;
                 end
                 % two partials for this basis
-                dA{i,entry} = -partials{r,c} + partials{c,r};
+                dA{i,entry} = partials{r,c} - partials{c,r};
                 
                 entry = entry + 1;
             end
@@ -66,8 +68,10 @@ function [DA, dA, lb] = calc_ccf(grid_points, A, mat_fun, vec_fun)
         lb_pts{i} = zeros(size(dA));
         % iterate thru. combinations of bases
         entry = 1;
-        for aj = 1:size(A,2)
-            for ak = 1:aj
+%         for aj = 1:size(A,2)
+%             for ak = 1:aj
+        for ak = 1:size(A,2)
+            for aj = ak:size(A,2)
                 % skip zero wedge products
                 if aj == ak
                     continue;
@@ -86,6 +90,7 @@ function [DA, dA, lb] = calc_ccf(grid_points, A, mat_fun, vec_fun)
     %% combine for DA
     DA = cell(size(dA));
     for i = 1:numel(dA)
-        DA{i} = -(dA{i} + lb{i}); %sign choice for consistency
+        DA{i} = dA{i} - lb{i}; %sign choice for consistency
     end
+ 
 end
