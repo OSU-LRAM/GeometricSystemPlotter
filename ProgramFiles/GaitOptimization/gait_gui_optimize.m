@@ -317,6 +317,13 @@ elseif n_dim==4
     alpha3 = alpha_out(:,3);
     alpha4 = alpha_out(:,4);    
     save(fullfile(shchpath,strcat(paramfiletext,'.mat')),'alpha1','alpha2','alpha3','alpha4','t')
+elseif n_dim==5
+    alpha1 = alpha_out(:,1);
+    alpha2 = alpha_out(:,2);
+    alpha3 = alpha_out(:,3);
+    alpha4 = alpha_out(:,4);
+    alpha5 = alpha_out(:,5);   
+    save(fullfile(shchpath,strcat(paramfiletext,'.mat')),'alpha1','alpha2','alpha3','alpha4','alpha5','t')
 end
     
     % Create the file if it doesn't already exist; future work could be
