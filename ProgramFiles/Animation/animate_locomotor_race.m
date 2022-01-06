@@ -5,7 +5,7 @@ function animate_locomotor_race(export,info_needed)
         sysfile = fullfile(info_needed.datapath, ['sysf_', info_needed.current_system2{idx_system}, '_calc.mat']);
         load(sysfile,'s')
         s.costfunction = info_needed.costfunction{idx_system};
-        info_needed.s(idx_system) = s;
+        info_needed.s{idx_system} = s;
     end
         
   	% Declare a directory name file names for the movies
@@ -18,7 +18,7 @@ function animate_locomotor_race(export,info_needed)
             destinationsuffix = 'original_coords';
         end
 
-	destination = cellfun(@(x) fullfile(destination_root,['race' '__' 'race' '__' x '__' destinationsuffix]),destination_list,'UniformOutput',false); 
+	destination = cellfun(@(x) fullfile(destination_root,[info_needed.moviename '__' x '__' destinationsuffix]),destination_list,'UniformOutput',false); 
 
     % Flag movies that should be generated, don't skip any movies
     export_list = cellfun(@(x) info_needed.Movies.(x), destination_list);
@@ -77,8 +77,8 @@ function h = create_elements(info_needed)
 	h.ax = axes('Parent',h.f);                      % Create axes for the plot
  	axis(h.ax,'equal','off');                       % Make the plot isometric and make the axes invisible
   	set(h.ax,...
-        'XLim',[-1,4]*.7/.45*info_needed.s(1).geometry.length,...  % Axes scaled to system scale
-        'YLim',[-2.5,2.5]*.7*info_needed.s(1).geometry.length);
+        'XLim',[-1,4]*.7/.45*info_needed.s{1}.geometry.length,...  % Axes scaled to system scale
+        'YLim',[-2.5,2.5]*.7*info_needed.s{1}.geometry.length);
  	set(h.ax,'Position',[0 0 1 1])                  % Make the axes fill the whole window
 
     data_source = info_needed.datapath;
@@ -89,7 +89,7 @@ function h = create_elements(info_needed)
         
         %Create the locomotor
         info_needed2 = info_needed;
-        info_needed2.s = info_needed.s(idx_system);
+        info_needed2.s = info_needed.s{idx_system};
         h.robot{idx_system} = create_locomotor(...
             h.ax,...
             data_source,...
@@ -113,7 +113,7 @@ function h = create_elements(info_needed)
             posraw{idx_system} = p.G_locus_full{1}.G;
         end
         
-        h.normalizedPeriod{idx_system} = getNormalizedPeriod(s,p,info_needed.s(idx_system).costfunction);
+        h.normalizedPeriod{idx_system} = getNormalizedPeriod(s,p,info_needed.s{idx_system}.costfunction);
         h.disp{idx_system} = norm(posraw{idx_system}(end,1:2));
         
         h.speed{idx_system} = h.disp{idx_system}/h.normalizedPeriod{idx_system};
@@ -182,20 +182,20 @@ function frame_info = execute_gait(frame_info,tau)
         % If a drawing baseframe has been specified, append the original
         % system baseframe with the one that has been specified
         if isfield(frame_info{irobot},'drawing_baseframe') && ~frame_info{irobot}.drawing_baseframe_inserted{idx_system}
-            if ~iscell(frame_info{irobot}.s(idx_system).geometry.baseframe)
-                frame_info{irobot}.s(idx_system).geometry.baseframe ...
-                    = {frame_info{irobot}.s(idx_system).geometry.baseframe};
+            if ~iscell(frame_info{irobot}.s{idx_system}.geometry.baseframe)
+                frame_info{irobot}.s{idx_system}.geometry.baseframe ...
+                    = {frame_info{irobot}.s{idx_system}.geometry.baseframe};
             end
-            if ~iscell(frame_info{irobot}.s(idx_system).geometry.baseframe)
+            if ~iscell(frame_info{irobot}.s{idx_system}.geometry.baseframe)
                 frame_info{irobot}.drawing_baseframe ...
                     = {frame_info{irobot}.drawing_baseframe};
             end
-            frame_info{irobot}.s(idx_system).geometry.baseframe = [frame_info{irobot}.s(idx_system).geometry.baseframe frame_info{irobot}.drawing_baseframe{idx_system}];
+            frame_info{irobot}.s{idx_system}.geometry.baseframe = [frame_info{irobot}.s{idx_system}.geometry.baseframe frame_info{irobot}.drawing_baseframe{idx_system}];
             frame_info{irobot}.drawing_baseframe_inserted{idx_system} = 1;
         end
     
         % Use the configuration to place the locomotor
-        frame_info{irobot}.robot{idx_system} = place_locomotor(frame_info{irobot}.robot{idx_system},config,frame_info{irobot}.s(idx_system));
+        frame_info{irobot}.robot{idx_system} = place_locomotor(frame_info{irobot}.robot{idx_system},config,frame_info{irobot}.s{idx_system});
 
         % draw the locomotor
         frame_info{irobot}.robot{idx_system} = draw_locomotor(frame_info{irobot}.robot{idx_system},0);
@@ -225,7 +225,7 @@ function [shapedata, posdata] = gait_concatenator(shaperaw,posraw,start_pos,t_ma
         
         f_gaits = t_max/normalizedPeriod{idx_system}(end);
         n_gaits = ceil(f_gaits);
-        lastfrac = f_gaits-n_gaits;
+        lastfrac = 1-(n_gaits-f_gaits);
         
     
         
