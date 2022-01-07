@@ -32,7 +32,7 @@ function output = AA_SHCHFILENAME(input_mode,pathnames)
             
             % Check if start and end are the same point, and set boundary
             % conditions accordingly
-            if alpha1(1)==alpha1(end) && alpha2(1)==alpha2(end) && alpha3(1)==alpha3(end) && alpha4(1)==alpha4(end)
+            if alpha1(1)==alpha1(end) && alpha2(1)==alpha2(end) && alpha3(1)==alpha3(end) && alpha4(1)==alpha4(end) && alpha5(1)==alpha5(end)
                 splinemode = 'periodic';
             else
                 splinemode = 'complete';

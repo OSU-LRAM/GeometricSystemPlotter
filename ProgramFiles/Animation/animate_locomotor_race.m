@@ -103,7 +103,8 @@ function h = create_elements(info_needed)
         h.tl{idx_system} = line('Parent',h.ax,'XData',[],'YData',[],'ZData',[],'LineWidth',5,'Color',Colorset.spot); %Tracer line for translation
 
         % Extract the position, shape, and cost data
-        load(fullfile(data_source,['sysf_' system_name{idx_system} '__shchf_' gait_name{idx_system}]));
+        gaitfile = fullfile(data_source,['sysf_' system_name{idx_system} '__shchf_' gait_name{idx_system}]);
+        load(gaitfile);
         shaperaw{idx_system} = p.phi_locus_full{1}.shape;
 
         if strcmp(info_needed.Coordinates,'minperturbation_coords')
