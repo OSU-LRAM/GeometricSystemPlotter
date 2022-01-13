@@ -114,7 +114,12 @@ try
 catch
    error('This code requires the global optimization toolbox to run') 
 end
- [yf, ~,~,~]=fmincon(@(y) solvedifffmincon(y,s,npoints,dimension,direction,lb,ub,writerObj),y0,A,b,Aeq,beq,lb1,ub1,@(y) nonlcon(y,s,npoints,dimension,lb,ub),options);
+
+
+objective_function_gradient = @(y) solvedifffmincon(y,s,npoints,dimension,direction,lb,ub,writerObj);
+constraint_function = @(y) nonlcon(y,s,npoints,dimension,lb,ub,direction);
+
+ [yf, ~,~,~]=fmincon(objective_function_gradient,y0,A,b,Aeq,beq,lb1,ub1,constraint_function,options);
 
 % % Uncomment this if you uncommented the section above so that the video
 % % writer object is closed appropriately.

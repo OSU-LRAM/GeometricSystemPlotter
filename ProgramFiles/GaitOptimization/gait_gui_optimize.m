@@ -291,8 +291,9 @@ cd(current_dir)    % Go back to original directory
 
 sysf_func = str2func(current_system);
 shch_func = str2func(current_shch);
-paramfiledisplaytext = ['Opt: [',sysf_func('name'),'] [',shch_func('name'),'] [',costfunction,'] Xeff'];
-paramfiletext = hash(['opt_',current_system(6:end),'_',current_shch(7:end),'_',costfunction,'_Xeff'],'md5');
+effnames = {'X','Y','Theta'};
+paramfiledisplaytext = ['Opt: [',sysf_func('name'),'] [',shch_func('name'),'] [',costfunction,'] ' effnames{direction} 'eff'];
+paramfiletext = hash(['opt_',current_system(6:end),'_',current_shch(7:end),'_',costfunction,'_' effnames{direction} 'eff'],'md5');
 paramfiletext = ['opt_',paramfiletext];
 
 % If the user didn't hit cancel, save the data and create a shchf file that

@@ -1,4 +1,4 @@
-function generate_locomotor_race
+function vp = generate_locomotor_race(makevideo)
 
 load sysplotter_config.mat
 
@@ -65,7 +65,7 @@ vp.links.comp3.costlist = {'covariant acceleration','covariant acceleration'};
 
 % 2-, 3-, and 4-segment constant-curvature swimmers, pathlength
 vp.cc.pathlength.systemlist = {'two_mode_CC','three_mode_CC','four_mode_CC','five_mode_CC'};
-vp.cc.pathlength.gaitlist = {'opt_14da671eded328d3635cc4b3b8a2e7c2','opt_08a9f975bb9ae77540d7a6ecdf728d3b','opt_a3c9e5bbce8e004cb155427dae98d4ae','opt_814b4a67611cc860c7ad80df88f5ca4f'};
+vp.cc.pathlength.gaitlist = {'opt_14da671eded328d3635cc4b3b8a2e7c2','opt_08a9f975bb9ae77540d7a6ecdf728d3b','opt_74d3b3d293d9707eb8afbca804ee22ff','opt_50381ee845fff0a72bef8c64221e6927'};
 vp.cc.pathlength.costlist = {'pathlength metric','pathlength metric','pathlength metric','pathlength metric'};
 
 
@@ -98,7 +98,7 @@ vp.cc.comp3.costlist = {'covariant acceleration','covariant acceleration'};
 
 % 2- and 4-mode serpenoid swimmers, pathlength
 vp.serp.pathlength.systemlist = {'two_mode_serpenoid','four_mode_serpenoid'};
-vp.serp.pathlength.gaitlist = {'opt_33bf8d4335665da9b9362bc55f4a5c4b','opt_3b51a14e53557544541f4431219ea451'};
+vp.serp.pathlength.gaitlist = {'opt_33bf8d4335665da9b9362bc55f4a5c4b','opt_0f798d8a3cb62f89a869c7990e77220e'};
 vp.serp.pathlength.costlist = {'pathlength metric','pathlength metric'};
 
 
@@ -162,18 +162,25 @@ vp.fourmodes.covaccel.costlist = {'covariant acceleration','covariant accelerati
 %         info_needed.moviename = [sys '_' cost];
 % 
 % 
-%         animate_locomotor_race(0,info_needed)
+%         [vp.(sys).(cost).normalizedPeriod, vp.(sys).(cost).netDisp] = animate_locomotor_race(0,info_needed,makevideo);
 %     end
 %     
 % end
 
-vp.links6.pathlength.systemlist = {'six_link_HighRe'};
-vp.links6.pathlength.gaitlist = {'opt_7aaf7309edd7d3778771a86c163869a5'};
-vp.links6.pathlength.costlist = {'pathlength metric'};
-
-
+% vp.links6.pathlength.systemlist = {'six_link_HighRe'};
+% vp.links6.pathlength.gaitlist = {'opt_7aaf7309edd7d3778771a86c163869a5'};
+% vp.links6.pathlength.costlist = {'pathlength metric'};
+% 
+% vp.links5.pathlength.systemlist = {'five_link_HighRe','five_link_HighRe'};
+% vp.links5.pathlength.gaitlist = {'circle_1p0_4serial','opt_175268cfa591e8fdb4ea2c9348a503b7'};
+% vp.links5.pathlength.costlist = {'pathlength metric','pathlength metric'};
+% 
+% vp.serp4.pathlength.systemlist = {'four_mode_serpenoid','four_mode_serpenoid'};
+% vp.serp4.pathlength.gaitlist = {'circle_6p0_4oddeven','opt_3b51a14e53557544541f4431219ea451'};
+% vp.serp4.pathlength.costlist = {'pathlength metric','pathlength metric'};
+% 
 sys = 'serp';
-cost = 'deg';
+cost = 'covaccel';
 
         info_needed.current_system2 = vp.(sys).(cost).systemlist;
         info_needed.current_shch2 = vp.(sys).(cost).gaitlist;
@@ -181,4 +188,4 @@ cost = 'deg';
         info_needed.moviename = [sys '_' cost];
 
 
-        animate_locomotor_race(0,info_needed)
+        [vp.(sys).(cost).normalizedPeriod, vp.(sys).(cost).netDisp] = animate_locomotor_race(0,info_needed,makevideo);

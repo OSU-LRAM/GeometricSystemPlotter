@@ -1,10 +1,11 @@
-function animate_locomotor_race(export,info_needed)
+function [normalizedPeriod,netDisp] = animate_locomotor_race(export,info_needed,makevideo)
     
     % Look up the geometry specification for the systems:
     for idx_system = 1:numel(info_needed.current_system2)
         sysfile = fullfile(info_needed.datapath, ['sysf_', info_needed.current_system2{idx_system}, '_calc.mat']);
         load(sysfile,'s')
-        s.costfunction = info_needed.costfunction{idx_system};
+        s.optcostfunction = info_needed.optcostfunction{idx_system};
+        s.evalcostfunction = info_needed.evalcostfunction{idx_system};
         info_needed.s{idx_system} = s;
     end
         
@@ -25,30 +26,37 @@ function animate_locomotor_race(export,info_needed)
     skip_list = zeros(size(export_list));
     info_needed.export_list = export_list;
     
-    %%%%%%%%
-	% Create animation elements, and store them in the frame_info structure
-	frame_info{1} = create_elements(info_needed); %setup function, defined below in file
-	
-	% Designate animation function
-	frame_gen_function...
-		= @execute_gait; % frame function, defined below in file
-
-	% Declare timing
-	timing.duration = info_needed.Duration; % in seconds
-	timing.fps = info_needed.Framerate;     % create frames for specified frame rate
-	timing.pacing = @(y) softspace(0,1,y);  % Use a soft start and end, using the included softspace function
-
     
-    % Pass the system and gait names to the frame_info struct
-    frame_info{1}.sysname = info_needed.current_system2;
-    frame_info{1}.pathname = info_needed.current_shch2;
-    frame_info{1}.s = info_needed.s;
-    frame_info{1}.drawing_baseframe_inserted = repmat({0},[numel(info_needed.current_system2),1]);
+    
+    %%%%%%%%
+    % Create animation elements, and store them in the frame_info structure
+    frame_info{1} = create_elements(info_needed); %setup function, defined below in file
+    netDisp = frame_info{1}.disp;
+    normalizedPeriod = frame_info{1}.normalizedPeriod;
+
+    if makevideo
+    % Designate animation function
+        frame_gen_function...
+            = @execute_gait; % frame function, defined below in file
+
+        % Declare timing
+        timing.duration = info_needed.Duration; % in seconds
+        timing.fps = info_needed.Framerate;     % create frames for specified frame rate
+        timing.pacing = @(y) softspace(0,1,y);  % Use a soft start and end, using the included softspace function
 
 
-	% Animate the movie
-	[frame_info, endframe]...
-		= sysplotter_animation_race(frame_gen_function,frame_info,timing,destination,export_list,skip_list,0);
+        % Pass the system and gait names to the frame_info struct
+        frame_info{1}.sysname = info_needed.current_system2;
+        frame_info{1}.pathname = info_needed.current_shch2;
+        frame_info{1}.s = info_needed.s;
+        frame_info{1}.drawing_baseframe_inserted = repmat({0},[numel(info_needed.current_system2),1]);
+
+
+        % Animate the movie
+        [frame_info, endframe]...
+            = sysplotter_animation_race(frame_gen_function,frame_info,timing,destination,export_list,skip_list,0);
+    
+    end
 
 end
 
@@ -83,7 +91,17 @@ function h = create_elements(info_needed)
 
     data_source = info_needed.datapath;
 	system_name = info_needed.current_system2;
-	gait_name = info_needed.current_shch2;
+    seed_name = info_needed.current_shch2;
+    optcostfunction = info_needed.optcostfunction;
+    evalcostfunction = info_needed.evalcostfunction;
+    
+    gait_name = cell(size(seed_name));
+	
+    for idx_system = 1:numel(system_name)
+        paramfilehash = hash(['opt_',system_name{idx_system},'_',seed_name{idx_system},'_',optcostfunction{idx_system},'_' 'X' 'eff'],'md5');
+        gait_name{idx_system} = ['opt_',paramfilehash];
+    end
+    
 
     for idx_system = 1:numel(info_needed.current_system2)
         
@@ -114,8 +132,8 @@ function h = create_elements(info_needed)
             posraw{idx_system} = p.G_locus_full{1}.G;
         end
         
-        h.normalizedPeriod{idx_system} = getNormalizedPeriod(s,p,info_needed.s{idx_system}.costfunction);
-        h.disp{idx_system} = norm(posraw{idx_system}(end,1:2));
+        h.normalizedPeriod{idx_system} = getNormalizedPeriod(s,p,info_needed.s{idx_system}.evalcostfunction);
+        h.disp{idx_system} = norm(p.G_locus_full{1}.G(end,1:2));
         
         h.speed{idx_system} = h.disp{idx_system}/h.normalizedPeriod{idx_system};
 
@@ -235,6 +253,9 @@ function [shapedata, posdata] = gait_concatenator(shaperaw,posraw,start_pos,t_ma
 
         % Get the displacement over one cycle
         cyclic_displacement = posraw{idx_system}(end,:);
+        
+        % Remove theta component
+        cyclic_displacement(3) = 0;
 	
         % convert this cyclic displacement into an SE(2) matrix
         cyclic_displacement_m = vec_to_mat_SE2(cyclic_displacement);

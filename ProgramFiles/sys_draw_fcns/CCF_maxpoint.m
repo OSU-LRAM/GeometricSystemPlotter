@@ -16,6 +16,9 @@ function [maxpoint, maxplane, Imax_x, Imax_y, Imax_z,interpstatecurvature] = CCF
         CCFnorm = CCFnorm+CCF{idx_normbuild}.^2;
     end
 
+
+    
+    
     % Get the maximum value, and the index of that value,
     % for the current CCF
     [~, Imax] = max(CCFnorm(:));
@@ -26,7 +29,7 @@ function [maxpoint, maxplane, Imax_x, Imax_y, Imax_z,interpstatecurvature] = CCF
         y{idx_maxpoint} = grid{idx_maxpoint}(Imax);
     end
 
-
+    
 
 %     % create a cell array with two fewer elements than
 %     % there are dimensions
