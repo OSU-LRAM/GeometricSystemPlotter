@@ -17,7 +17,7 @@ function dS = pathlength_integrator(t,y,s,phi_fun,dphi_fun) %#ok<INUSL>
     end
     
     if length(shape)>n_dim
-        shape=shape(1,1:n_dim);
+        shape=shape(1:n_dim);
     end
     shapelist = num2cell(shape);
     if length(dshape)>n_dim
