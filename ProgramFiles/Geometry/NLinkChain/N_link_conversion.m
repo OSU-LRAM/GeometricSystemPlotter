@@ -104,6 +104,12 @@ function [h_m,J,J_full,C] = N_link_conversion(C,frame_zero,J_zero)
     J = J_new;
     for idx = 1:numel(J_new)
         J{idx} = TeLg(h_m(:,:,idx)) * J_new{idx}; % Left lifted action rotates into new base frame coordinates
+        
+        %Simplify J expression if necessary
+        if isa(J{idx},'sym')
+            J{idx} = simplify(J{idx},100);
+        end
+        
     end
 
 

@@ -34,17 +34,25 @@ function [h, J, J_full,frame_zero,J_zero,chain_description] = N_link_chain(geome
 %                   of the base frame. This can be a standalone entry or a
 %                   modifier on any other frame.
 %
-%       modes (optional): Option to map input "jointangles" across
+%       modes (optional): Option to map input "shapeparams" across
 %           multiple links in a chain (which can have more joints than the
-%           provided number of "jointangles". Should be a matrix in which
+%           provided number of "shapeparams". Should be a matrix in which
 %           each column is the set of joint angles on the full chain associated
-%           with a unit value of the corresponding "jointangle" input.
+%           with a unit value of the corresponding "shapeparams" input.
 %
 %
 %       length (optional): Total length of the chain. If specified, the elements of
 %           will be scaled such that their sum is equal to L. If this field
 %           is not provided or is entered as an empty matrix, then the links
 %           will not be scaled.
+%
+%       prismatic (optional): Option to make some shapeparams prismatic. If
+%           specified, it should be of the same size as the shapeparams
+%           input, and composed of zeros and ones. All shape parameters
+%           marked with a one will be treated as prismatic joints parallel
+%           to the links before/after the joint. For systems with links marked
+%           prismatic, any calculations involving total system length will
+%           be with the prismatic joints at zero extension.
 %
 %   shapeparams: A vector of the angles between the links. Must be one
 %       element shorter than the linklengths vector
@@ -90,12 +98,20 @@ function [h, J, J_full,frame_zero,J_zero,chain_description] = N_link_chain(geome
 %%%%%%%%%%%%
 % Input parsing
 
+
+
 % If no length is specified, do not scale the links
 if ~isfield(geometry,'length') || isempty(geometry.length)
     L = sum(geometry.linklengths);
 else
     L = geometry.length;
 end
+
+% Force linklength and shapeparam vectors to be columns, and normalize link
+% lengths for a total length of 1.
+linklengths = geometry.linklengths(:)/sum(geometry.linklengths)*L;
+shapeparams = shapeparams(:);
+
 
 % If no baseframe is specified, use a centered chain
 if ~isfield(geometry,'baseframe') || isempty(geometry.baseframe)
@@ -111,23 +127,26 @@ else
     modes = geometry.modes;
 end
 
-% Force linklength and shapeparam vectors to be columns, and normalize link
-% lengths for a total length of 1.
-linklengths = geometry.linklengths(:)/sum(geometry.linklengths)*L;
-shapeparams = shapeparams(:);
+% If no prismatic joints are specified, all joints are rotational
+if ~isfield(geometry,'prismatic') || isempty(geometry.prismatic)
+    prismatic = zeros(size(shapeparams));
+else
+    prismatic = geometry.prismatic;
+end
 
 
-% Expand jointangles from specified shape variables to actual joint angles
+
+% Expand jointvalues from specified shape variables to actual joint angles
 % by multiplying in the modal function
-jointangles = modes*shapeparams;
+jointvalues = modes*shapeparams;
 
 %%%%%%%%%%%%
 
 % Prevent Matlab from playing tricks with imaginary numbers on symbolic
 % inputs and from complaining about assumptions on constants
-if isa(jointangles,'sym')
+if isa(jointvalues,'sym')
         
-    assume(symvar(jointangles),'real');
+    assume(symvar(jointvalues),'real');
 
     warning('off','symbolic:sym:sym:AssumptionsOnConstantsIgnored')
 end
@@ -138,9 +157,9 @@ end
 
 % Number of links and joints
 N_links = numel(linklengths);
-M_joints = numel(jointangles);
+M_joints = numel(jointvalues);
     if M_joints ~= N_links-1
-        error(['There should be one more link than joint. There are ' num2str(N_links) ' links and ' num2str(M_joints) ' joint angles specified']);
+        error(['There should be one more link than joint. There are ' num2str(N_links) ' links and ' num2str(M_joints) ' joint values specified']);
     end
 % Decide if there is an even or odd number of joints
 N_odd = mod(N_links,2);
@@ -162,9 +181,29 @@ halflengths = linklengths/2;
 % elements displaced along the x direction from the identity.
 links_v = [halflengths, zeros(N_links,2)];
 
-% Convert the joint angle values to group elements displaced along the
-% theta direction from the identity
-joints_v = [zeros(M_joints,2), jointangles];
+% Convert the joint values to group elements displaced along the
+% theta direction from the identity (for rotational joints) or the x axis
+% (for prismatic joints)
+
+% Create a placeholder set of joint displacement vectors
+joints_v = zeros(numel(jointvalues),3);
+
+% Convert the set of joint displacement vectors to a symbolic array if any
+% of the joint values are symbolic
+if or( isa(jointvalues,'sym'), isa(linklengths,'sym') )
+    joints_v = sym(joints_v);
+end
+
+for idx = 1:numel(jointvalues)
+    switch prismatic(idx)
+        case 0
+            joints_v(idx,3) = jointvalues(idx);
+        case 1
+            joints_v(idx,1) = jointvalues(idx);
+        otherwise
+            error('Unrecognized marker for joint type')
+    end
+end
 
 % Find the matrix representations of the link transformations
 links_m = vec_to_mat_SE2(links_v);
@@ -183,13 +222,13 @@ chain_m = repmat(eye(3),1,1,N_links);
 % Also take a cumulative sum of the joint angles -- this is useful if we
 % want to take a mean orientation of the link orientations while making a
 % distinction between orientations separated by 2pi radians
-jointangles_c = [0; cumsum(jointangles)];
+jointvalues_c = [0; cumsum(jointvalues.*~prismatic)];
 
 % If we're working with symbolic variables, then we need to explicitly make
 % the array symbolic, because matlab tries to cast items being inserted
 % into an array into the array class, rather than converting the array to
 % accomodate the class of the items being inserted 
-if or( isa(jointangles,'sym'), isa(linklengths,'sym') )
+if or( isa(jointvalues,'sym'), isa(linklengths,'sym') )
     chain_m = sym(chain_m);
 end
 
@@ -223,13 +262,13 @@ end
 % Build a 3-d array to hold the SE(2) matrices for each joint
 % (specifically for the frame at the end of the link proximal to the
 % joint, treating that as the stator for the joint).
-jointchain_m = repmat(eye(3),1,1,numel(jointangles));
+jointchain_m = repmat(eye(3),1,1,numel(jointvalues));
 
 % If we're working with symbolic variables, then we need to explicitly make
 % the array symbolic, because matlab tries to cast items being inserted
 % into an array into the array class, rather than converting the array to
 % accomodate the class of the items being inserted 
-if or( isa(jointangles,'sym'), isa(linklengths,'sym') )
+if or( isa(jointvalues,'sym'), isa(linklengths,'sym') )
     jointchain_m = sym(jointchain_m);
 end
 
@@ -237,7 +276,7 @@ end
 jointchain_m(:,:,1) = links_m(:,:,1);
 
 % Iterate along the chain to find the configuration of the later joints
-for idx = 2:numel(jointangles)
+for idx = 2:numel(jointvalues)
 
     % The transformation from one joint to the next is the product
     % of the proximal joint's transformation with the link between the two joints 
@@ -275,7 +314,7 @@ J_pattern = zeros(3,M_joints);
 % the array symbolic, because matlab tries to cast items being inserted
 % into an array into the array class, rather than converting the array to
 % accomodate the class of the items being inserted 
-if or( isa(jointangles,'sym'),isa(linklengths,'sym') )
+if or( isa(jointvalues,'sym'),isa(linklengths,'sym') )
     J_pattern = sym(J_pattern);
 end
 
@@ -310,7 +349,16 @@ for idx = 1:N_links
             % Multiply these the Adjoint-inverse transformation by the
             % joint axis to get the Jacobian from the current joint to
             % the current link
-            J_temp{idx}(:,idx2) = Adjointinverse_transform * [0;0;1];
+            switch prismatic(idx2)
+                case 0
+                    joint_axis = [0;0;1];
+                case 1
+                    joint_axis = [1;0;0];
+                otherwise
+                    error('Unrecognized marker for joint type')
+            end
+
+            J_temp{idx}(:,idx2) = Adjointinverse_transform * joint_axis;
 
         else
 
@@ -351,8 +399,8 @@ chain_description = struct( ...
 'joints_m',{joints_m},...
 'links_v',{links_v},...            % Future refactoring could dispense with passing both links_v and links_m and joints_v and joints_m
 'joints_v',{joints_v},...
-'jointangles',{jointangles},...
-'jointangles_c',{jointangles_c}, ...
+'jointvalues',{jointvalues},...
+'jointvalues_c',{jointvalues_c}, ...
 'linklengths',{linklengths},...
 'shapeparams',{shapeparams},...
 'modes',{modes},...

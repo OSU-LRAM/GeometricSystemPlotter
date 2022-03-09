@@ -37,8 +37,8 @@ links_m = C.links_m;
 %joints_m = C.joints_m;
 links_v = C.links_v;
 joints_v = C.joints_v;
-%jointangles = C.jointangles;
-jointangles_c = C.jointangles_c;
+%jointvalues = C.jointvalues;
+jointvalues_c = C.jointvalues_c;
 linklengths = C.linklengths;
 shapeparams = C.shapeparams;
 modes = C.modes;
@@ -197,7 +197,7 @@ for idx_baseframe = 1:numel(baseframe)
                 % orientations of the links: We're not looking for the mean of the
                 % SO(2)-modulated orientations, we're looking for the mean angular
                 % displacement from the base link.
-                chain(:,3) = jointangles_c;
+                chain(:,3) = jointvalues_c;
 
                 % Take a weighted average of the link positions
                 CoM = sum(diag(linklengths)*chain)/L;
@@ -475,7 +475,7 @@ for idx_baseframe = 1:numel(baseframe)
 % %                                                      joints_m,...
 % %                                                      links_v,...
 % %                                                      joints_v,...
-% %                                                      jointangles,...
+% %                                                      jointvalues,...
 % %                                                      linklengths,...
 % %                                                      shapeparams,...
 % %                                                      modes,...
