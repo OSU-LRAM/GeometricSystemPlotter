@@ -9,9 +9,14 @@ if n_dim==2
 elseif n_dim==3
      fidi = fopen(fullfile(fileparts(which('gait_gui_draw')),...
     'gait_gui_draw_template3.txt'));
-else
-    fidi = fopen(fullfile(fileparts(which('gait_gui_draw')),...
+elseif n_dim==4
+     fidi = fopen(fullfile(fileparts(which('gait_gui_draw')),...
     'gait_gui_draw_template4.txt'));
+elseif n_dim==5
+    fidi = fopen(fullfile(fileparts(which('gait_gui_draw')),...
+    'gait_gui_draw_template5.txt'));
+else
+    error('Trying to make an shchf with an unsupported number of dimensions')
 end
 
 % Create the output file

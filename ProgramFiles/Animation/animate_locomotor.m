@@ -94,7 +94,8 @@ function h = create_elements(info_needed)
         info_needed);
 	
 	% Extract the position and shape data
-	load(fullfile(data_source,['sysf_' system_name '__shchf_' gait_name]));
+	gaitfile = fullfile(data_source,['sysf_' system_name '__shchf_' gait_name]);
+    load(gaitfile);
 	shaperaw = p.phi_locus_full{1}.shape;
     
     if strcmp(info_needed.Coordinates,'minperturbation_coords')

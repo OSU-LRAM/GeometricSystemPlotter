@@ -40,7 +40,7 @@ function output = sysf_three_link_floating_ellipse(input_mode,pathnames)
             % Make a grid of values at which to visualize the system in
             % illustrate_shapespace. (Use a cell of gridpoints along each
             % axis to use different spacings for different axes)
-            s.visual.grid_spacing = [-1  0  1]*1;
+            s.visual.grid_spacing = [-1  0  1]*2;
             
             %%%
             %%%%%%
@@ -77,7 +77,7 @@ function output = sysf_three_link_floating_ellipse(input_mode,pathnames)
 			s.density.vector = [21 21 ]; %density to display vector field
 			s.density.scalar = [51 51 ]; %density to display scalar functions
 			s.density.eval = [31 31 ];   %density for function evaluations
-            s.density.metric_eval = [11 11]; %density for metric evaluation
+            s.density.metric_eval = [51 51]; %density for metric evaluation
             s.density.mass_eval = [31 31]; % density for mass matrix evaluation
             s.density.coriolis_eval = [31 31];
             s.density.metric_display = [7 7];

@@ -385,7 +385,6 @@ function plot_info = CCF_draw(s,p,plot_info,sys,shch,resolution)
                     [maxpoint, maxplane, Imax_x, Imax_y, Imax_z,interpstatecurvature] = CCF_maxpoint(H(function_number,:),grid);
                     Xnorm = maxplane(:,1);
                     Ynorm = maxplane(:,2);
-                    y = maxpoint;
 
                     % Pull out a 2d x and y grid
                     Xtemp=grid{1,1}(:,:,idxt{:});
@@ -406,10 +405,26 @@ function plot_info = CCF_draw(s,p,plot_info,sys,shch,resolution)
                                 ygrid(m,j)=Xtemp(m,j)*Xnorm(2)+Ytemp(m,j)*Ynorm(2);%+pointonplane(2);
                                 zgrid(m,j)=Xtemp(m,j)*Xnorm(3)+Ytemp(m,j)*Ynorm(3);%+pointonplane(3);
                                 
-                                % Raise or lower the grid so that the
-                                % maxpoint is on the surface
-                                zshift = y{3}-zgrid_at_max;%(zgrid_at_max-y{3});
-                                zgrid(m,j)=zgrid(m,j) + zshift;
+%                                 % Raise or lower the grid so that the
+%                                 % maxpoint is on the surface
+%                                 zshift = maxpoint{3}-zgrid_at_max;%(zgrid_at_max-y{3});
+%                                 zgrid(m,j)=zgrid(m,j) + zshift;
+
+                        end
+                        
+                    end
+                    
+                    pointdist = (xgrid-maxpoint{1}).^2 + (ygrid-maxpoint{2}).^2 + (zgrid-maxpoint{3}).^2;
+                    [~,mindistI] = min(pointdist,[],'all','linear');
+                    
+                    planeshift = [maxpoint{1} - xgrid(mindistI); maxpoint{2} - ygrid(mindistI); maxpoint{3} - zgrid(mindistI)];
+                    
+                    xgrid = xgrid+planeshift(1);
+                    ygrid = ygrid+planeshift(2);
+                    zgrid = zgrid+planeshift(3);
+                    
+                    for m=1:1:size(Xtemp,1)
+                        for j=1:1:size(Xtemp,2)
                                 
                                 for k=1:2
                                     curvaturetemp(:,k)=interpn(...
@@ -556,10 +571,14 @@ function plot_info = CCF_draw(s,p,plot_info,sys,shch,resolution)
             switch plot_info.stretch
                 
                 case 1 % 2-d stretch
+                    
+                    if ~strcmp(plot_info.style,'surface')
             
-                    [x_edge,y_edge] = s.convert.stretch.old_to_new_points(oldx_edge,oldy_edge);
+                        [x_edge,y_edge] = s.convert.stretch.old_to_new_points(oldx_edge,oldy_edge);
 
-                    l_edge = line('Parent',ax,'Xdata',x_edge,'YData',y_edge,'Color','k','LineWidth',1);
+                        l_edge = line('Parent',ax,'Xdata',x_edge,'YData',y_edge,'Color','k','LineWidth',1);
+                        
+                    end
 
                 case 2 % 3-d surface embedding
             
@@ -577,9 +596,9 @@ function plot_info = CCF_draw(s,p,plot_info,sys,shch,resolution)
             oldx_edge = [linspace(s.grid_range(3),s.grid_range(4),edgeres)';s.grid_range(4)*ones(edgeres,1);...
                 linspace(s.grid_range(4),s.grid_range(3),edgeres)';s.grid_range(3)*ones(edgeres,1)];
             
-            x_edge = oldx_edge * Xnorm(1) + oldy_edge * Ynorm(1);
-            y_edge = oldx_edge * Xnorm(2) + oldy_edge * Ynorm(2);
-            z_edge = (oldx_edge * Xnorm(3)) + (oldy_edge * Ynorm(3)) + zshift;
+            x_edge = oldx_edge * Xnorm(1) + oldy_edge * Ynorm(1) +planeshift(1);
+            y_edge = oldx_edge * Xnorm(2) + oldy_edge * Ynorm(2) +planeshift(2);
+            z_edge = (oldx_edge * Xnorm(3)) + (oldy_edge * Ynorm(3)) +planeshift(3);
             
             l_edge = line('Parent',ax,'Xdata',x_edge,'YData',y_edge,'Zdata',z_edge,'Color',[.5 .5 .5],'LineWidth',1);
        end

@@ -1,4 +1,4 @@
-function output = sys_calcsystem(input_mode,systemfilename,stretch)
+function output = sys_calcsystem(input_mode,systemfilename)
 %Numerically evaluate the local connection and height function from the
 %symbolic defination, including special accounting for singularities.
 
@@ -43,11 +43,12 @@ function output = sys_calcsystem(input_mode,systemfilename,stretch)
 			s = merge_connection(s);
 			s = merge_metric(s);
 			
-			%Calculate optimal coordinate choice
-			s = optimize_coordinate_choice(s);
+			%Calculate optimal coordinate choice, respecting group
+            optimize = s.conf_space.optimizer_fn;
+            s = optimize(s);
 			
 			%Calculate the constraint curvature functions from the connection
-			s = calc_constraint_curvature(s);
+			s = calc_ccf_sys(s);
             
             %Build a stretch function corresponding to the metric only if
             %the system is 2 dimensional

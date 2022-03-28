@@ -8,7 +8,7 @@ function V = se2_integrator_all_terms(t,X,s,phi_fun,dphi_fun)
     shape = shape(:);
 	shapelist = num2cell(shape);
 	dshape = dphi_fun(t);
-    dshape1=dshape(:);
+    dshape=dshape(:);
 	n_dim=length(s.vecfield.eval.content.Avec_optimized(1,:));
     
     if length(shape)<n_dim
@@ -20,7 +20,7 @@ function V = se2_integrator_all_terms(t,X,s,phi_fun,dphi_fun)
     end
     
     if length(shape)>n_dim
-        shape=shape(1,1:n_dim);
+        shape=shape(1:n_dim);
     end
     shapelist = num2cell(shape);
     if length(dshape)>n_dim
