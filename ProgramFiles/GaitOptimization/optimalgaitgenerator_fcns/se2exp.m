@@ -12,7 +12,7 @@ function expXi = se2exp(xi)
 		
 		z_theta = xi(3);
 		
-		z_xy = 1/z_theta * [sin(z_theta), 1-cos(z_theta); cos(z_theta)-1, sin(z_theta)] * xi(1:2);
+		z_xy = 1/z_theta * [sin(z_theta), -1+cos(z_theta); 1-cos(z_theta), sin(z_theta)] * xi(1:2);
 		
 		expXi = [ [cos(z_theta), -sin(z_theta); sin(z_theta), cos(z_theta)], z_xy;
 			0 0 1];
