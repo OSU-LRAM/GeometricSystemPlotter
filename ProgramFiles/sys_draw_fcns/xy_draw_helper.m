@@ -1,4 +1,4 @@
-function plot_info = xy_draw_helper(s,p,plot_info,sys,shch,optselect);
+function plot_info = xy_draw_helper(s,p,plot_info,sys,shch,optselect)
 % Draw the displacement locus indicated by optselect
 	
 	%Ensure that there are figure axes to plot into, and create new windows
@@ -89,8 +89,15 @@ function plot_info = xy_draw_helper(s,p,plot_info,sys,shch,optselect);
 		% draw the cbvi point
 		if any(strncmp('cBVI',components,4)) 
 			if isfield(p,['cBVI' optselect]) && ~isempty(p.(['cBVI' optselect]){i})
-				cBVIx = p.(['cBVI' optselect]){i}(1);
-				cBVIy = p.(['cBVI' optselect]){i}(2);
+                % exponentiate
+                cBVI_vec = p.(['cBVI' optselect]){i};
+                cBVI_mat = [0 -cBVI_vec(3) cBVI_vec(1);...
+                            cBVI_vec(3) 0 cBVI_vec(2);...
+                            0 0 0];
+                cBVI_exp = expm(cBVI_mat);
+                cBVI_exp_vec = mat_to_vec_SE2(cBVI_exp);
+				cBVIx = cBVI_exp_vec(1);
+				cBVIy = cBVI_exp_vec(2);
 			else
 				cBVIx = [];
 				cBVIy = [];

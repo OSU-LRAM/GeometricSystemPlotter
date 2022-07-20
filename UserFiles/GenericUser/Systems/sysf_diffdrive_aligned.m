@@ -14,7 +14,7 @@ function output = sysf_diffdrive(input_mode,pathnames)
 
 		case 'name'
 
-			output = 'Diffdrive Car'; % Display name
+			output = 'Diffdrive Car, Aligned'; % Display name
 
 		case 'dependency'
 
@@ -36,7 +36,7 @@ function output = sysf_diffdrive(input_mode,pathnames)
 			%Processing details
 
 			%Range over which to evaluate connection
-			s.grid_range = [-1,1,-1,1]*4*pi/24;
+			s.grid_range = [-1,1,-1,1]*2.5;
 
 			%densities for various operations
 			s.density.vector = [10 10]; %density to display vector field
@@ -48,8 +48,8 @@ function output = sysf_diffdrive(input_mode,pathnames)
 			%Display parameters
 
 			%shape space tic locations
-			s.tic_locs.x = pi/12*[-1 0 1];
-			s.tic_locs.y = pi/12*[-1 0 1];
+			s.tic_locs.x = [-1 0 1];
+			s.tic_locs.y = [-1 0 1];
 
 
 			%Don't optimize the reference point (turn this off for
@@ -77,8 +77,8 @@ function A_num = Conn_num(a1,a2)
 % if a1 and a2 are each NxM matrices of joint angles, A is a 3x2 collection
 % of NxM matrices, each corresponding to the i,jth component of A
 
-	A_num = [-ones(size(a1)) -ones(size(a1));
-		zeros(size(a1)) zeros(size(a1));
-		ones(size(a1)) -ones(size(a1))];
+	A_num = [-ones(size(a1)) zeros(size(a1));
+             zeros(size(a1)) zeros(size(a1));
+             zeros(size(a1)) -ones(size(a1))];
 	
 end
