@@ -1,7 +1,12 @@
-function gait_gui_optimize(hAx,hObject,eventdata,handles)
+function gait_gui_optimize(hAx,hObject,eventdata,handles,isStepOptimizer)
 
 % Load the sysplotter configuration information
 load sysplotter_config
+
+% if the function does not take in isStepOptimzer, set it as 0.
+if(nargin < 5)
+    isStepOptimizer = 0;
+end
 
 optimization_handles = handles;
 handles = handles.main_gui;
@@ -126,14 +131,18 @@ alpha_plot = ppval(spline_alpha,t_plot)';
 %     alpha4_plot = ppval(spline_alpha4,t_plot);
 % end
 
-%Direction to optimize: 1-x, 2-y, 3-theta
+% Direction to optimize: 1-x, 2-y, 3-theta
+% Both buttons in Optimizer and Step-Optimizer panel have same tags
+% They are distinguished by the array determined by the order of panel.
 direction = 0;
-if optimization_handles.xbutton.Value
+if optimization_handles.xbutton(isStepOptimizer+1).Value
     direction = 1;
-elseif optimization_handles.ybutton.Value
+elseif optimization_handles.ybutton(isStepOptimizer+1).Value
     direction = 2;
-elseif optimization_handles.thetabutton.Value
+elseif optimization_handles.thetabutton(isStepOptimizer+1).Value
     direction = 3;
+elseif (optimization_handles.steeringbutton.Value) && (isStepOptimizer)
+    direction = 4;
 end
 
 %Cost function to optimize over
@@ -169,6 +178,7 @@ load(f,'s');
 lvals = s.grid_range(1:2:end);
 uvals = s.grid_range(2:2:end);
 
+
 % Get the center of the grid
 mvals = (uvals + lvals)/2;
 
@@ -193,92 +203,32 @@ lb = lb(:);
 ub = ub(:);
 
 %%%%% Call the optimizer
-y = optimalgaitgenerator(s,n_dim,n_plot,alpha_plot,lb,ub,stretch,direction,costfunction,handles);
-
-% reshape the output and add the start point to the end to close the loop
-alpha_out = reshape(y,[numel(y)/n_dim,n_dim]);
-alpha_out = [alpha_out;alpha_out(1,:)];
-
-% Spline the output 
-t = t_plot;
-t_new = t(1):(t(2)-t(1))/4:t(end);
-alpha = interp1(t,alpha_out,t_new,'spline');
-alpha12 = alpha(:,1);
-alpha22 = alpha(:,2);
-
-
-% if n_dim==2
-%     % Calling the optimizer
-%     lb=0.95*[s.grid_range(1)*ones(n_plot+1,1);s.grid_range(3)*ones(n_plot+1,1)];%0.9 was points value
-%     ub=0.95*[s.grid_range(2)*ones(n_plot+1,1);s.grid_range(4)*ones(n_plot+1,1)];
-% %     if strcmpi(s.system_type,'drag')
-%     y=optimalgaitgenerator(s,2,n_plot,alpha1_plot,alpha2_plot,lb,ub,stretch,direction,costfunction,handles);
-% %     elseif strcmpi(s.system_type,'inertia')
-% %         % Need to take a subset of the space since the optimizer is too
-% %         % slow for now; interpolate gait at n_interp points
-% %         n_interp = 23;
-% %         y = inertial_optimalgaitgenerator(s,2,n_plot,alpha1_plot,alpha2_plot,lb,ub,n_interp);
-% %     else
-% %         error('Unexpected system_type field in struct s.')
-% %     end
-%     alpha1 = [y(1:n_plot)',y(1)]';
-%     alpha2 = [y(n_plot+1:2*n_plot)',y(n_plot+1)]';
-%     t=t_plot;
-%     tnew=t(1):(t(2)-t(1))/4:t(end);
-%     alpha12=interp1(t,alpha1,tnew,'spline');
-%     alpha22=interp1(t,alpha2,tnew,'spline');
-% elseif n_dim==3
-%     % Calling the optimizer
-%     lb=0.95*[s.grid_range(1)*ones(n_plot+1,1);s.grid_range(3)*ones(n_plot+1,1);s.grid_range(5)*ones(n_plot+1,1)];%0.9 was points value
-%     ub=0.95*[s.grid_range(2)*ones(n_plot+1,1);s.grid_range(4)*ones(n_plot+1,1);s.grid_range(6)*ones(n_plot+1,1)];
-%     y=optimalgaitgenerator3(s,3,n_plot,alpha1_plot,alpha2_plot,alpha3_plot,lb,ub,direction,costfunction,handles);
-%     alpha1 = [y(1:n_plot)',y(1)]';
-%     alpha2 = [y(n_plot+1:2*n_plot)',y(n_plot+1)]';
-%     alpha3 = [y(2*n_plot+1:3*n_plot)',y(2*n_plot+1)]';
-%     t=t_plot;
-%     tnew=t(1):(t(2)-t(1))/4:t(end);
-%     alpha12=interp1(t,alpha1,tnew,'spline');
-%     alpha22=interp1(t,alpha2,tnew,'spline');
-% elseif n_dim==4
-%     % Calling the optimizer
-%     lb=0.95*[s.grid_range(1)*ones(n_plot+1,1);s.grid_range(3)*ones(n_plot+1,1);s.grid_range(5)*ones(n_plot+1,1);s.grid_range(7)*ones(n_plot+1,1)];%0.9 was points value
-%     ub=0.95*[s.grid_range(2)*ones(n_plot+1,1);s.grid_range(4)*ones(n_plot+1,1);s.grid_range(6)*ones(n_plot+1,1);s.grid_range(8)*ones(n_plot+1,1)];
-%     y=optimalgaitgenerator4(s,4,n_plot,alpha1_plot,alpha2_plot,alpha3_plot,alpha4_plot,lb,ub,direction,costfunction,handles);
-%     alpha1 = [y(1:n_plot)',y(1)]';
-%     alpha2 = [y(n_plot+1:2*n_plot)',y(n_plot+1)]';
-%     alpha3 = [y(2*n_plot+1:3*n_plot)',y(2*n_plot+1)]';
-%     alpha4 = [y(3*n_plot+1:4*n_plot)',y(3*n_plot+1)]';
-%     t=t_plot;
-%     tnew=t(1):(t(2)-t(1))/4:t(end);
-%     alpha12=interp1(t,alpha1,tnew,'spline');
-%     alpha22=interp1(t,alpha2,tnew,'spline');
-% end
-
-
-if stretch && isfield(s,'convert')
-    stretchnames = {'stretch','surface'};
-    stretchname = stretchnames{stretch};
-    
-    [x_temp,y_temp,z_temp] = s.convert.(stretchname).old_to_new_points(alpha12,alpha22);
+if(isStepOptimizer)
+    y = stepoptimalgaitgenerator(s,n_dim,n_plot,alpha_plot,lb,ub,stretch,direction,costfunction,handles);
 else
-    % Provide zdata to line if necessary
-    maxZ = 0;
-    hAxChildren = get(hAx,'Children');
-    if ~isempty(hAxChildren)
-       for idx = 1:numel(hAxChildren)
-           if ~isempty(hAxChildren(idx).ZData)
-               maxZ = max(maxZ,max(hAxChildren(idx).ZData(:)));
-           end
-       end
-    end
-    x_temp = alpha12;
-    y_temp = alpha22;
-    z_temp = maxZ*ones(size(alpha12));
+    y = optimalgaitgenerator(s,n_dim,n_plot,alpha_plot,lb,ub,stretch,direction,costfunction,handles);
 end
 
-gaitline = line('Parent',hAx,'XData',x_temp,'YData',y_temp,'ZData',z_temp,'Color',Colorset.spot,'LineWidth',5);
+t = t_plot;
+t_new = t(1):(t(2)-t(1))/4:t(end);
 
-%%%% Ask the user for a filename
+if(isStepOptimizer)
+
+    alpha_out = cell(4,1);
+    for i = 1:4
+        % reshape the output and add the start point to the end to close the loop
+        alpha_out{i} = reshape(y{i},[numel(y{i})/n_dim,n_dim]);
+        alpha_out{i} = [alpha_out{i};alpha_out{i}(1,:)];
+    end
+else
+    % reshape the output and add the start point to the end to close the loop
+    alpha_out = reshape(y,[numel(y)/n_dim,n_dim]);
+    alpha_out = [alpha_out;alpha_out(1,:)];
+end
+
+%% naming a parameter file.
+
+% Ask the user for a filename
 current_dir = pwd; % Remember where we started
 cd(shchpath)       % Move to shape change directory
 
@@ -287,44 +237,62 @@ cd(shchpath)       % Move to shape change directory
 % [~,paramfilenamebare,ext] = fileparts(paramfilename);
 
 cd(current_dir)    % Go back to original directory
-%%%%
+%
 
 sysf_func = str2func(current_system);
 shch_func = str2func(current_shch);
 effnames = {'X','Y','Theta'};
-paramfiledisplaytext = ['Opt: [',sysf_func('name'),'] [',shch_func('name'),'] [',costfunction,'] ' effnames{direction} 'eff'];
-paramfiletext = hash(['opt_',current_system(6:end),'_',current_shch(7:end),'_',costfunction,'_' effnames{direction} 'eff'],'md5');
-paramfiletext = ['opt_',paramfiletext];
+if (isStepOptimizer)
+    optimizerdisplaytext = 'StepOpt: [';
+    optimizerfiletext = 'stepopt_';
+else
+    optimizerdisplaytext = 'Opt: [';
+    optimizerfiletext = 'opt_';
+end
+paramfiledisplaytext = [optimizerdisplaytext,sysf_func('name'),'] [',shch_func('name'),'] [',costfunction,'] ' effnames{direction} 'eff'];
+paramfiletext = hash([optimizerfiletext,current_system(6:end),'_',current_shch(7:end),'_',costfunction,'_' effnames{direction} 'eff'],'md5');
+paramfiletext = [optimizerfiletext,paramfiletext];
+
+%% Save the data to a parameters file
 
 % If the user didn't hit cancel, save the data and create a shchf file that
 % reads the data and interprets it as a gait.
 %  if ~usercancel
-    
-    % Save the data to a parameters file
+
 %     save(fullfile(shchpath,paramfilename),'alpha1','alpha2','t')
 %     save(fullfile(shchpath,strcat(paramfilenamebare,'_optimal.mat')),'alpha1','alpha2','t')
-if n_dim==2
-    alpha1 = alpha_out(:,1);
-    alpha2 = alpha_out(:,2);
-    save(fullfile(shchpath,strcat(paramfiletext,'.mat')),'alpha1','alpha2','t')
-elseif n_dim==3
-    alpha1 = alpha_out(:,1);
-    alpha2 = alpha_out(:,2);
-    alpha3 = alpha_out(:,3);
-    save(fullfile(shchpath,strcat(paramfiletext,'.mat')),'alpha1','alpha2','alpha3','t')
-elseif n_dim==4
-    alpha1 = alpha_out(:,1);
-    alpha2 = alpha_out(:,2);
-    alpha3 = alpha_out(:,3);
-    alpha4 = alpha_out(:,4);    
-    save(fullfile(shchpath,strcat(paramfiletext,'.mat')),'alpha1','alpha2','alpha3','alpha4','t')
-elseif n_dim==5
-    alpha1 = alpha_out(:,1);
-    alpha2 = alpha_out(:,2);
-    alpha3 = alpha_out(:,3);
-    alpha4 = alpha_out(:,4);
-    alpha5 = alpha_out(:,5);   
-    save(fullfile(shchpath,strcat(paramfiletext,'.mat')),'alpha1','alpha2','alpha3','alpha4','alpha5','t')
+
+if (n_dim >= 2) && (n_dim <= 5)
+    % The optimal gait from step-optimizer is a 4x1 cell array.
+    if(isStepOptimizer)
+        for i = 1:n_dim
+            % The string makes "alphai = cell(4,1);"
+            eval(['alpha',num2str(i),'=cell(4,1);']);
+        end        
+        for i = 1:n_dim
+            for j = 1:4
+                % The string makes "alphai{j} = alpha_out{j}(:,i);"
+                eval(['alpha',num2str(i),'{',num2str(j),...
+                    '} = alpha_out{',num2str(j),'}(:,',num2str(i),');']);
+            end
+        end        
+    else        
+        for i = 1:n_dim
+            % The string makes "alphai = alpha_out(:,i);"
+            eval(['alpha',num2str(i),'=alpha_out(:,',num2str(i),');']);
+        end        
+    end
+
+    % save(fullfile(shchpath,strcat(paramfiletext,'.mat')),'alpha1','alpha2','t')
+    save_string = "save(fullfile(shchpath,strcat(paramfiletext,'.mat')),";
+    for i = 1:n_dim
+        save_string = strcat(save_string,"'alpha",num2str(i),"',");
+    end
+    save_string = strcat(save_string, "'t')");
+    eval(save_string);
+        
+else
+    error('Trying to make an optimal gait with an unsupported number of dimensions')
 end
     
     % Create the file if it doesn't already exist; future work could be
@@ -335,7 +303,7 @@ end
     % ['shchf_' paramfilenamebare '.m']
     if ~exist(fullfile(shchpath,['shchf_' paramfiletext '.m']),'file')
         % [paramfilenamebare '_optimal'], [paramfilenamebare '_optimal']
-        gait_gui_draw_make_shchf(paramfiletext,paramfiledisplaytext,n_dim)
+        gait_gui_draw_make_shchf(paramfiletext,paramfiledisplaytext,n_dim,isStepOptimizer)
         
     end
     

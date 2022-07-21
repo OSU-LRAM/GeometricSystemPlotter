@@ -1,20 +1,22 @@
-function gait_gui_draw_make_shchf(paramfilename, displayname,n_dim)
+function gait_gui_draw_make_shchf(paramfilename, displayname, n_dim, isfamily)
 
 load sysplotter_config
 
+if(nargin < 4)
+    isfamily = 0;
+end
+
 % Open the template file
-if n_dim==2
+if (n_dim >= 2) && (n_dim <= 5)
+    if (isfamily)
+        gait_gui_draw_template_file = 'gait_family_gui_draw_template'...
+            + string(n_dim) + '.txt';
+    else
+        gait_gui_draw_template_file = 'gait_gui_draw_template'...
+            + string(n_dim) + '.txt';
+    end
     fidi = fopen(fullfile(fileparts(which('gait_gui_draw')),...
-    'gait_gui_draw_template2.txt'));
-elseif n_dim==3
-     fidi = fopen(fullfile(fileparts(which('gait_gui_draw')),...
-    'gait_gui_draw_template3.txt'));
-elseif n_dim==4
-     fidi = fopen(fullfile(fileparts(which('gait_gui_draw')),...
-    'gait_gui_draw_template4.txt'));
-elseif n_dim==5
-    fidi = fopen(fullfile(fileparts(which('gait_gui_draw')),...
-    'gait_gui_draw_template5.txt'));
+        gait_gui_draw_template_file));
 else
     error('Trying to make an shchf with an unsupported number of dimensions')
 end

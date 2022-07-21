@@ -22,7 +22,7 @@ function varargout = optimization_gui(varargin)
 
 % Edit the above text to modify the response to help optimization_gui
 
-% Last Modified by GUIDE v2.5 28-Jul-2020 11:26:09
+% Last Modified by GUIDE v2.5 22-Mar-2022 21:25:39
 
 % Begin initialization code - DO NOT EDIT
 gui_Singleton = 1;
@@ -89,5 +89,59 @@ end
 plot_info = plotpushbutton_Callback_optimize(findall(0,'tag',lastpushbutton), eventdata, handles.main_gui);
 
 % Execute the gait_gui_optimize command
-gait_gui_optimize(plot_info(1).axes(1),hObject, eventdata, handles);
+gait_gui_optimize(plot_info(1).axes(1),hObject, eventdata, handles, 0);
 waitbar2a(1,handles.main_gui.progresspanel,'Finished Plotting')
+
+
+% --- Executes on button press in stepoptimize_pushbutton.
+function stepoptimize_pushbutton_Callback(hObject, eventdata, handles)
+% hObject    handle to stepoptimize_pushbutton (see GCBO)
+% eventdata  reserved - to be defined in a future version of MATLAB
+% handles    structure with handles and user data (see GUIDATA)
+% Get the last plot pushbutton used
+if isfield(handles.main_gui.figure1.UserData,'lastpushbutton')
+    lastpushbutton = handles.main_gui.figure1.UserData.lastpushbutton;
+else
+    lastpushbutton = 'plotpushbutton1';
+end
+
+plot_info = plotpushbutton_Callback_optimize(findall(0,'tag',lastpushbutton), eventdata, handles.main_gui);
+
+% Execute the gait_gui_optimize command
+gait_gui_optimize(plot_info(1).axes(1),hObject, eventdata, handles, 1);
+waitbar2a(1,handles.main_gui.progresspanel,'Finished Plotting')
+
+% --- Executes on button press in thetabutton.
+function thetabutton_Callback(hObject, eventdata, handles)
+% hObject    handle to thetabutton (see GCBO)
+% eventdata  reserved - to be defined in a future version of MATLAB
+% handles    structure with handles and user data (see GUIDATA)
+
+% Hint: get(hObject,'Value') returns toggle state of thetabutton
+
+
+% --- Executes on button press in steeringbutton.
+function steeringbutton_Callback(hObject, eventdata, handles)
+% hObject    handle to steeringbutton (see GCBO)
+% eventdata  reserved - to be defined in a future version of MATLAB
+% handles    structure with handles and user data (see GUIDATA)
+
+% Hint: get(hObject,'Value') returns toggle state of steeringbutton
+
+
+% --- Executes on button press in xbutton.
+function xbutton_Callback(hObject, eventdata, handles)
+% hObject    handle to xbutton (see GCBO)
+% eventdata  reserved - to be defined in a future version of MATLAB
+% handles    structure with handles and user data (see GUIDATA)
+
+% Hint: get(hObject,'Value') returns toggle state of xbutton
+
+
+% --- Executes on button press in ybutton.
+function ybutton_Callback(hObject, eventdata, handles)
+% hObject    handle to ybutton (see GCBO)
+% eventdata  reserved - to be defined in a future version of MATLAB
+% handles    structure with handles and user data (see GUIDATA)
+
+% Hint: get(hObject,'Value') returns toggle state of ybutton

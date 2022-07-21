@@ -29,7 +29,6 @@ A2=-y2-ub;
 
 A = [A1;A2];
 
-
 % Make sure the frequency doesn't get changed from 2*pi
 Aeq = y(end,:)' - 2*pi;
 
@@ -54,17 +53,16 @@ for idx=1:3
     end
 end
 
-%
-% gradA = [];
-% 
-% 
-% gradAeq = ones(size(A,1),dimension);
-% 
-% jacobiandisp = zeros(n,dimension);
-% for i=2:1:n-1
-%     jacobiandisp(i,:)=jacobiandispcalculator3(y(i-1,:),y(i,:),y(i+1,:),ccf(i,:),dimension);
+% if(nargout > 3)
+%     gradA = [];    
+%     
+%     gradAeq = ones(size(A,1),dimension);
+%     
+%     jacobiandisp = zeros(n,dimension);
+%     for i=2:1:n-1
+%         jacobiandisp(i,:)=jacobiandispcalculator3(y(i-1,:),y(i,:),y(i+1,:),ccf(i,:),dimension);
+%     end
+%     jacobiandisp(1,:)=jacobiandispcalculator3(y(n,:),y(1,:),y(2,:),ccf(1,:),dimension);
+%     jacobiandisp(n,:)=jacobiandispcalculator3(y(n-1,:),y(n,:),y(1,:),ccf(n,:),dimension);
 % end
-% jacobiandisp(1,:)=jacobiandispcalculator3(y(n,:),y(1,:),y(2,:),ccf(1,:),dimension);
-% jacobiandisp(n,:)=jacobiandispcalculator3(y(n-1,:),y(n,:),y(1,:),ccf(n,:),dimension);
-
-end
+% end
