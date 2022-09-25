@@ -49,6 +49,13 @@ function [net_disp_orig, net_disp_opt, cost] = evaluate_displacement_and_cost1(s
 		resolution = 100;
 	end
 
+    % if p is the Fourier gait parameter, replace p to y and generate new p.
+    if (~isstruct(p))&&(ismatrix(p))
+        y = p;
+        p = makeGait(y);
+        tspan = [0 2*pi/y(end,1)];
+    end
+
     
     
 	switch IntegrationMethod
@@ -81,11 +88,22 @@ function [net_disp_orig, net_disp_opt, cost] = evaluate_displacement_and_cost1(s
     actual_size = min(numel(startshape),numel(startshape_def));
     startshape(1:actual_size) = startshape_def(1:actual_size);
     
-	startshapelist = num2cell(startshape);
-	beta_theta = interpn(s.grid.eval{:},s.B_optimized.eval.Beta{3},startshapelist{:},'spline');
-	net_disp_opt = [cos(beta_theta) sin(beta_theta) 0;...
-		-sin(beta_theta) cos(beta_theta) 0;...
-		0 0 1]*net_disp_orig;
+    % Interpolate beta to the start point at shape space
+    startshapelist = num2cell(startshape);
+    beta = cellfun(@(C) interpn(s.grid.eval{:},C,...
+        startshapelist{:},'spline'),s.B_optimized.eval.Beta,...
+        'UniformOutput',false);
+    beta = cell2mat(beta);
+
+    % Matrix representation of beta and the net displacement in original
+    % coordinate.
+    Brot = vec_to_mat_SE2(beta);
+    g = vec_to_mat_SE2(net_disp_orig);
+
+    % Adjoint action of beta to the net displacement in original coordinate
+    % to acheive the net displacement in optimized coordinate.
+    new_g = Brot^-1*g*Brot;
+    net_disp_opt = mat_to_vec_SE2(new_g).';
 
 	
 end

@@ -1,11 +1,11 @@
-function gait_gui_optimize(hAx,hObject,eventdata,handles,isStepOptimizer)
+function gait_gui_optimize(hAx,hObject,eventdata,handles,OptFamily)
 
 % Load the sysplotter configuration information
 load sysplotter_config
 
 % if the function does not take in isStepOptimzer, set it as 0.
 if(nargin < 5)
-    isStepOptimizer = 0;
+    OptFamily = 0;
 end
 
 optimization_handles = handles;
@@ -135,13 +135,13 @@ alpha_plot = ppval(spline_alpha,t_plot)';
 % Both buttons in Optimizer and Step-Optimizer panel have same tags
 % They are distinguished by the array determined by the order of panel.
 direction = 0;
-if optimization_handles.xbutton(isStepOptimizer+1).Value
+if optimization_handles.xbutton(OptFamily+1).Value
     direction = 1;
-elseif optimization_handles.ybutton(isStepOptimizer+1).Value
+elseif optimization_handles.ybutton(OptFamily+1).Value
     direction = 2;
-elseif optimization_handles.thetabutton(isStepOptimizer+1).Value
+elseif optimization_handles.thetabutton(OptFamily+1).Value
     direction = 3;
-elseif (optimization_handles.steeringbutton.Value) && (isStepOptimizer)
+elseif (optimization_handles.steeringbutton.Value) && (OptFamily)
     direction = 4;
 end
 
@@ -161,6 +161,15 @@ elseif optimization_handles.pathlengthmetric2button.Value
     costfunction = 'pathlength metric2';
 elseif optimization_handles.powerqualitybutton.Value
     costfunction = 'power quality';
+end
+
+% Active constraint to optimzie
+constraint = zeros(2,1);
+if optimization_handles.otherdirectioncheckbox.Value
+    constraint(1) = 1;
+end
+if optimization_handles.rotationcheckbox.Value
+    constraint(2) = 1;
 end
 
 %Sanity check radiobutton selection
@@ -203,16 +212,12 @@ lb = lb(:);
 ub = ub(:);
 
 %%%%% Call the optimizer
-if(isStepOptimizer)
-    y = stepoptimalgaitgenerator(s,n_dim,n_plot,alpha_plot,lb,ub,stretch,direction,costfunction,handles);
-else
-    y = optimalgaitgenerator(s,n_dim,n_plot,alpha_plot,lb,ub,stretch,direction,costfunction,handles);
-end
+y = optimalgaitgenerator(s,n_dim,n_plot,alpha_plot,lb,ub,stretch,direction,costfunction,constraint,OptFamily,handles);
 
 t = t_plot;
 t_new = t(1):(t(2)-t(1))/4:t(end);
 
-if(isStepOptimizer)
+if(OptFamily)
 
     alpha_out = cell(4,1);
     for i = 1:4
@@ -242,7 +247,7 @@ cd(current_dir)    % Go back to original directory
 sysf_func = str2func(current_system);
 shch_func = str2func(current_shch);
 effnames = {'X','Y','Theta'};
-if (isStepOptimizer)
+if (OptFamily)
     optimizerdisplaytext = 'StepOpt: [';
     optimizerfiletext = 'stepopt_';
 else
@@ -264,7 +269,7 @@ paramfiletext = [optimizerfiletext,paramfiletext];
 
 if (n_dim >= 2) && (n_dim <= 5)
     % The optimal gait from step-optimizer is a 4x1 cell array.
-    if(isStepOptimizer)
+    if(OptFamily)
         for i = 1:n_dim
             % The string makes "alphai = cell(4,1);"
             eval(['alpha',num2str(i),'=cell(4,1);']);
@@ -303,7 +308,7 @@ end
     % ['shchf_' paramfilenamebare '.m']
     if ~exist(fullfile(shchpath,['shchf_' paramfiletext '.m']),'file')
         % [paramfilenamebare '_optimal'], [paramfilenamebare '_optimal']
-        gait_gui_draw_make_shchf(paramfiletext,paramfiledisplaytext,n_dim,isStepOptimizer)
+        gait_gui_draw_make_shchf(paramfiletext,paramfiledisplaytext,n_dim,OptFamily)
         
     end
     

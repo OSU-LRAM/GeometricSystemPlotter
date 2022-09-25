@@ -22,7 +22,7 @@ function varargout = optimization_gui(varargin)
 
 % Edit the above text to modify the response to help optimization_gui
 
-% Last Modified by GUIDE v2.5 22-Mar-2022 21:25:39
+% Last Modified by GUIDE v2.5 23-Sep-2022 23:13:41
 
 % Begin initialization code - DO NOT EDIT
 gui_Singleton = 1;
@@ -145,3 +145,19 @@ function ybutton_Callback(hObject, eventdata, handles)
 % handles    structure with handles and user data (see GUIDATA)
 
 % Hint: get(hObject,'Value') returns toggle state of ybutton
+% --- Executes on button press in otherdirectioncheckbox.
+function otherdirectioncheckbox_Callback(hObject, eventdata, handles)
+% hObject    handle to otherdirectioncheckbox (see GCBO)
+% eventdata  reserved - to be defined in a future version of MATLAB
+% handles    structure with handles and user data (see GUIDATA)
+
+% Hint: get(hObject,'Value') returns toggle state of otherdirectioncheckbox
+
+
+% --- Executes on button press in rotationcheckbox.
+function rotationcheckbox_Callback(hObject, eventdata, handles)
+% hObject    handle to rotationcheckbox (see GCBO)
+% eventdata  reserved - to be defined in a future version of MATLAB
+% handles    structure with handles and user data (see GUIDATA)
+
+% Hint: get(hObject,'Value') returns toggle state of rotationcheckbox
