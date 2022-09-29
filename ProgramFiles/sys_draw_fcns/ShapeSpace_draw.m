@@ -61,5 +61,10 @@ function plot_info = ShapeSpace_draw(s,p,plot_info,sys,shch,resolution)
 			
 		end
 
+        %Label the axes
+        label_shapespace_axes(plot_info.axes,[],plot_info.stretch);
+
+        %Set the tic marks
+        set(plot_info.axes,'FontSize',30,'FontName','Helvetica')
 
 end
