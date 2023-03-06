@@ -45,7 +45,7 @@ function y=optimalgaitgenerator(s,dimension,npoints,a,lb,ub,stretch,direction,co
     % end
 
 
-    %% Define fourier coeffecients.
+    %% Finding fourier coeffecients.
     % The first step is to go from a direct transcription of the initial gait
     % to a fourier based parametrization.
     % fa is a cell where the ith element contains the coefficients for the fourier parametrization along the ith direction
@@ -125,32 +125,37 @@ function y=optimalgaitgenerator(s,dimension,npoints,a,lb,ub,stretch,direction,co
     global bestCost bestDisp bestEff;
     bestEff = 0;
 
-    if OptFamily == 1
-        global  stepOptimalGaits currentDisp;
-        currentDisp = [0;0;0;0];
-        stepOptimalGaits = cell(4,3);
-    end
-
-    % set the initial gait as the x direction optimal gait
-    % for Steering Gait Optimization.
-    if direction == 4
-        global rotOptMod;
-        rotOptMod = 0;
-        initdir = 1;
-    else
-        initdir = direction;
-    end
-
     %Suppress warning for annoying thing in jacobianeqicalculator
     warning('off','MATLAB:sqrtm:SingularMatrix');
 
     try
-        options = optimoptions('fmincon','SpecifyObjectiveGradient',true,'Display','iter','Algorithm','sqp','CheckGradients',false,'FiniteDifferenceType','central','MaxIter',4000,'MaxFunEvals',20000,'TolCon',10^-3,'StepTolerance',1e-6,'OutputFcn', @(y,optimValues,state) outfun(y,optimValues,state,stretch,s,handles));
+        options = optimoptions('fmincon','SpecifyObjectiveGradient',true, ...
+            'Display','iter','Algorithm','sqp','CheckGradients',false, ...
+            'FiniteDifferenceType','central','MaxIter',4000, ...
+            'MaxFunEvals',20000,'TolCon',10^-3,'StepTolerance',1e-6, ...
+            'OutputFcn', @(y,optimValues,state) outfun(y,optimValues,state,stretch,s,handles));
     catch
         error('This code requires the global optimization toolbox to run')
     end
 
 
+    objective_function_gradient = @(y) solvedifffmincon(y,s,npoints,dimension,direction,lb,ub,writerObj);
+    constraint_function = @(y) nonlcon(y,s,npoints,dimension,lb,ub,direction,constraint);
+
+    [yf, ~,~,~]=fmincon(objective_function_gradient,y0,A,b,Aeq,beq,lb1,ub1,constraint_function,options);
+
+    % % Uncomment this if you uncommented the section above so that the video
+    % % writer object is closed appropriately.
+    % close(writerObj);
+
+    printstuff = 1;
+    if printstuff
+        disp(['Optimal Efficiency: ',num2str(bestEff)]);
+        disp(['Optimal Displacement: ',num2str(bestDisp)]);
+        disp(['Optimal Cost: ',num2str(bestCost)]);
+    end
+
+    %% Find a seed gait for step-optimizer.
     objective_function_gradient = @(y) solvedifffmincon(y,s,npoints,dimension,initdir,lb,ub,writerObj);
     constraint_function = @(y) nonlcon(y,s,npoints,dimension,lb,ub,initdir,constraint);
 
@@ -166,7 +171,6 @@ function y=optimalgaitgenerator(s,dimension,npoints,a,lb,ub,stretch,direction,co
         disp(['Optimal Displacement: ',num2str(bestDisp)]);
         disp(['Optimal Cost: ',num2str(bestCost)]);
     end
-
 
     %% Find step-optimal gaits family by ode solver
     % stepOptimalGaits is a cell array defined as a global variable
@@ -215,22 +219,23 @@ function y=optimalgaitgenerator(s,dimension,npoints,a,lb,ub,stretch,direction,co
         % to give what optimalgaitgenerator expects to return
         y1 = y1(1:end-1,:);
         y=y1(:);
+
+        %% Uncomment for plotting the optimized gait. Potentially useful while debugging.
+        % for i=1:n
+        %     xf(i)=y(i);
+        %     yf(i)=y(n+i);
+        % end
+        % %
+        % % for i=1:n`
+        % %     xf(i)=P1(i,1);
+        % %     yf(i)=P1(i,2);
+        % % end
+        % %
+        % figure(11)
+        % hold on
+        % plot(xf,yf,'-o')
     end
 
-    %% Uncomment for plotting the optimized gait. Potentially useful while debugging.
-    % for i=1:n
-    %     xf(i)=y(i);
-    %     yf(i)=y(n+i);
-    % end
-    % %
-    % % for i=1:n`
-    % %     xf(i)=P1(i,1);
-    % %     yf(i)=P1(i,2);
-    % % end
-    % %
-    % figure(11)
-    % hold on
-    % plot(xf,yf,'-o')
 end
 
 
@@ -287,20 +292,3 @@ end
 % 	cost_end(i) = p.G_locus_full{i}.S(end);
 % end
 % end
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-

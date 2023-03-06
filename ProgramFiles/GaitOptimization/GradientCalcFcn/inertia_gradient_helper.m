@@ -39,7 +39,7 @@ function del_cost = inertia_gradient_helper(t,X,s,gait,grad_alpha,grad_alphadot,
     dshape(1:actual_size) = dshape_gait_def(1:actual_size);
     ddshape(1:actual_size) = ddshape_gait_def(1:actual_size);
 
-    shapelist = num2cell(shape);
+    shapelist = num2cell(shapechangemenu_CreateFcn);
     
     metricgrad = getMetricGrad(s,shape,dM,grad_alpha_eval);
     

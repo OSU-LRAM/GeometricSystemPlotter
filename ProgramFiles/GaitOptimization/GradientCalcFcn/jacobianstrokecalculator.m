@@ -20,7 +20,7 @@ function jacobianstroke = jacobianstrokecalculator(y,n,dimension,metric,metricgr
         delp{i}=y(i+1,:)-y(i,:); % delp{i} is the vector joining the (i+1)th point to the ith point 
     end
     delp{end}=y(1,:)-y(n,:);
-
+    
     jacobianstroke = zeros(n,dimension);
     contrigrad=zeros(n,dimension);
     for i=2:n-1

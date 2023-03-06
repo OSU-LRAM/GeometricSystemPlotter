@@ -26,6 +26,7 @@ for i=1:dimension
     perp=perp1;% Unit vector along the ith direction
     % The for loop below calculates the gradient along the ith direction by
     % treating the CCF as 2 forms. A specific (j,k) represents a component of the 2 form 
+    perpp= [base(2) -base(1)];
     for j=1:dimension-1 
         for k=1:dimension-j
             veca=zeros(1,dimension);

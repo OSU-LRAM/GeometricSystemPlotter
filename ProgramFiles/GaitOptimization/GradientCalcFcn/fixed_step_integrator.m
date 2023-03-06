@@ -27,14 +27,18 @@ function [net_disp_orig, cost] = fixed_step_integrator(s,gait,tspan,ConnectionEv
         samplePoints{dim} = [];
     end
     
-    for time = tpoints
-        shape_gait_def = readGait(gait.phi_def,time);
-        shape(1:actual_size) = shape_gait_def(1:actual_size);
-        for dim = 1:numel(shape)
-            samplePoints{dim}(end+1) = shape(dim); 
-        end
-    end
+%     for time = tpoints
+%         shape_gait_def = readGait(gait.phi_def,time);
+%         shape(1:actual_size) = shape_gait_def(1:actual_size);
+%         for dim = 1:numel(shape)
+%             samplePoints{dim}(end+1) = shape(dim);
+%         end
+%     end
     
+    for dim = 1:numel(shape)
+        samplePoints{dim} = gait.phi_def{dim}(tpoints);
+    end
+
     indexList = 1:numel(tpoints);
     id = eye(actual_size);
     
