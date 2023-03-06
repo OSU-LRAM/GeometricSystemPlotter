@@ -134,12 +134,12 @@ function h = create_elements_shapespace(info_needed)
 
 	% Create lists to iterate along for shape space axis creation, and then
 	% trim out movies that aren't being made
-	fignums = [171; 172; 173; 181; 182; 183];
+	fignums = [171; 172; 173; 181; 182; 183; 191];
 	fignums(~export_list(2:end)) = [];
     
 	% Name the plots to draw into those windows, and trim them to just the
 	% plots being made
-	fignames = {'CCF X';'CCF Y';'CCF Theta'; 'Avec X';'Avec Y';'Avec Theta'};
+	fignames = {'CCF X';'CCF Y';'CCF Theta'; 'Avec X';'Avec Y';'Avec Theta'; 'Illustrate Shape Space'};
     
         if strcmp(info_needed.Coordinates,'minperturbation_coords')
             fignamessuffix = ' min. perturbation coords';
@@ -152,7 +152,7 @@ function h = create_elements_shapespace(info_needed)
 
     %%%%%
     % Internal names used by sys_draw
-    figinternal = {'X';'Y';'T';'X';'Y';'T'};
+    figinternal = {'X';'Y';'T';'X';'Y';'T';''};
         if strcmp(info_needed.Coordinates,'minperturbation_coords')
             figinternalsuffix = 'opt';
         else
@@ -164,7 +164,7 @@ function h = create_elements_shapespace(info_needed)
      
     %%%%%%
     % Category of plots to make
-    figcategory = {'CCF';'CCF';'CCF';'vfield';'vfield';'vfield'};
+    figcategory = {'CCF';'CCF';'CCF';'vfield';'vfield';'vfield';'ShapeSpace'};
     figcategory(~export_list(2:end)) = [];
 	
     %%%%%%
@@ -224,7 +224,11 @@ function h = create_elements_shapespace(info_needed)
 
     % Call the drawing function
     for idx = 1:numel(plot_info)
-        hh(idx,1) = absolute_feval(underlying_function{idx},s,[],plot_info(idx),[],'null',resolution);
+        if strcmp(plot_info(idx).category, 'ShapeSpace')
+            hh(idx,1) = feval([plot_info(idx).category '_draw'],s,[],plot_info(idx),system_name,'null',resolution);
+        else
+            hh(idx,1) = absolute_feval(underlying_function{idx},s,[],plot_info(idx),[],'null',resolution);
+        end
     end
 	
 	% Remove click callbacks on axes created

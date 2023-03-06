@@ -30,6 +30,8 @@ info_needed.Movies.CCFtheta = get(handles.checkbox_CCFtheta_movie,'value');
 info_needed.Movies.vfieldx = get(handles.checkbox_vfieldx_movie,'value');
 info_needed.Movies.vfieldy = get(handles.checkbox_vfieldy_movie,'value');
 info_needed.Movies.vfieldtheta = get(handles.checkbox_vfieldtheta_movie,'value');
+%
+info_needed.Movies.illustrateShapeSpace = get(handles.checkbox_illustrate_shape_space,'value');
 
 % Get the selected system coordinates
 info_needed.Coordinates = get(findobj(handles.coordinate_selector,'Value',1),'Tag');
