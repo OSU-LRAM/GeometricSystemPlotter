@@ -1,4 +1,4 @@
-function B = generate_locomotor_locus(geometry,shapeparams,visual)
+function [B,h,J,J_full] = generate_locomotor_locus(geometry,shapeparams,visual)
 
 % If a visualization function has been specified in the visual property of
 % the system, use this to draw the body of the system. Otherwise, choose a
@@ -23,4 +23,4 @@ else
 end
 
 % Evaluate the drawing generator
-B = drawing_generator(geometry,shapeparams);
+[B,h,J,J_full] = drawing_generator(geometry,shapeparams);

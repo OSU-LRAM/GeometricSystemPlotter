@@ -1,4 +1,4 @@
-function output = sysf_constantcurv3_lowRe(input_mode,pathnames)
+function output = sysf_serpenoid_lowRe(input_mode,pathnames)
 % System file for a low Reynolds
 
     % Default arguments
@@ -14,7 +14,7 @@ function output = sysf_constantcurv3_lowRe(input_mode,pathnames)
 
 		case 'name'
 
-			output = 'Viscous swimmer: Constantcurve3'; % Display name
+			output = 'Viscous swimmer: Serpenoid high frequency'; % Display name
 
 		case 'dependency'
 
@@ -35,15 +35,19 @@ function output = sysf_constantcurv3_lowRe(input_mode,pathnames)
             % along the backbone
             s.geometry.type = 'curvature basis';                
 
-            % The specific basis functions are those for a
-            % piecewise-constant curvature system
-            s.geometry.function = {@(s)constant_curvature_3_1(s);@(s)constant_curvature_3_2(s);@(s)constant_curvature_3_3(s)};
+            % The specific basis functions are those for a serpenoid curve,
+            % in which the curvature varies sinusoidally along the length
+            % of the body. This function is normalized such that the body length
+            % is taken as one unit long. For this system, we use a
+            % wavelength equal to the body length.
+            n_waves = 1.5;
+            s.geometry.function = {@(s)serpenoid_1(s,n_waves);@(s)serpenoid_2(s,n_waves)};
 
             % Total length of the swimmer, in real units
             s.geometry.length = 1;
             
             % base the system off of its center frame
-            s.geometry.baseframe = 'tail';
+            s.geometry.baseframe = 'center-mean';%'com-mean';
 
             %%%
             
@@ -53,7 +57,7 @@ function output = sysf_constantcurv3_lowRe(input_mode,pathnames)
             % Make a grid of values at which to visualize the system in
             % illustrate_shapespace. (Use a cell of gridpoints along each
             % axis to use different spacings for different axes)
-            s.visual.grid_spacing = 0;%[-1 -0.5 0 0.5 1]*5;
+            s.visual.grid_spacing = [-1 0 1]*6 %[-1 -0.5 0 0.5 1]*6;
             
             %%%
 
@@ -67,35 +71,34 @@ function output = sysf_constantcurv3_lowRe(input_mode,pathnames)
 
             % Locomotion model derived from viscous drag forces reacting to
             % local velocities of elements on the body
-            s.A = @(a1,a2,a3) LowRE_local_connection(s.geometry,s.physics,[a1;a2;a3]);
+            s.A = @(a1,a2) LowRE_local_connection(s.geometry,s.physics,[a1;a2]);
             
             % Locomotion model derived from viscous drag forces reacting to
             % local velocities of elements on the body
-            s.metric = @(a1,a2,a3) LowRE_dissipation_metric(s.geometry,s.physics,[a1;a2;a3]);
+            s.metric = @(a1,a2) LowRE_dissipation_metric(s.geometry,s.physics,[a1;a2]);
+            
             %%%
-
-
-            %%%
+            
             % Processing details
 
             %Range over which to evaluate connection
-            s.grid_range = [-1,1,-1,1,-1,1]*6;
+            s.grid_range = [-1,1,-1,1]*12;
 
             %densities for various operations
-            s.density.vector = [11 11 11]; %density to display vector field
-            s.density.scalar = [11 11 11]; %density to display scalar functions
-            s.density.eval = [11 11 21];   %density for function evaluations
-            s.density.metric_eval = [1 1 1]*11;
-            s.density.finite_element=11;
+            s.density.vector = [11 11]; %density to display vector field
+            s.density.scalar = [21 21]; %density to display scalar functions
+            s.density.eval = [21 21];   %density for function evaluations
+            s.density.metric_eval = [1 1]*11;
+            s.density.finite_element=31;
 
             %shape space tic locations
             s.tic_locs.x = [-1 0 1]*6;
             s.tic_locs.y = [-1 0 1]*6;
-            %%%%
             
             % Set system type variable for gait optimization
             s.system_type = 'drag';
-    
+            
+            %%%%
     
 			%Save the system properties
 			output = s;

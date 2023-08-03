@@ -47,7 +47,7 @@ function output = sysf_serpenoid_lowRe(input_mode,pathnames)
             s.geometry.length = 1;
             
             % base the system off of its center frame
-            s.geometry.baseframe = 'center';
+            s.geometry.baseframe = 'center-mean';
 
             %%%
             
@@ -57,7 +57,7 @@ function output = sysf_serpenoid_lowRe(input_mode,pathnames)
             % Make a grid of values at which to visualize the system in
             % illustrate_shapespace. (Use a cell of gridpoints along each
             % axis to use different spacings for different axes)
-            s.visual.grid_spacing = [-1 -0.5 0 0.5 1]*6;
+            s.visual.grid_spacing = [-1 0 1]*6 %[-1 -0.5 0 0.5 1]*6;
             
             %%%
 

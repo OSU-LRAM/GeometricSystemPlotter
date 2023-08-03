@@ -44,6 +44,8 @@ axh.YTick = paramvalues{2}(1,:);
 % Figure stylistic settings
 axh.Box = 'on'; % Repeat tickmarks and axis lines on the top and left sides
 
+vpoints = linspace(-.5, .5, 5);
+
 for idx = 1:numel(paramvalues{1})
     
     % Extract the parameter values for this combination of parameters
@@ -57,7 +59,7 @@ for idx = 1:numel(paramvalues{1})
     blnth = .9 * max(grid_spacing_x(idx),grid_spacing_y(idx));
     
     %Generate the backbone locus
-    B = fatbackbone_function(curvdef,p,blnth,blnth/20,orientation);
+    [B,h,J] = fatbackbone_function(curvdef,p,blnth,blnth/20,orientation);
     
     for idx2 = 1:2
         B(:,idx2) = B(:,idx2) + p(idx2);
@@ -65,5 +67,18 @@ for idx = 1:numel(paramvalues{1})
     
     % draw the backbone at the specified location
     plot(B(:,1),B(:,2),'Parent',axh,'Color','k')
+
+    Bv = h(vpoints);
+    for idx2 = 1:2
+        Bv(:,idx2) = Bv(:,idx2) + p(idx2);
+    end
+
+    uv = zeros(2,numel(vpoints));
+    for idx2 = 1:size(uv,2)
+        Js = J(vpoints(idx2));
+        uv(:,idx2) = Js(:,1);
+    end
+    
+    quiver(Bv(1,:), Bv(2,:), uv(1,:), uv(2,:))
     
 end
