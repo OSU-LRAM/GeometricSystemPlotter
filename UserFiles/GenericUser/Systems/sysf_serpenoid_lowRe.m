@@ -47,7 +47,7 @@ function output = sysf_serpenoid_lowRe(input_mode,pathnames)
             s.geometry.length = 1;
             
             % base the system off of its center frame
-            s.geometry.baseframe = 'center-mean';
+            s.geometry.baseframe = 'com-mean';
 
             %%%
             

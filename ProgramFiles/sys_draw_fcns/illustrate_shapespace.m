@@ -172,7 +172,7 @@ function illustrate_shapespace(system,target)
         uv = zeros(3,numel(vpoints));
         for idx2 = 1:size(uv,2)
             Js = J_full(vpoints(idx2));
-            uv(:,idx2) = Js(:,3+3);
+            uv(:,idx2) = Js(:,3+2);
         end
         
         quiver(Bv(1,:), Bv(2,:), uv(1,:), uv(2,:),'Color',colorlist{1},'linewidth',2)
