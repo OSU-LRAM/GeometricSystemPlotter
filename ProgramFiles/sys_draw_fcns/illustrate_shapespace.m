@@ -163,7 +163,7 @@ function illustrate_shapespace(system,target)
             end
         end
     
-        vpoints = linspace(-.5,.5,13);
+        vpoints = linspace(-.5,.5,7);
         Bv = h(vpoints);
         for idx2 = 1:2
             Bv(idx2,:) = Bv(idx2,:) + p(idx2);

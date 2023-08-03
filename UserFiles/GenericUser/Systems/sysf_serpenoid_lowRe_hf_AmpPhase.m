@@ -1,4 +1,4 @@
-function output = sysf_serpenoid_lowRe_hf(input_mode,pathnames)
+function output = sysf_serpenoid_lowRe_hf_AmpPhase(input_mode,pathnames)
 % System file for a low Reynolds
 
     % Default arguments
@@ -14,7 +14,7 @@ function output = sysf_serpenoid_lowRe_hf(input_mode,pathnames)
 
 		case 'name'
 
-			output = 'Viscous swimmer: Serpenoid high frequency'; % Display name
+			output = 'Viscous swimmer: Serpenoid high frequency AmpPhase'; % Display name
 
 		case 'dependency'
 
@@ -33,15 +33,21 @@ function output = sysf_serpenoid_lowRe_hf(input_mode,pathnames)
             % this system's shape is defined by a set of basis functions
             % whose weighted sum is curvature as a function of distance
             % along the backbone
-            s.geometry.type = 'curvature basis';                
+            s.geometry.type = 'general curvature';                
 
             % The specific basis functions are those for a serpenoid curve,
             % in which the curvature varies sinusoidally along the length
             % of the body. This function is normalized such that the body length
             % is taken as one unit long. For this system, we use a
             % wavelength equal to the body length.
+            curvdef_name = 'AmpPhase_wave_two_period';
             n_waves = 2;
-            s.geometry.function = {@(s)serpenoid_1(s,n_waves);@(s)serpenoid_2(s,n_waves)};
+            AmpPhasecurvature = AmpPhase_wave_generator;
+            AmpPhasecurvature = subs(AmpPhasecurvature,'n',n_waves);
+            curvdef_parameters = {'A' 'phi'};
+            curvdef_fun = make_curvdef(AmpPhasecurvature,curvdef_parameters,curvdef_name,[1,0,0,0],pathnames.syspath,pathnames.sysplotterpath);
+
+            s.geometry.function = curvdef_fun;%{@(s)serpenoid_1(s,n_waves);@(s)serpenoid_2(s,n_waves)};
 
             % Total length of the swimmer, in real units
             s.geometry.length = 1;
@@ -105,4 +111,33 @@ function output = sysf_serpenoid_lowRe_hf(input_mode,pathnames)
 
 
 	end
+end
+
+
+function AmpPhaseWave = AmpPhase_wave_generator
+% Generate the curvature profile for a triangle wave
+
+
+
+
+    syms A phi omega s n
+
+    % Wave with sin and cosine amplitudes
+    AmpPhaseWave = (A*cos(2*pi*s*n - phi));
+
+    % % Amplitude of the wave
+    % amp_wave = (a1^2+a2^2)^(.5);
+    % 
+    % % Normalize the wave
+    % norm_wave = raw_wave/amp_wave;
+    % 
+    % % Pinch the wave
+    % pinched_wave = (abs(norm_wave)^n) * sign(norm_wave);
+    % 
+    % % Restore the scale of the wave
+    % pinched_wave_restored = pinched_wave*amp_wave;
+    % 
+    % % Scale to match max angle with original wave
+    % triangle_wave_matched = pinched_wave_restored * (P*[n^3;n^2;n;1]);
+
 end
