@@ -1,5 +1,5 @@
-function dcost = acceleration_cost(M,dM,shape,dshape,ddshape)
-% Calculates the incremental cost for an inertial system where cost is covariant acceleration.
+function dcost = mechpower_cost_passive(M,dM,shape,dshape,ddshape,metric)
+% Calculates the incremental cost for an inertial system where cost is mechanical power.
 % Inputs:
 %   M: Mass matrix
 %   dM_alphadalpha: Partial of mass matrix with respect to shape variables;
@@ -9,8 +9,10 @@ function dcost = acceleration_cost(M,dM,shape,dshape,ddshape)
 %       dM_alphadalpha were evaluated
 %   dshape: Current shape velocity of system
 %   ddshape: Current shape acceleration of system
-    C = calc_coriolis_matrix(dM,shape,dshape);
-    cov_acc = ddshape(:) + inv(M)*C;
-    dcost = cov_acc'*M*cov_acc;
 
+    % Start by calculating the coriolis matrix
+    C = calc_coriolis_matrix(dM,shape,dshape);
+    % Calculate the torque for this instant of time
+    dtau = M*ddshape(:) + C;
+    dcost = abs(dtau(2)*dshape(2));
 end

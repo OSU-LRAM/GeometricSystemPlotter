@@ -24,8 +24,8 @@ y2=y1(:);
 %b=length(y2);
 
 % A1 and A2 together impose the constraint that all the points forming the gait stay in bounds
-A1=y2+lb;
-A2=-y2-ub;
+A1=lb-y2;
+A2=y2-ub;
 
 A = [A1;A2];
 

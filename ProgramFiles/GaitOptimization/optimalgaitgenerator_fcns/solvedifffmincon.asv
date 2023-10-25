@@ -217,8 +217,7 @@ switch s.costfunction
         % Get the gradient of cost based on drag-dominated system
         jacobianstroke = jacobianstrokecalculator(y,n,dimension,metric,metricgrad);
     case {'mechanical power'}
-        inertia_cost_grad = inertia_cost_gradient(s,n,coeff,T,p,'discrete');
-        inertia_cost_grad = inertia_cost_grad./(3*totalstroke^2);
+        inertia_cost_grad = ine
     case {'torque','covariant acceleration','acceleration coord','power quality'}
         % Get the gradient of cost based on inertia-dominated system
         inertia_cost_grad = inertia_cost_gradient(s,n,coeff,T,p,'discrete');

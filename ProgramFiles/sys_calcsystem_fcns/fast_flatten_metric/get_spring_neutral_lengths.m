@@ -51,6 +51,7 @@ function [metric_lengths,mean_length] = get_spring_neutral_lengths(springs,block
     end
     
     % Calculate the geometric mean of the spring lengths
-    mean_length = geomean(metric_lengths);
+    metric_lengths = real(metric_lengths);
+    mean_length = geomean(metric_lengths(metric_lengths~=0));
     
 end

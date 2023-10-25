@@ -38,6 +38,12 @@ function [gcirc, dcost] = get_velocities(t,s,gait,ConnectionEval,A,metric,dM)
 	% Get the body velocity at the current time
 	%t;
     gcirc = - A * dshape(:);
+    
+    if isfield(s,'actuatormetric')
+        actuatormetric = s.actuatormetric;
+    else
+        actuatormetric = eye(size(metric));
+    end
 
     switch s.costfunction
         case {'pathlength metric','pathlength coord'}
@@ -45,9 +51,15 @@ function [gcirc, dcost] = get_velocities(t,s,gait,ConnectionEval,A,metric,dM)
         case 'pathlength metric2'
             dcost = sqrt(dshape(:)'*metric*metric*dshape(:));
         case 'torque'
-            dcost = torque_cost(M_a,dM,shape,dshape,ddshape,metric);
+            dcost = torque_cost(M_a,dM,shape,dshape,ddshape,actuatormetric);
+        case 'mechanical power'
+            if isfield(s,'passiveObjectiveFunction')
+                dcost = mechpower_cost_passive(M_a,dM,shape,dshape,ddshape,actuatormetric);
+            else
+                dcost = mechpower_cost(M_a,dM,shape,dshape,ddshape,actuatormetric);
+            end
         case 'covariant acceleration'
-            dcost = acceleration_cost(M_a,dM,shape,dshape,ddshape,metric);
+            dcost = acceleration_cost(M_a,dM,shape,dshape,ddshape);
         case 'acceleration coord'
             dcost = ddshape(:)'*metric*ddshape(:);
         case 'power quality'

@@ -1,4 +1,4 @@
-function output = sysf_two_mode_CC(input_mode,pathnames)
+function output = sysf_fishTail_HighRe_untapered(input_mode,pathnames)
 
 	% Default arguments
 	if ~exist('input_mode','var')
@@ -11,9 +11,11 @@ function output = sysf_two_mode_CC(input_mode,pathnames)
 	
 	switch input_mode
 
+        
+        
 		case 'name'
 
-			output = 'Fish Tail Swimmer'; % Display name
+			output = 'Flagella Tail Swimmer - Untapered'; % Display name
 
 		case 'dependency'
 
@@ -26,22 +28,31 @@ function output = sysf_two_mode_CC(input_mode,pathnames)
             %%%%%%
             % Define system geometry
             s.geometry.type = 'n-link chain';
-            headRatio = 1/3;
-            nLinksTail = 21;
-            s.geometry.linklengths = [(1-headRatio)/nLinksTail*ones(1,nLinksTail),headRatio];
+            nLinksTail = 20;
+            nLinksHead = 10;
+            nLinks = nLinksTail + nLinksHead;
+            s.geometry.linklengths = [1/nLinks*ones(1,nLinks)];
+
             s.geometry.baseframe = 'center';
             s.geometry.length = 1;
             s.geometry.link_shape = {};
             st = struct('aspect_ratio',0.1);
-            for i = 1:22
+            for i = 1:nLinks
                 s.geometry.link_shape{i} = 'ellipse';
                 s.geometry.link_shape_parameters{i} = st;
             end
-            modeSetup = [];
-            for i = 1:20
-                modeSetup(i,:) = [(1-headRatio)/20,0];
+
+            tailMode = [];
+            nJointsTail = nLinksTail-1;
+            C = (12*nJointsTail + 12)/(3*nJointsTail^2 + 2*nJointsTail);
+            for i = 1:nJointsTail
+                x = i/nLinksTail;
+                tailMode(i,:) = [C*(x^2 - 1/3*x^3),0];
             end
-            modeSetup(21,:) = [0,1];
+            headMode = [0,1];
+            rigidMode = zeros(nLinksHead-1,2);
+
+            modeSetup = [tailMode;headMode;rigidMode];
             s.geometry.modes = modeSetup;
             
             
@@ -51,15 +62,23 @@ function output = sysf_two_mode_CC(input_mode,pathnames)
             % Make a grid of values at which to visualize the system in
             % illustrate_shapespace. (Use a cell of gridpoints along each
             % axis to use different spacings for different axes)
-            passiveRange = 2*pi/(1-headRatio);
+            passiveRange = pi/2;
             s.visual.grid_spacing = [-1  0  1]*passiveRange;
             
             %%%
             %%%%%%
             % Define system physics
             s.physics.fluid_density = 1;
+            s.physics.passive = 1;
+            s.physics.k = 0.074;
+            s.physics.b = 0.01;
+            s.physics.metabolicRate = 0.05;
+            s.physics.maxAcc = 200;
+            
+            %'speed', 'efficiency', or 'metabolism'
+            s.passiveObjectiveFunction = 'speed';
             %s.physics.interaction = 'off';
-           
+            s.physics = rmfield(s.physics,'passive')
  
             %Functional Local connection and dissipation metric
 
@@ -69,7 +88,7 @@ function output = sysf_two_mode_CC(input_mode,pathnames)
                         s.physics,...                            % Physics properties
                         [alpha1,alpha2]);                        % Joint angles
 
-            s.metric = @(alpha1,alpha2) Inertial_energy_metric(s.geometry,s.physics,[alpha1,alpha2]);
+            s.metric = @(alpha1,alpha2) nLinksHead*Inertial_energy_metric(s.geometry,s.physics,[alpha1,alpha2]);
             %s.metric = @(alpha1,alpha2) eye(2);
           
                     
@@ -77,7 +96,7 @@ function output = sysf_two_mode_CC(input_mode,pathnames)
 			%Processing details
 
 			%Range over which to evaluate connection
-			s.grid_range = [-5,5,-pi,pi];
+			s.grid_range = [-2*pi,2*pi,-pi,pi];
             
 			%densities for various operations
 			s.density.vector = [21 21]; %density to display vector field
@@ -87,7 +106,6 @@ function output = sysf_two_mode_CC(input_mode,pathnames)
             s.density.mass_eval = [31 31]; % density for mass matrix evaluation
             s.density.coriolis_eval = [31 31];
             s.density.finite_element=31;
-
 
 			%shape space tic locations
 			s.tic_locs.x = [-1 0 1]*pi;

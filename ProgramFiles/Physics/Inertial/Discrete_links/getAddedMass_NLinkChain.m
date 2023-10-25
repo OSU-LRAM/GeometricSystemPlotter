@@ -78,7 +78,7 @@ linklengths = s.geometry.linklengths;
 % Define ratio parameters for ellipse:
 aspectRatio = s.geometry.link_shape_parameters{1}.aspect_ratio;
 % Number of panels comprising ellipse
-npts = 100;  
+npts = 10;  
 % Separation distance between ellipses at joints - avoids singularities
 linkSep = s.geometry.linkSeparation/2;
 
@@ -625,3 +625,24 @@ adj = [cos(a),-sin(a),y;sin(a),cos(a),-x;0,0,1];
 iadj = inv(adj);
 
 end   
+
+function [zcg,ts,ns,dels] = ellipse(a,b,npts)
+
+    thetas = linspace(0,2*pi,npts+1);
+    cornerPoints = [a*cos(thetas)',b*sin(thetas)'];
+    
+    zcg = zeros(npts,2);
+    ts = zeros(npts,2);
+    ns = zeros(npts,2);
+    dels = zeros(npts,1);
+    
+    for i = 1:npts
+        zcg(i,:) = (cornerPoints(i,:)+cornerPoints(i+1,:))/2;
+        vec = (cornerPoints(i+1,:)-cornerPoints(i,:));
+        dels(i) = norm(vec);
+        ts(i,:) = vec/dels(i);
+        ns(i,:) = [ts(i,2),-ts(i,1)];
+        dels(i) = norm(vec);
+    end
+    
+end

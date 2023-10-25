@@ -1,4 +1,4 @@
-function del_cost = inertia_gradient_helper(t,X,s,gait,grad_alpha,grad_alphadot,grad_alphaddot,M,dM,ddM,metric)
+function del_cost = mechpower_gradient_helper(t,X,s,gait,grad_alpha,grad_alphadot,grad_alphaddot,M,dM,ddM,metric)
 % Helper function to calculate the gradient of cost for inertia systems.
 % Designed to work with ode45; solves for the gradient of cost at an
 % instant of time t.
@@ -93,8 +93,15 @@ function del_cost = inertia_gradient_helper(t,X,s,gait,grad_alpha,grad_alphadot,
         
         % Gradient of torque
         del_tau = M_grad + C1_grad - (1/2)*C2_grad;
-        del_cost(i) = del_tau(:)'*metric*tau(:)...
-                    + tau(:)'*metric*del_tau(:);
+        % Account for absolute value of mechanical power in cost
+        if tau(:)'*metric*dshape(:) >= 0
+            absfactor = 1;
+        else
+            absfactor = -1;
+        end
+        
+        del_cost(i) = absfactor*(del_tau(:)'*metric*dshape(:)...
+                    + tau(:)'*metric*del_dshape(:));
     end
     del_cost = del_cost(:);
 end

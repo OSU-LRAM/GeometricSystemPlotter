@@ -142,6 +142,8 @@ if optimization_handles.pathlengthmetricbutton.Value
     costfunction = 'pathlength metric';
 elseif optimization_handles.torquebutton.Value
     costfunction = 'torque';
+elseif optimization_handles.mechpowerbutton.Value
+    costfunction = 'mechanical power';
 elseif optimization_handles.covaccbutton.Value
     costfunction = 'covariant acceleration';
 elseif optimization_handles.pathlengthcoordinatebutton.Value
@@ -192,8 +194,14 @@ ub = 0.95 * repmat(suvals,[(n_plot+1),1]);
 lb = lb(:);
 ub = ub(:);
 
-%%%%% Call the optimizer
-y = optimalgaitgenerator(s,n_dim,n_plot,alpha_plot,lb,ub,stretch,direction,costfunction,handles);
+%%%%% Call the optimizer, deciding whether all joints are active or only 1
+if isfield(s.physics,'passive')
+    if s.physics.passive
+        y = passiveoptimalgaitgenerator(s,n_dim,n_plot,alpha_plot,lb,ub,stretch,direction,costfunction,handles);
+    end
+else
+    y = optimalgaitgenerator(s,n_dim,n_plot,alpha_plot,lb,ub,stretch,direction,costfunction,handles);
+end
 
 % reshape the output and add the start point to the end to close the loop
 alpha_out = reshape(y,[numel(y)/n_dim,n_dim]);

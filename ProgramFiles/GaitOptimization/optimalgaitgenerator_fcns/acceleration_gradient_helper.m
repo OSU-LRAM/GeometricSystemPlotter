@@ -1,4 +1,4 @@
-function del_cost = acceleration_gradient_helper(t,X,s,gait,grad_alpha,grad_alphadot,grad_alphaddot,metric,dM,ddM)
+function del_cost = acceleration_gradient_helper(t,X,s,gait,grad_alpha,grad_alphadot,grad_alphaddot,M,dM,ddM)
 % Helper function to calculate the gradient of covariant acceleration cost
 % Designed to work with ode45; solves for the gradient of cost at an
 % instant of time t.
@@ -42,8 +42,6 @@ function del_cost = acceleration_gradient_helper(t,X,s,gait,grad_alpha,grad_alph
 	shapelist = num2cell(shape);
     
     metricgrad = getMetricGrad(s,shape,dM,grad_alpha_eval);
-    
-    M = metric;
     
     % Using inverse enough that it's worth it to calc once upfront
     M_inv = inv(M);
@@ -113,9 +111,9 @@ function del_cost = acceleration_gradient_helper(t,X,s,gait,grad_alpha,grad_alph
         del_tau = M_grad + C1_grad - (1/2)*C2_grad;
         % Gradient of covariant acc
         del_cov_acc = Minv_grad*tau(:)+M_inv*del_tau(:);
-        del_cost(i) = del_cov_acc'*metric*cov_acc...
+        del_cost(i) = del_cov_acc'*M*cov_acc...
                     + cov_acc'*metricgrad{i}*cov_acc...
-                    + cov_acc'*metric*del_cov_acc;
+                    + cov_acc'*M*del_cov_acc;
     end
     del_cost = del_cost(:);
 end

@@ -1,5 +1,5 @@
-function dcost = torque_cost(M,dM,shape,dshape,ddshape,metric)
-% Calculates the incremental cost for an inertial system where cost is torque squared.
+function dcost = mechpower_cost(M,dM,shape,dshape,ddshape,metric)
+% Calculates the incremental cost for an inertial system where cost is mechanical power.
 % Inputs:
 %   M: Mass matrix
 %   dM_alphadalpha: Partial of mass matrix with respect to shape variables;
@@ -15,5 +15,5 @@ function dcost = torque_cost(M,dM,shape,dshape,ddshape,metric)
     % Calculate the torque for this instant of time and return the inner
     % product of the torque with itself
     dtau = M*ddshape(:) + C;
-    dcost = dtau'*metric*dtau;
+    dcost = abs(dtau'*metric*dshape(:));
 end

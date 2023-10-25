@@ -39,7 +39,7 @@ function output = sysf_three_link_lowRe(input_mode,pathnames)
             % Make a grid of values at which to visualize the system in
             % illustrate_shapespace. (Use a cell of gridpoints along each
             % axis to use different spacings for different axes)
-            s.visual.grid_spacing = [-1  0  1];
+            s.visual.grid_spacing = [-1 -.5  0 .5 1]*pi;
 
             %%%
             %%%%%%
@@ -65,20 +65,20 @@ function output = sysf_three_link_lowRe(input_mode,pathnames)
 			%Processing details
 
 			%Range over which to evaluate connection
-			s.grid_range = [-1,1,-1,1]*2.5;
+			s.grid_range = [-1,1,-1,1]*(2*pi);
 
 			%densities for various operations
 			s.density.vector = [21 21 ]; %density to display vector field
 			s.density.scalar = [51 51 ]; %density to display scalar functions
-			s.density.eval = [31 31 ];   %density for function evaluations
+			s.density.eval = [51 51];   %density for function evaluations
             s.density.metric_eval = [11 11]; %density for metric evaluation
             s.density.finite_element=31;
             s.density.coriolis_eval = [31 31];
             s.density.mass_eval = [31 31]; % density for mass matrix evaluation
 
 			%shape space tic locations
-			s.tic_locs.x = [-1 0 1]*1;
-			s.tic_locs.y = [-1 0 1]*1;
+			s.tic_locs.x = [-1 0 1]*3;
+			s.tic_locs.y = [-1 0 1]*3;
 
             % Set system type variable for gait optimization
             s.system_type = 'drag';

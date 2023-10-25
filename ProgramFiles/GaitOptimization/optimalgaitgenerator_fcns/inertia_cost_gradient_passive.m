@@ -1,4 +1,4 @@
-function cost_grad = inertia_cost_gradient(s,n,y,g,gait,EvaluationMethod)
+function cost_grad = inertia_cost_gradient_passive(s,n,y,g,gait,EvaluationMethod)
 % Calculates the gradient of cost for inertial systems.
 % Inputs:
 %   s: System struct used by sysplotter.
@@ -116,9 +116,7 @@ function cost_grad = inertia_cost_gradient(s,n,y,g,gait,EvaluationMethod)
                     cost_grad = cost_grad + reshape(del_cost,size(cost_grad)).*del_t;
                 end
         end
-        % Reset gradient of fourier frequency to be zero to prevent changes
-        % to it
-        cost_grad(end,:) = 0;
+
     elseif strcmpi(EvaluationMethod,'ode45')
         switch s.costfunction
             case 'torque'
@@ -136,8 +134,9 @@ function cost_grad = inertia_cost_gradient(s,n,y,g,gait,EvaluationMethod)
         cost_grad = reshape(deval(sol,tspan(end)),size(cost_grad));
         % Reset gradient of fourier frequency to be zero to prevent changes
         % to it
-        cost_grad(end,:) = 0;
     else
         error('Untenable option provided for EvaluationMethod!')
     end
+
+    cost_grad(:,1) = zeros(size(cost_grad(:,1)));
 end

@@ -79,14 +79,15 @@ function output = sysf_constantcurv3_lowRe(input_mode,pathnames)
             % Processing details
 
             %Range over which to evaluate connection
-            s.grid_range = [-1,1,-1,1,-1,1]*6;
+            s.grid_range = [-1,1,-1,1,-1,1]*5;
 
             %densities for various operations
-            s.density.vector = [11 11 11]; %density to display vector field
-            s.density.scalar = [11 11 11]; %density to display scalar functions
-            s.density.eval = [11 11 21];   %density for function evaluations
-            s.density.metric_eval = [1 1 1]*11;
-            s.density.finite_element=11;
+            den = 6;
+            s.density.vector = [den den den]; %density to display vector field
+            s.density.scalar = [den den den]; %density to display scalar functions
+            s.density.eval = [den den den];   %density for function evaluations
+            s.density.metric_eval = [den den den];
+            s.density.finite_element=den;
 
             %shape space tic locations
             s.tic_locs.x = [-1 0 1]*6;

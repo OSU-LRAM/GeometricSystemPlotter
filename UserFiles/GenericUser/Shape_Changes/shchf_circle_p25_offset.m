@@ -55,9 +55,9 @@ function [stroke] = strokedef(t)
 	t = -t(:)';
 
 	Rot=sqrt(2)/2*[1 -1;1 1];
-	a=.5;
+	a=.1;
 
-	stroke=(Rot*[-a*cos(t);-a*sin(t)]+[1.5;1.5])';
+	stroke=(Rot*[-a*cos(t);-a*sin(t)]+[1;.6])';
 
 
 end
