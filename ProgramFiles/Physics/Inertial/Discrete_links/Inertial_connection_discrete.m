@@ -70,22 +70,29 @@ function [A, h, J, J_full, omega,M_full] = Inertial_connection_discrete(geometry
     
     %If examining inter-panel interaction
     if isfield(physics,'interaction')
-        s.geometry = geometry;
-        s.physics = physics;
+        if strcmpi(physics.interaction,'on')
+            s.geometry = geometry;
+            s.physics = physics;
 
-        %Then, get added mass metric using flat-plate panel method
-        [M_full,J,J_full,h,~] = getAddedMass_NLinkChain(jointangles',s);
+            %Then, get added mass metric using flat-plate panel method
+            [M_full,J,J_full,h,~] = getAddedMass_NLinkChain(jointangles',s);
 
-        % Pfaffian is first three rows of M_full
-        omega = M_full(1:3,:);
+            % Pfaffian is first three rows of M_full
+            omega = M_full(1:3,:);
 
-        % Build the local connection
-        A = omega(:,1:3)\omega(:,4:end);
-       % T = A;
-        
-        return
+            % Build the local connection
+            A = omega(:,1:3)\omega(:,4:end);
+           % T = A;
+
+            return
+        end
     end
     
+    if isfield(geometry,'activelinks')
+        activeLinks = geometry.activelinks;
+    else
+        activeLinks = ones(1,numel(geometry.linklengths));
+    end
 
     %%%%%%%%
     % We are modeling low Reynolds number physics as being resistive
@@ -125,6 +132,10 @@ function [A, h, J, J_full, omega,M_full] = Inertial_connection_discrete(geometry
                                                     h.lengths(idx),...          % Length of this link
                                                     geometry.link_shape_parameters{idx},...  % Shape parametes for this link
                                                     physics.fluid_density);      % Fluid density relative to link
+                                                
+        if ~activeLinks(idx)
+            link_inertias{idx} = zeros(size(link_inertias{idx}));
+        end
   
     end
 

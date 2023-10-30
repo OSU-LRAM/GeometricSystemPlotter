@@ -1,4 +1,4 @@
-function output = shchf_circle_p25_offset(input_mode,pathnames)
+function output = shchf_circle_1p0(input_mode,pathnames)
 
 	% Default argument
 	if ~exist('input_mode','var')
@@ -11,7 +11,7 @@ function output = shchf_circle_p25_offset(input_mode,pathnames)
 		
 		case 'name'
 			
-			output = 'Circle Stroke, 0.25 amplitude offset for turning';
+			output = 'Wide Ellipse';
 			
 		case 'dependency'
 			
@@ -54,10 +54,13 @@ function [stroke] = strokedef(t)
 
 	t = -t(:)';
 
-	Rot=sqrt(2)/2*[1 -1;1 1];
-	a=.1;
+	a=1.1*3/2*pi;
+    b = 1.2;
 
-	stroke=(Rot*[-a*cos(t);-a*sin(t)]+[1;.6])';
+    theta = pi/12;
+    R = [cos(theta),-sin(theta);sin(theta),cos(theta)];
+    
+	stroke=(R*[a*cos(t);b*sin(t)])';
 
 
 end

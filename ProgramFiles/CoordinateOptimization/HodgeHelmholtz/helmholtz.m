@@ -92,7 +92,11 @@ function [Sinv,nodes,cubes] = preprocessor(grid,weight,data_storage_location,gri
 		params_test = sum(grid_params == input_params); %#ok<NODEF>
 		if params_test == length(grid_params)
 			
-			recalc = 0;
+            if exist('Sinv','var') == 1
+                recalc = 0;
+            else
+                recalc = 1;
+            end
 			
 		end
 		

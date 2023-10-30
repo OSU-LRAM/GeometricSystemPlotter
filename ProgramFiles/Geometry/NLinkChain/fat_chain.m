@@ -102,6 +102,9 @@ function [B,h,J, J_full] = fat_chain(geometry, jointangles, display)
 
     % Generate the size of the tip of one link from the sharpness parameter
     cap_width = display.sharpness * sum(h.lengths);
+    
+%     width = 2*width;
+%     cap_width = 2*cap_width;
 
     
     

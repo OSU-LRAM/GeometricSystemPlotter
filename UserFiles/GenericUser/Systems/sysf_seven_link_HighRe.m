@@ -1,4 +1,4 @@
-function output = sysf_four_link_HighRe(input_mode,pathnames)
+function output = sysf_seven_link_HighRe(input_mode,pathnames)
 
 	% Default arguments
 	if ~exist('input_mode','var')
@@ -13,7 +13,7 @@ function output = sysf_four_link_HighRe(input_mode,pathnames)
 
 		case 'name'
 
-			output = 'HighRe ideal swimmer: 3-link ellipses'; % Display name
+			output = 'HighRe ideal swimmer: 7-link ellipses'; % Display name
 
 		case 'dependency'
 
@@ -26,12 +26,12 @@ function output = sysf_four_link_HighRe(input_mode,pathnames)
             %%%%%%
             % Define system geometry
             s.geometry.type = 'n-link chain';
-            s.geometry.linklengths = [1 1 1 1];
+            s.geometry.linklengths = [1 1 1 1 1 1 1];
             s.geometry.baseframe = 'center';
             s.geometry.length = 1;
-            s.geometry.link_shape = {'ellipse','ellipse','ellipse','ellipse'};
+            s.geometry.link_shape = {'ellipse','ellipse','ellipse','ellipse','ellipse','ellipse','ellipse'};
                 st = struct('aspect_ratio',0.1);
-            s.geometry.link_shape_parameters = {st,st,st,st};
+            s.geometry.link_shape_parameters = {st,st,st,st,st,st,st};
             %s.geometry.modes = [sqrt(2)/2,-sqrt(2)/2;sqrt(2)/2,sqrt(2)/2];
             
             
@@ -52,13 +52,14 @@ function output = sysf_four_link_HighRe(input_mode,pathnames)
             %Functional Local connection and dissipation metric
 
 
-            s.A = @(alpha1,alpha2,alpha3) Inertial_local_connection( ...
+            s.A = @(alpha1,alpha2,alpha3,alpha4,alpha5,alpha6) Inertial_local_connection( ...
                         s.geometry,...                           % Geometry of body
                         s.physics,...                            % Physics properties
-                        [alpha1,alpha2,alpha3]);                        % Joint angles
+                        [alpha1,alpha2,alpha3,alpha4,alpha5,alpha6]);                        % Joint angles
 
-            %s.metric = @(alpha1,alpha2,alpha3) Inertial_energy_metric(s.geometry,s.physics,[alpha1,alpha2,alpha3]);
-            s.metric = @(alpha1,alpha2) eye(2);
+            s.metric = @(alpha1,alpha2,alpha3,alpha4,alpha5,alpha6) Inertial_energy_metric( ...
+                        s.geometry,s.physics,[alpha1,alpha2,alpha3,alpha4,alpha5,alpha6]);
+            %s.metric = @(alpha1,alpha2,alpha3,alpha4) eye(4);
              
 %             % TODO: These should probably be calculated as part of a larger
 %             % wrapping function that's meant to return M and C matrices for
@@ -72,18 +73,20 @@ function output = sysf_four_link_HighRe(input_mode,pathnames)
 			%Processing details
 
 			%Range over which to evaluate connection
-			s.grid_range = [-1,1,-1,1]*2.5;
+			s.grid_range = [-1,1,-1,1,-1,1,-1,1,-1,1,-1,1]*2.5;
 
 			%densities for various operations
-			s.density.vector = [21 21]; %density to display vector field
-			s.density.scalar = [51 51]; %density to display scalar functions
-			s.density.eval = [31 31];   %density for function evaluations
+            sample_density = 8;
+            sd = sample_density;
+			s.density.vector = [sd sd sd sd sd sd]; %density to display vector field
+			s.density.scalar = [sd sd sd sd sd sd]; %density to display scalar functions
+			s.density.eval = [sd sd sd sd sd sd];   %density for function evaluations
             %Bump up this value
-            s.density.metric_eval = [31 31]; %density for metric evaluation
+            s.density.metric_eval = [sd sd sd sd sd sd]; %density for metric evaluation
 %            s.density.mass_eval = [31 31]; % density for mass matrix evaluation
-            s.density.metric_display = [7 7];
+            s.density.metric_display = [7 7 7 7 7 7];
 %            s.density.coriolis_eval = [31 31];
-            s.density.finite_element=31;
+            s.density.finite_element=sd;
 
 
 			%shape space tic locations

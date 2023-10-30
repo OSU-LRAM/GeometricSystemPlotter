@@ -72,7 +72,7 @@ function output = sysf_three_link_HighRe(input_mode,pathnames)
 			%Processing details
 
 			%Range over which to evaluate connection
-			s.grid_range = [-1,1,-1,1]*2.5;
+			s.grid_range = [-1,1,-1,1]*2*pi/3;
 
 			%densities for various operations
 			s.density.vector = [21 21]; %density to display vector field
