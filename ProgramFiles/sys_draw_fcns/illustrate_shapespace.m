@@ -26,8 +26,14 @@ function illustrate_shapespace(system,target)
 
 
     % Get the spacing of parameter values in the first two dimensions
-    [~,grid_spacing_x] = gradient(paramgrid{1});
-    [grid_spacing_y,~] = gradient(paramgrid{2});
+    if numel(paramgrid{1})>1
+        [~,grid_spacing_x] = gradient(paramgrid{1});
+        [grid_spacing_y,~] = gradient(paramgrid{2});
+    else
+        grid_spacing_x = 1;
+        grid_spacing_y = 1;
+    end
+
 
     % Create a figure if necessary
     try 
@@ -61,7 +67,7 @@ function illustrate_shapespace(system,target)
 
     % The system length scale should be as long as the minimum spacing between nearby
     % elements
-    blnth = .9 * min([grid_spacing_x(:);grid_spacing_y(:)]);
+    blnth = .75 * min([grid_spacing_x(:);grid_spacing_y(:)]);
 
     % Scale the geometry defined in the system file
      geometry.length = blnth;
@@ -101,7 +107,7 @@ function illustrate_shapespace(system,target)
         end
 
         %Generate the backbone locus
-        B = generate_locomotor_locus(geometry,p,visual);
+        [B,h,J,J_full] = generate_locomotor_locus(geometry,p,visual);
 
         % Force B to be a column cell array
         if ~iscell(B)
@@ -156,5 +162,21 @@ function illustrate_shapespace(system,target)
                 end
             end
         end
+    
+        vpoints = linspace(-.5,.5,7);
+        Bv = h(vpoints);
+        for idx2 = 1:2
+            Bv(idx2,:) = Bv(idx2,:) + p(idx2);
+        end
+    
+        uv = zeros(3,numel(vpoints));
+        for idx2 = 1:size(uv,2)
+            Js = J_full(vpoints(idx2));
+            uv(:,idx2) = Js(:,3+2);
+        end
+        
+        quiver(Bv(1,:), Bv(2,:), uv(1,:), uv(2,:),'Color',colorlist{1},'linewidth',2)
+
+    
     end
 end

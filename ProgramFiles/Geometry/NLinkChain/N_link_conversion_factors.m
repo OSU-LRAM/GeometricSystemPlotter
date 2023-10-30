@@ -230,6 +230,50 @@ for idx_baseframe = 1:numel(baseframe)
                 % Bring into local coordinates
                 J_zero = TgLginv(frame_zero)*J_zero;
 
+            % Places the reference frame at center of the chain and average orientation
+            % of the links, using link-lengths as weighting terms
+            case 'center-mean'
+
+                % Convert link positions to row form
+                chain = mat_to_vec_SE2(chain_m);
+
+                % Substitute a cumulative sum of the joint angles for the
+                % orientations of the links: We're not looking for the mean of the
+                % SO(2)-modulated orientations, we're looking for the mean angular
+                % displacement from the base link.
+                chain(:,3) = jointangles_c;
+
+                % Take a weighted average of the link positions
+                CoM = sum(diag(linklengths)*chain)/L;
+
+
+                % Place the new frame at this location
+                frame_zero = vec_to_mat_SE2(diag(1,1,CoM(3)));
+
+                %%%%%%%%%%%
+                % The Jacobian of the weighted average of frames is the
+                % weighted average of their Jacobian (by the commutativity of
+                % sumation and derivation operations).
+
+                % Multiply each link's Jacobian by its link length
+                J_weighted = J_temp;
+                for idx = 1:numel(J_weighted)
+                    J_weighted{idx} = TeLg(chain(idx,:)) * J_temp{idx} * linklengths(idx);
+                end
+
+                % Sum the weighted Jacobians
+                J_zero = J_weighted{1};
+                for idx = 2:numel(J_weighted)
+                    J_zero = J_zero + J_weighted{idx};
+                end
+        %        J_zero = sum(cat(3,J_weighted{:}),3);
+
+                % Divide by the total length to g
+                J_zero = J_zero/L;  
+
+                % Bring into local coordinates
+                J_zero = TgLginv(frame_zero)*J_zero;
+
 
             %%%%%%%%%%%
             % These are cases that can be used as modifiers on other baseframes

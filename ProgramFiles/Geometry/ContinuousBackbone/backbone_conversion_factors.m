@@ -134,6 +134,44 @@ for idx_baseframe = 1:numel(baseframe)
 
                 end        
 
+            % Places the reference frame at center of the backbone and average orientation
+            % of the backbone, assuming constant mass-per-s density
+            case 'center-mean'
+
+                % Sample the backbone at a dense set of points
+                h_points = h(linspace(-.5,.5,100));
+
+                % Average the x, y, and theta components. The theta value here is
+                % integrated local rotation, so we don't need to worry about
+                % unwrapping it
+                CoM = mean(h_points,2);
+
+                h0 = h(0);
+
+                % Place the new frame at this location
+                frame_zero = vec_to_mat_SE2([h0(1);h0(2);CoM(3)]);
+
+                %%%%%%%%%%%
+                % The Jacobian of the weighted average of frames is the
+                % weighted average of their Jacobian (by the commutativity of
+                % sumation and derivation operations).
+
+                if calc_J
+
+                    % Sample the Jacobian at a dense set of points
+                    J_points = J(linspace(-.5,.5,100));
+
+                    % Average the Jacobians
+                    J_zero = mean(J_points,3);
+
+                    % remove the xy components
+                    J_zero(1:2,:) = zeros(2,size(J_zero,2));
+
+                    % Bring into local coordinates
+                    J_zero = TgLginv(frame_zero)*J_zero;
+
+                end        
+
             %%%%%%%%%%%
             % Several possible cases are handled within this "otherwise" case,
             % because they need if/else logic
