@@ -17,8 +17,6 @@ end
 
 theta = g(3);
 
-LA = [cos(theta) sin(theta) 0;
-    -sin(theta) cos(theta) 0;
-    0 0 1];
+LA = vec_to_mat_SE2([0,0,theta])';
 
 end

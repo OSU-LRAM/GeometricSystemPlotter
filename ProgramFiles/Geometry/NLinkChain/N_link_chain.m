@@ -1,4 +1,4 @@
-function [h, J, J_full,frame_zero,J_zero,chain_description] = N_link_chain(geometry,shapeparams)
+function [h, J, J_full,frame_zero,J_zero,chain_description, J_full_linkCenters] = N_link_chain(geometry,shapeparams,options)
 % Build a backbone for a chain of links, specified as a vector of link
 % lengths and the joint angles between them.
 %
@@ -86,6 +86,9 @@ function [h, J, J_full,frame_zero,J_zero,chain_description] = N_link_chain(geome
 %       N_link_conversion_factors (but modified so that they are in the
 %       specified baseframe, not the first-link frame.
 %       
+%   J_full_linkCenter: Like J_full but for the Jacobians corresponding to
+%       link centers when J_full is evaluated at locations other than link
+%       centers
 
 %%%%%%%%%%%%
 % Input parsing
@@ -109,6 +112,13 @@ if ~isfield(geometry,'modes') || isempty(geometry.modes)
     modes = eye(numel(shapeparams));
 else
     modes = geometry.modes;
+end
+
+useLinkCenters = true;
+getJacobianDerivative = true;
+if nargin >= 3
+    useLinkCenters = options.useLinkCenters;
+    getJacobianDerivative = options.getJacobianDerivative;
 end
 
 % Force linklength and shapeparam vectors to be columns, and normalize link
@@ -146,6 +156,50 @@ M_joints = numel(jointangles);
 N_odd = mod(N_links,2);
 
 %%%%%%%%%%%%%%%%%%%
+%Check whether using link center, or defining by arclength, and choose
+%between arclength conventions.  Then move everything to the per-link
+%arclength convention for consistency
+
+%Define vectors of links to use and arclengths along those links
+if useLinkCenters
+    %If using the centers of all the links to form Jacobians, make list of
+    %links and set all arclengths to 50%
+    relevantLinks = (1:N_links)';
+    linkFractions = .5*ones(N_links,1);
+else
+    %If defining arclength as fraction of individual links
+    if strcmpi(geometry.thrusters.arcParametrization,'perLink')
+        %Grab list of links to build jacobians on
+        relevantLinks = geometry.thrusters.linkLocations(:);
+        %And grab list of arclengths
+        linkFractions = geometry.thrusters.thrusterArcLengths(:);
+        
+    %If arclength is defined in terms of whole backbone, convert to
+    %fraction of individual links
+    elseif strcmpi(geometry.thrusters.arcParametrization,'wholeChain')
+        %Make list of cumulative arclength at the tips of each link
+        chainCumulativeDistance = [0;linklengths];
+        %Grab arclengths along entire backbone
+        wholeFractions = geometry.thrusters.thrusterArcLengths(:);
+        %Make sure they're in order low->high
+        wholeFractions = sort(wholeFractions);
+        %Storage for links to use and fractions along those links
+        linkFractions = zeros(numel(wholeFractions),1);
+        relevantLinks = zeros(numel(wholeFractions),1);
+        %For each point along the backbone
+        for arcIndex = 1:numel(wholeFractions)
+            %Find which link that point corresponds to using cumulative
+            %arclength distances from the links
+            relevantLinks(arcIndex) = find(wholeFractions(arcIndex)>chainCumulativeDistance,1,'last');
+            %Find the fraction of body arclength leftover on the relevant
+            %link
+            leftoverArcLength = wholeFractions(arcIndex) - chainCumulativeDistance(relevantLinks(arcIndex));
+            %Convert leftover arclength to fractional arclength of this
+            %link
+            linkFractions(arcIndex) = leftoverArcLength/linklengths(relevantLinks(arcIndex));
+        end
+    end
+end
 
 
 %%%%%%%%%%%%%%%%%%%
@@ -154,31 +208,23 @@ N_odd = mod(N_links,2);
 %%%%%
 % Convert the links and joints to SE(2) matrices
 
-% Divide the link lengths by two, since we're going midpoint to
-% midpoint
-halflengths = linklengths/2;
-    
-% Convert the link half-length values to [l 0 0] rows, encoding group
-% elements displaced along the x direction from the identity.
-links_v = [halflengths, zeros(N_links,2)];
-
-% Convert the joint angle values to group elements displaced along the
-% theta direction from the identity
-joints_v = [zeros(M_joints,2), jointangles];
-
-% Find the matrix representations of the link transformations
+%Generate rotational transform for each joint in the chain
+joints_v = [zeros(M_joints,2),jointangles];
+joints_m = vec_to_mat_SE2(joints_v);
+%Generate link transforms for use in coordinate transforms later on
+links_v = [linklengths/2,zeros(N_links,2)];
 links_m = vec_to_mat_SE2(links_v);
 
-% Find the matrix representations of the joint transformations
-joints_m = vec_to_mat_SE2(joints_v);
-
-%%%%
-% Starting with the first link, work along the chain to find the location
-% of each midpoint
-
+%Number of Jacobians we'll be creating
+N_Js = numel(relevantLinks);
 % Create a 3-d array in which the ith 2-dimensional sheet is the 3x3 SE(2) matrix
-% representing the corresponding link's configuration
-chain_m = repmat(eye(3),1,1,N_links);
+% representing the corresponding frame's configuration
+chain_m = repmat(eye(3),1,1,N_Js);
+
+%Start with identity at middle of far-left link.  To conveniently handle
+%all locations on the first link using this algorithm, we first
+%transform backwards to the left end of the first link.
+chain_m(:,:,1) = vec_to_mat_SE2([-linklengths(1)/2,0,0]);
 
 % Also take a cumulative sum of the joint angles -- this is useful if we
 % want to take a mean orientation of the link orientations while making a
@@ -193,28 +239,80 @@ if or( isa(jointangles,'sym'), isa(linklengths,'sym') )
     chain_m = sym(chain_m);
 end
 
-% The first link is taken as the identity for now, so we iterate over each
-% of the following links
-for idx = 2:N_links
+%%%%
+% Work along the chain to find the transform to each specified arclength
+currentLink = 1;
+currentArclength = 0;
+%For each Jacobian to be found
+for J_ind = 1:N_Js
+    
+    %Shift over links to the right until we get to the link where we need
+    %the transform
+    while currentLink < relevantLinks(J_ind)
+        %Make transform that moves us the rest of the current link
+        remainderDistance = (1-currentArclength)*linklengths(currentLink);
+        remainderTransform = vec_to_mat_SE2([remainderDistance,0,0]);
+        
+        %Jump to the end of the link, then rotate by the joint angle
+        chain_m(:,:,J_ind) = chain_m(:,:,J_ind)*...
+                            remainderTransform*...
+                            joints_m(:,:,currentLink);
+                        
+        %Reset arclength and adjust the link we're currently on
+        currentArclength = 0;
+        currentLink = currentLink + 1;
+    end
+        
+    %Make transform to place where we want the Jacobian
+    jumpDistance = (linkFractions(J_ind)-currentArclength)*linklengths(currentLink);
+    jumpTransform = vec_to_mat_SE2([jumpDistance,0,0]);
+    
+    %Shift over to that location
+    chain_m(:,:,J_ind) = chain_m(:,:,J_ind)*...
+                        jumpTransform;
+                    
+    % Simplify trigonometric expressions if this is being calculated
+    % symbolically
+    if isa(chain_m,'sym')
+        chain_m(:,:,idx) = simplify(chain_m(:,:,idx),'steps',10);
+    end
+                    
+    %Set current arclength and start of next chain if not finished
+    if J_ind < N_Js
+        currentArclength = linkFractions(J_ind);
+        chain_m(:,:,J_ind+1) = chain_m(:,:,J_ind);
+    end
+end
+
+%If we're not using the default linkcenters, we need to generate a list of
+%transforms to link centers anyway for later base frame manipulation
+if useLinkCenters
+    chain_m_linkCenters = chain_m;
+else
+    chain_m_linkCenters = repmat(eye(3),1,1,N_links);
+    %First link center is identity so start with link 2
+    for idx = 2:N_links
 
     % The transformation from one midpoint to the next is the product
     % of the half-link transformation on the proximal link, the joint
     % transformation, and the half-link transformation on the distal
     % link. 
 
-    chain_m(:,:,idx) = chain_m(:,:,idx-1) * ... % Each link's position is based off the position of the previous link
+    chain_m_linkCenters(:,:,idx) = chain_m_linkCenters(:,:,idx-1) * ... % Each link's position is based off the position of the previous link
         links_m(:,:,idx-1)*...                  % Transform along the proximal link
         joints_m(:,:,idx-1)*...                 % Rotate by the intermediate joint angle
         links_m(:,:,idx);                       % Transform along the distal link 
     
     % Simplify trigonometric expressions if this is being calculated
     % symbolically
-    if isa(chain_m,'sym')
-        chain_m(:,:,idx) = simplify(chain_m(:,:,idx),'steps',10);
+    if isa(chain_m_linkCenters,'sym')
+        chain_m_linkCenters(:,:,idx) = simplify(chain_m_linkCenters(:,:,idx),'steps',10);
+    end
+
     end
 
 end
-
+    
 
 %%%%
 % Starting with the first joint, work along the chain to find the location
@@ -245,7 +343,7 @@ for idx = 2:numel(jointangles)
     jointchain_m(:,:,idx) = ...
         jointchain_m(:,:,idx-1) * ... % Each joint's position is based off the position of the previous link
         joints_m(:,:,idx-1) * ...      % Rotate by the angle of the previous joint
-        links_m(:,:,idx)^2;           % Move along the link twice (because our transforms are half-links)
+        links_m(:,:,idx)^2;           % Move along the link twice (because the link transforms are half-links)
 
     % Simplify trigonometric expressions if this is being calculated
     % symbolically
@@ -279,8 +377,9 @@ if or( isa(jointangles,'sym'),isa(linklengths,'sym') )
     J_pattern = sym(J_pattern);
 end
 
-J_temp = repmat({J_pattern},1,N_links);
-for idx = 1:N_links
+%Go through and compute jacobians for each transform
+J_temp = repmat({J_pattern},1,N_Js);
+for idx = 1:N_Js
 
     % For each Jacobian, calculate one column for each joint
     for idx2 = 1:M_joints
@@ -288,7 +387,7 @@ for idx = 1:N_links
         % Links are only sensitive to the motion of joints proximal to
         % them in the chain, so check if the link index is higher than
         % the joint index
-        sensitivity = idx > idx2; 
+        sensitivity = relevantLinks(idx) > idx2; 
 
         if sensitivity
 
@@ -326,6 +425,58 @@ for idx = 1:N_links
     
 end
 
+%Compute Jacobians for link center frames if set frames are not link
+%centers
+J_temp_linkCenters = repmat({J_pattern},1,N_links);
+if ~useLinkCenters
+    for idx = 1:N_links
+    
+        % For each Jacobian, calculate one column for each joint
+        for idx2 = 1:M_joints
+    
+            % Links are only sensitive to the motion of joints proximal to
+            % them in the chain, so check if the link index is higher than
+            % the joint index
+            sensitivity = idx > idx2; 
+    
+            if sensitivity
+    
+                % Calculate the displacement of the link relative to the
+                % joint as the inverse of the current joint's location,
+                % multiplied by the current link's location
+                relative_transform = jointchain_m(:,:,idx2) \ chain_m_linkCenters(:,:,idx);
+    
+                % Find the Adjoint-inverse transformation corresponding to
+                % this relative position
+                Adjointinverse_transform = Adjinv(relative_transform);
+    
+                % Prevent symbolic chain expression from getting to cumbersome
+                if isa(Adjointinverse_transform,'sym')
+                    Adjointinverse_transform = simplify(Adjointinverse_transform);
+                end
+    
+    
+                % Multiply these the Adjoint-inverse transformation by the
+                % joint axis to get the Jacobian from the current joint to
+                % the current link
+                J_temp_linkCenters{idx}(:,idx2) = Adjointinverse_transform * [0;0;1];
+    
+            else
+    
+                % If this link is not sensitive to this joint, leave this
+                % column of its Jacobian as zero
+    
+            end
+    
+        end
+        
+        % Convert joint-angle Jacobian into shape-mode coordinates
+        J_temp_linkCenters{idx} = J_temp_linkCenters{idx} * modes;
+        
+    end
+else
+    J_temp_linkCenters = J_temp;
+end
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
@@ -346,6 +497,7 @@ end
 
 chain_description = struct( ...
 'chain_m',{chain_m},...
+'chain_m_linkCenters',{chain_m_linkCenters},...
 'jointchain_m',{jointchain_m},...
 'links_m',{links_m},...
 'joints_m',{joints_m},...
@@ -357,6 +509,7 @@ chain_description = struct( ...
 'shapeparams',{shapeparams},...
 'modes',{modes},...
 'J_temp',{J_temp},...
+'J_temp_linkCenters',{J_temp_linkCenters},...
 'baseframe',{baseframe} ...
 );
 
@@ -366,6 +519,17 @@ chain_description = struct( ...
 % Use frame_zero and J_zero to convert the link transformations and
 % Jacobian so that they are refefenced off of the new base frame
 [h_m,J,J_full,chain_description] = N_link_conversion(chain_description,frame_zero,J_zero); 
+
+%Get frame-adjusted Jacobian for link centers if we're not doing that by
+%default
+if ~useLinkCenters
+    chain_description.J_temp = J_temp_linkCenters;
+    chain_description.chain_m = chain_m_linkCenters;
+    [~,~,J_full_linkCenters,~] = N_link_conversion(chain_description,frame_zero,J_zero); 
+else
+    J_full_linkCenters = J_full;
+end
+
 
 
 
@@ -383,8 +547,7 @@ chain_description = struct( ...
 h.pos = mat_to_vec_SE2(h_m);
 h.lengths = linklengths;
 
-
-if nargout > 5
+if nargout > 5 && getJacobianDerivative
     % Get the partial derivative of the Jacobian
     dJdq = mobile_jacobian_derivative(J_full);
 end

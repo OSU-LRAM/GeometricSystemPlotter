@@ -18,8 +18,6 @@ end
 xdelta = g(1);
 ydelta = g(2);
 
-RA = [1 0 -ydelta;
-    0 1 xdelta;
-    0 0 1];
+RA = vec_to_mat_SE2([-ydelta,xdelta,0]);
 
 end

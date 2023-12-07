@@ -31,7 +31,7 @@ function [frame_zero,J_zero,link_zero] = N_link_conversion_factors(C)
 
 % Extract elements from structure array (some functions like size do not
 % work properly if applied to struct contents without a breakout)
-chain_m = C.chain_m;
+chain_m = C.chain_m_linkCenters;
 jointchain_m = C.jointchain_m;
 links_m = C.links_m;
 %joints_m = C.joints_m;
@@ -42,7 +42,7 @@ jointangles_c = C.jointangles_c;
 linklengths = C.linklengths;
 shapeparams = C.shapeparams;
 modes = C.modes;
-J_temp = C.J_temp;
+J_temp = C.J_temp_linkCenters;
 baseframe = C.baseframe;
 
 
