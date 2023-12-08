@@ -27,7 +27,7 @@ function output = sysf_three_link_HighRe(input_mode,pathnames)
             % Define system geometry
             s.geometry.type = 'n-link chain';
             s.geometry.linklengths = [1 1 1];
-            s.geometry.baseframe = 'center';
+            s.geometry.baseframe = 'com-mean';
             s.geometry.length = 1;
             s.geometry.link_shape = {'ellipse','ellipse','ellipse'};
                 st = struct('aspect_ratio',0.1);
@@ -41,7 +41,7 @@ function output = sysf_three_link_HighRe(input_mode,pathnames)
             % Make a grid of values at which to visualize the system in
             % illustrate_shapespace. (Use a cell of gridpoints along each
             % axis to use different spacings for different axes)
-            s.visual.grid_spacing = [-1  0  1];
+            s.visual.grid_spacing = [-pi/4  0  pi/4];
             
             %%%
             %%%%%%

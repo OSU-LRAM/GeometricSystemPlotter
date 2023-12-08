@@ -1,8 +1,8 @@
-function [A,Mp,M_full] = LowRE_connection_and_metric_continuous(geometry,physics,shapeparams)
+function [A,Mp,M_full,J_full] = LowRE_connection_and_metric_continuous(geometry,physics,shapeparams)
 % Calculate the dissipation power metric for a set of curvature bases
 
     %Generate backbone geometry and its Jacobian from its local definition
-    [h,J] = backbone(geometry,shapeparams);
+    [h,J,J_full] = backbone(geometry,shapeparams);
 
     % Itegrate from one halflength before the midpoint to one halflength after it
     int_limit = geometry.length*[-0.5 0.5];

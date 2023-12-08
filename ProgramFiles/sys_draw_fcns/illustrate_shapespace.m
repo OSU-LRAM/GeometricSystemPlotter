@@ -163,19 +163,22 @@ function illustrate_shapespace(system,target)
             end
         end
     
-        vpoints = linspace(-.5,.5,7);
-        Bv = h(vpoints);
-        for idx2 = 1:2
-            Bv(idx2,:) = Bv(idx2,:) + p(idx2);
-        end
-    
-        uv = zeros(3,numel(vpoints));
-        for idx2 = 1:size(uv,2)
-            Js = J_full(vpoints(idx2));
-            uv(:,idx2) = Js(:,3+2);
-        end
+        vec_types = {'curvature basis','curvature bases'};
+        if any(strcmpi(geometry.type,vec_types))
+            vpoints = linspace(-.5,.5,7);
+            Bv = h(vpoints);
+            for idx2 = 1:2
+                Bv(idx2,:) = Bv(idx2,:) + p(idx2);
+            end
         
-        quiver(Bv(1,:), Bv(2,:), uv(1,:), uv(2,:),'Color',colorlist{1},'linewidth',2)
+            uv = zeros(3,numel(vpoints));
+            for idx2 = 1:size(uv,2)
+                Js = J_full(vpoints(idx2));
+                uv(:,idx2) = Js(:,3+2);
+            end
+            
+            quiver(Bv(1,:), Bv(2,:), uv(1,:), uv(2,:),'Color',colorlist{1},'linewidth',2)
+        end
 
     
     end

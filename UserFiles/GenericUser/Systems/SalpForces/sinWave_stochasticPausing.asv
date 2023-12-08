@@ -1,0 +1,32 @@
+function forcedef = sinWave_stochasticPausing(nForces,changedDuration)
+
+    %Default force duration in seconds
+    forcedef.duration = 10;
+    if changedDuration
+        forcedef.duration = changedDuration;
+    end
+
+    forcedef.phaseOffset = -pi/4;
+    forcedef.frequency = 0.5;
+    forcedef.maxThrust = 1;
+
+    pauseRange = [0,forcedef.frequency];
+
+    forcedef.nForces = nForces;
+
+    forceFunctions = cell(forcedef.nForces,1);
+    for i = 1:forcedef.nForces
+        forceFunctions{i} = @(t) thrustProfile(forcedef,i,t);
+    end
+
+    forcedef.amplitudes = @(t) stitchThrustFunctions(forceFunctions,t);
+
+end
+
+function thrust = thrustProfile(forcedef,thrusterIndex,t)
+
+    maxThrust = forcedef.maxThrust;
+
+    thrust = maxThrust/2-maxThrust/2*cos(2*pi*forcedef.frequency*t + (thrusterIndex-1)*forcedef.phaseOffset);
+
+end

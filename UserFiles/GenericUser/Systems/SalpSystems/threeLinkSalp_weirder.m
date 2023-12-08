@@ -1,0 +1,118 @@
+function salp = threeLinkSalp_weirder(inputmode)
+
+    %%%%%%
+    %% Body geometry
+    swimmerName = 'Three-Link Minimal Salp Example With Weird Thrusters';
+
+    switch inputmode
+        case 'getName'
+            salp = swimmerName;
+
+        case 'getSwimmerSystem'
+        
+            s.name = swimmerName;
+            %Chain of straight links
+            s.geometry.type = 'n-link chain';
+            %Link lengths relative to each other (will be proportionally set to
+            %achieve s.geometry.length)
+            s.geometry.linklengths = [1 1 1];
+            s.geometry.length = 1;
+            %Normalize to body length
+            s.geometry.linklengths = s.geometry.linklengths/(sum(s.geometry.linklengths))*s.geometry.length;
+            %Reference frame for salp.
+            s.geometry.baseframe = 'com-mean';
+            %s.geometry.baseframe = 'center';
+            
+            s.geometry.nLinks = numel(s.geometry.linklengths);
+            s.geometry.nShapes = s.geometry.nLinks - 1;
+            
+            %Define body geometry type
+            s.geometry.link_shape = {'ellipse','ellipse','ellipse'};
+                st = struct('aspect_ratio',0.1);
+            s.geometry.link_shape_parameters = {st,st,st};
+        
+            %Set configuration space
+            s.conf_space = LieGroups.SE2;
+        
+            %Set initial shape of salp for simulation
+            s.geometry.initialShape = [-pi/4,pi/4];
+        
+            %Set initial pose of salp for simulation
+            s.geometry.initialPose = [0,0,0];
+        
+            %% Thruster geometry
+        
+            %Specify whether arclength refers to portion of individual link or
+            %portion of whole salp
+            s.geometry.thrusters.arcParametrization = 'perLink';
+            %s.geometry.thrusters.arcParametrization = 'wholeChain';
+        
+            %Link indices that have thrusters, 1 is rearmost link
+            %MUST BE IN ORDER LOW->HIGH
+            s.geometry.thrusters.linkLocations = [1,1:numel(s.geometry.linklengths)];
+            %Jet location represented as arc length on salp link
+            % 0 is jet at rear of link, 0.5 is jet at middle, 1 is jet at front
+            %MUST BE IN ORDER LOW->HIGH FOR EACH LINK
+            s.geometry.thrusters.thrusterArcLengths = [.25,.75,.5,.75]; 
+            s.geometry.thrusters.nThrusters = numel(s.geometry.thrusters.thrusterArcLengths);
+        
+            %If defining thruster locations parametrized by whole backbone
+            %arclength, you only need the arclength settings and not the link #s
+            % s.geometry.thrusters.locationOnLinks = [1/6,1/2,5/6];
+        
+            s.geometry.thrusters.angles = [-pi/6,pi/6,-pi/6,pi/6];
+        
+            %% System physics
+        
+        
+            %%%
+            %%%%%%
+            % Define system 
+            s.physics.systemType = 'drag';
+            s.physics.drag_ratio = 3;
+            s.physics.linear_drag_coefficient = 1;
+            
+            %Define system elasticity
+            s.physics.jointStiffness = .15;
+            %Top bit is elasticity of swimmer body wrt world frame: usually zero
+            %Bottom bit is a matrix of spring connections.  For springs that do not
+            %connect different shape modes, this is a diagonal matrix of spring
+            %stiffnesses
+            s.physics.K = [zeros(3,s.geometry.nShapes);diag(s.physics.jointStiffness*ones(1,s.geometry.nShapes))];
+        
+            %Functional distribution matrix
+        
+            s.ForceConnection = @(Shape, Force) salpForceToVelocity( ...
+                        s.geometry,...                           % Geometry of body
+                        s.physics,...                            % Physics properties
+                        Shape,...                                % Salp Shape
+                        Force);                                  % Thrust Forces
+        
+            %% System visualization
+        
+            %shape space tic locations
+            s.visualization.shape_tics = [-1 0 1];
+        
+            %%%% Video setup
+            s.visualization.FrameRate = 30;
+            % Buffer around salp centroid to plot as fraction of body length
+            s.visualization.VidHalfWidth = 2/3;
+        
+            %%%% Grid settings
+            s.visualization.showGrid = true;
+            s.visualization.gridSpacing = 0.5;
+        
+        
+            %%%% Animation colors
+            s.visualization.colors.grid_color = [.8,.8,.8];  % Grey
+            s.visualization.colors.link_color = [0.0745,0.6235,1.0000];  % Light Blue
+            s.visualization.colors.thruster_color = [0.4941,0.1843,0.5569];  % Purple
+            s.visualization.colors.in_jet_color = [1.0000,1.0000,0.0667];  % Yellow
+            s.visualization.colors.out_jet_color = [1.0000,0.4118,0.1608];  % Orange
+        
+            %%%%
+            %Save the system properties
+            salp = s;
+    end
+end
+
