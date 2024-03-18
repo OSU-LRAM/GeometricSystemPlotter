@@ -1,6 +1,8 @@
 function velocity_diagram(s, link_velocity, body_velocity, a, adot, draw_axes, draw_blur, draw_velocity)
     display.aspect_ratio = 0.05;
     display.sharpness = 0.1;
+    display.scales = true;
+    
     % convert link velocities into world coordinates
     [h, ~, ~, ~, ~] = N_link_chain(s.geometry, a);
     nlinks = length(h.lengths);
@@ -34,7 +36,7 @@ function velocity_diagram(s, link_velocity, body_velocity, a, adot, draw_axes, d
 %             B(:,103:204) = vec_to_mat_SE2(-l_vel_w(2,:)*blurLength*t) * B(:,103:204);
             color = [1 1 1] -exp(-3*t*[1 1 1]);
             patch(B(1,:),B(2,:),[1 0 0],'EdgeColor',color )
-            patch(B(1,:),B(2,:),[1 0 0],'EdgeColor',color )
+            %patch(B(1,:),B(2,:),[1 0 0],'EdgeColor',color )
         end
     else
         B = fat_chain(s.geometry, a, display);

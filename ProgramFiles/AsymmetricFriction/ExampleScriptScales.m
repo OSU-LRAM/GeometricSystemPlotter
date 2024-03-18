@@ -28,8 +28,10 @@ direction_names = ["FF","BF","FB","BB"];
 s = sysf_two_link_lowRe;
 nlinks = length(s.geometry.linklengths);
 
+s.geometry.baseframe = 'com-mean';
+
 % FOR NULL CASE
-s.physics.drag_bw_ratio = 1;
+%s.physics.drag_bw_ratio = 1;
 
 s = ensure_connection_and_metric(s); % required for create_grids
 s = create_grids(s)
@@ -99,12 +101,14 @@ colorbar('Ticks',[1, 2, 3, 4],...
 
 % Pick an a and adot on the grid. I can't remember if this is required for
 % any of the code-- it might not be.
-i = 20; j = 30;
-a = a_grid(i)
-adot = adot_grid(j)
+% i = 20; j = 30;
+% a = a_grid(i)
+% adot = adot_grid(j)
+a = 2;
+adot = 0.5;
 
 % get a body velocity. The relevant sub-system is automatically chosen.
-bvel = apply_piecewise_system(s, system_map, a, adot);
+bvel = apply_piecewise_system(s, a, adot);
 
 % get link velocities
 lvel = zeros(nlinks, 3); % the 3 is for: x y theta
@@ -117,7 +121,10 @@ for link = 1:nlinks
 end
 
 % plot
+a = 0; adot = 0;
 velocity_diagram(s, lvel, bvel, a, adot, 0, 0, 1);
+velocity_diagram(s, lvel, bvel, a, adot, 0, 1, 1);
+velocity_diagram(s, lvel, bvel, a, adot, 1, 0, 1);
 
 %% Some example gaits.
 % Input: generate_1D_gait(amplitude, center, phase). The parameters
@@ -138,36 +145,39 @@ huge_gait_bw = generate_1D_gait(3, 0, pi);
 % it will be the focus of the following few sections of the script.
 gait = centered_gait;
 
+gait = generate_1D_gait(1.5, 0, pi/2);
+
 %% Find the displacement and trajectory using an ODE solver.
 % 
 %%%%%%%%%%%%%%%%%%%
 
 % Wrapper that does all the details of using ode45. Assumes a gait's period
 % is 2pi, which generate_1D_gait makes sure of.
-sol = asym_solve_gait(s, gait, system_map);
+sol = asym_solve_gait(s, gait);
 
 % The gait's displacement is the value of the solution after one period has
 % elapsed.
 gait_displacement = deval(sol, 2*pi)
 
-figure(3);
+% figure(3);
 % The gait's trajectory can be plotted with this function. It is hardcoded
 % to plot three cycles.
-trajectory_plot(sol);
+% trajectory_plot(sol,3);
 
 %% Plot frames and turn it into a movie.
 % Uses softspace and does three cycles. The plots are saved to F, which can
 % be played back or saved in the following two code blocks.
 %%%%%%%%%%%%%%%%%%%
+save_movie = false
 
-F = animate_asymmetric_solution(s, sol, gait);
+F = animate_asymmetric_solution(s, sol, gait,save_movie);
 
 %% play the generated movie
 %%%%%%%%%%%%%%%%%%%
 
 % play movie
 %figure('visible','on') %forces animation to be visible in live script
-movie(F);
+movie(F,5,5);
 
 %% save the movie (path might need adjusting)
 %%%%%%%%%%%%%%%%%%%
@@ -318,7 +328,7 @@ displacements = zeros([length(off_grid),3]);
 for i = 1:length(off_grid)
     off = off_grid(i);
     gait = generate_1D_gait(amp, off, 1);
-    sol = asym_solve_gait(s, gait, system_map);
+    sol = asym_solve_gait(s, gait);
     displacements(i,:) = deval(sol, 2*pi);
 end
 % figure()
@@ -335,7 +345,7 @@ displacements_bw = zeros([length(off_grid),3]);
 for i = 1:length(off_grid)
     off = off_grid(i);
     gait = generate_1D_gait(0.5, off, -1);
-    sol = asym_solve_gait(s, gait, system_map);
+    sol = asym_solve_gait(s, gait);
     displacements_bw(i,:) = deval(sol, 2*pi);
 end
 % figure()
@@ -389,27 +399,101 @@ amp = 0.5;
 for off = -2:0.5:2
 
 gait = generate_1D_gait(amp, off, 0);
-sol = asym_solve_gait(s, gait, system_map);
-trajectory_plot(sol);
+sol = asym_solve_gait(s, gait);
+trajectory_plot(sol,3);
 end
 
 hold off
 axis equal
+
+%%
 
 % comparing trajcetories of same gait, different phase
 figure()
 hold on
 
-for phase = 0:pi/4:2*pi
+idx_a = 9; idx_b = 23; % smaller gait
+%idx_a = 4; idx_b = 28; % bigger
+
+point_a = a_grid(idx_a)
+point_b = a_grid(idx_b)
+
+for phase = 0:pi/16:2*pi
+%phase=0;
     
-    gait = generate_1D_gait(1.5, 0, phase);
-    sol = asym_solve_gait(s, gait, system_map);
-    trajectory_plot(sol)
+    gait = generate_1D_gait(point_b, 0, phase);
+    sol = asym_solve_gait(s, gait);
+    traj = trajectory_plot(sol,3);
     
+    phase;
+    displacement = traj(:,size(traj,2));
+    
+end
+
+Ax_dif = A.difference(:,1);
+Ay_dif = A.difference(:,2);
+At_dif = A.difference(:,3);
+
+da = a_grid(2) - a_grid(1);
+
+dx = trapz(Ax_dif(idx_a:idx_b))*da;
+dy = trapz(Ay_dif(idx_a:idx_b))*da;
+dth = trapz(At_dif(idx_a:idx_b))*da;
+
+for i = 1:3
+    g_cerc_vector = [dx dy dth]*i;
+    g_circ = [0 -g_cerc_vector(3) g_cerc_vector(1); ...
+              g_cerc_vector(3) 0 g_cerc_vector(2); ...
+              0 0 0];
+    g_exp = expm(g_circ);
+    Adif_prediction = mat_to_vec_SE2(g_exp);
+
+    scatter([Adif_prediction(1)],[Adif_prediction(2)],50,'filled')
 end
 
 hold off
 axis equal
+
+%% plot each of the gaits in time
+figure()
+hold on
+
+idx_a = 9; idx_b = 23; % smaller gait
+%idx_a = 4; idx_b = 28; % bigger
+
+point_a = a_grid(idx_a)
+point_b = a_grid(idx_b)
+
+for phase = 0:pi/16:2*pi
+    gait = generate_1D_gait(point_b, 0, phase);
+    if phase == 2*pi
+        plot(linspace(0,3*2*pi),gait{1}(linspace(0,3*2*pi)),'--k')
+    elseif phase == pi/2
+        plot(linspace(0,3*2*pi),gait{1}(linspace(0,3*2*pi)),'r')
+    else
+        plot(linspace(0,3*2*pi),gait{1}(linspace(0,3*2*pi)),'c')
+    end
+end
+
+%idx_a = 9; idx_b = 23; % smaller gait
+idx_a = 4; idx_b = 28; % bigger
+
+point_a = a_grid(idx_a)
+point_b = a_grid(idx_b)
+
+for phase = 0:pi/16:2*pi
+    gait = generate_1D_gait(point_b, 0, phase);
+    if phase == 2*pi
+        plot(linspace(0,3*2*pi),gait{1}(linspace(0,3*2*pi)),'--k')
+    elseif phase == pi/2
+        plot(linspace(0,3*2*pi),gait{1}(linspace(0,3*2*pi)),'r')
+    else
+        plot(linspace(0,3*2*pi),gait{1}(linspace(0,3*2*pi)),'c')
+    end
+end
+
+set(gca,'XTick',0:pi:6*pi)
+hold off
 
 %% Experimenting with integrating Adif to get a prediction of the net
 % displacement produced by a gait.
@@ -433,7 +517,7 @@ dth = trapz(At_dif(14:18))*da
 off = (point_a + point_b)/2;
 amp = abs(point_a - point_b)/2;
 gait = generate_1D_gait(amp,off,0);
-sol = asym_solve_gait(s, gait, system_map);
+sol = asym_solve_gait(s, gait);
 
 displacement = deval(sol, 2*pi)'
 
@@ -459,7 +543,7 @@ dth = trapz(At_dif(11:21))*da;
 off = (point_a + point_b)/2;
 amp = abs(point_a - point_b)/2;
 gait = generate_1D_gait(amp,off,0);
-sol = asym_solve_gait(s, gait, system_map);
+sol = asym_solve_gait(s, gait);
 
 displacement = deval(sol, 2*pi)'
 
@@ -476,5 +560,5 @@ proport_error = error ./ displacement
 % cumbersome
 %%%%%%%%%%%%%%%%%%%
 
-%Adif_gait_prediction(s, 1, 0, calc_density)
+Adif_gait_prediction(s, 1, 0)
 % this function is unfinished

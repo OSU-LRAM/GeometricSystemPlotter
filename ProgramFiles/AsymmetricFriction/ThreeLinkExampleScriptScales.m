@@ -76,13 +76,21 @@ end
 
 %% An algorithm to get the consistent system at each angle of shapechange
 % gradient(squeeze(consistent_system(5,5,:,:)))
+max_subsystem = 8; min_subsystem = 1;
 
 % first get a circle of shapechange values
-shape = [1; -0.5];
+%shape = [1; -0.5];
+shape = [-2.5; -1.0];
+% shape = [1; 1];
+% shape = [0.5; 0.5];
 n = 200;
-T = linspace(0,2*pi,n);
+T = linspace(-pi,pi,n);
 x = zeros(n,1); y = zeros(n,1); Z = zeros(n,1);
 C = zeros(n,1);
+all_As = zeros(max_subsystem,3,2); % cell array of the A for each subsystem
+subsystem_begin = zeros(max_subsystem,1); % lower theta bound of subsystems
+subsystem_end = zeros(max_subsystem,1); % upper theta bound of subsystems
+old_subsystem = 0;
 for i = 1:n
     theta = T(i);
     shapechange = [cos(theta); sin(theta)];
@@ -91,29 +99,64 @@ for i = 1:n
     % and determine its subsystem and A value
     [~, ~, J_full, ~, ~] = N_link_chain(s.geometry, shape);
     [subsystem, A] = determine_subsystem(s,shape,shapechange,J_full);
-    x_slope = A(1,:) * shapechange;
-    C(i) = subsystem;
-    Z(i) = x_slope;
-end
-
-% max_subsystem = max(C,[],'all');
-% min_subsystem = min(C(C~=0),[],'all');
-max_subsystem = 8; min_subsystem = 1;
-
-
-% scatter3(x,y,Z,[],C)
-hold on
-for i = 1:8
-    if C(1)==i && C(size(C,1))==i% special case for the piece going around 0=2pi
-         fill3([x(1:find(C~=i,1,'first')-1);0; x(find(C~=i,1,'last')+1:size(C,1))], ...
-                 [y(1:find(C~=i,1,'first')-1); 0; y(find(C~=i,1,'last')+1:size(C,1))], ...
-                 [Z(1:find(C~=i,1,'first')-1); 0; Z(find(C~=i,1,'last')+1:size(C,1))], ...
-                 [C(1:find(C~=i,1,'first')-1); i; C(find(C~=i,1,'last')+1:size(C,1))])
-    else
-        fill3([0; x(C==i)],[0; y(C==i)],[0; Z(C==i)],[i; C(C==i)])
+%     x_slope = A(1,:) * shapechange;
+%     C(i) = subsystem;
+%     Z(i) = x_slope;
+    if subsystem ~= old_subsystem
+        all_As(subsystem,:,:) = A;
+        subsystem_begin(subsystem) = theta; % TODO make this average of old and new theta
+        if old_subsystem ~= 0
+            subsystem_end(old_subsystem) = theta; % TODO make this average of old and new theta
+        end
+        old_subsystem = subsystem;
     end
 end
+
+% plot surface
+[X,Y] = meshgrid(-1:0.005:1);
+Z = zeros(size(X));
+C = zeros(size(X));
+Tan = atan2(Y,X);
+for subsystem = min_subsystem:max_subsystem
+    A = squeeze(all_As(subsystem,:,:));
+    th1 = subsystem_begin(subsystem);
+    th2 = subsystem_end(subsystem);
+    if th1 > th2
+        mask = Tan>=th1 | Tan<th2; % edge case at theta = pi or -pi
+    else
+        mask = Tan>=th1 & Tan<th2;
+    end
+    Z(mask) = A(1,1) * X(mask) + A(1,2) * Y(mask);
+    C(mask) = subsystem;
+end
+
+% optional: make it a circle
+Z((X.^2 + Y.^2) > 1) = NaN;
+
+hold on
+surf(X,Y,Z,C,'EdgeColor','none','FaceLighting','none');
+subsample = 1:20:size(X,1);
+mesh(X(subsample,subsample),Y(subsample,subsample),Z(subsample,subsample),'EdgeColor',[0.5,0.5,0.5],'FaceColor','none');
 hold off
+
+axis vis3d
+xlabel("d\alpha_1 / dt")
+ylabel("d\alpha_2 / dt")
+title("\alpha = ("+string(shape(1))+", "+string(shape(2))+")")
+
+% scatter3(x,y,Z,[],C)
+% hold on
+% for i = 1:8
+%     if C(1)==i && C(size(C,1))==i% special case for the piece going around 0=2pi
+%          fill3([x(1:find(C~=i,1,'first')-1);0; x(find(C~=i,1,'last')+1:size(C,1))], ...
+%                  [y(1:find(C~=i,1,'first')-1); 0; y(find(C~=i,1,'last')+1:size(C,1))], ...
+%                  [Z(1:find(C~=i,1,'first')-1); 0; Z(find(C~=i,1,'last')+1:size(C,1))], ...
+%                  [C(1:find(C~=i,1,'first')-1); i; C(find(C~=i,1,'last')+1:size(C,1))])
+%     else
+%         fill3([0; x(C==i)],[0; y(C==i)],[0; Z(C==i)],[i; C(C==i)])
+%     end
+% end
+% hold off
 
 colormap(jet(max_subsystem - min_subsystem + 1))
 colorbar

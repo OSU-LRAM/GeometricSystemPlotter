@@ -2,6 +2,8 @@ function [endpoint] = Adif_gait_prediction(s, amplitude, offset)
 %ADIF_GAIT_PREDICTION Summary of this function goes here
 %   Detailed explanation goes here
 
+grid = s.grid.eval{1};
+
 A = get_A_of_alpha(s, grid).difference;
 
 Ax_dif = A(:,1);
@@ -10,9 +12,9 @@ At_dif = A(:,3);
 
 point_a = offset - amplitude;
 
-point_a = a_grid(14)
-point_b = a_grid(18)
-da = a_grid(2) - a_grid(1)
+point_a = grid(14)
+point_b = grid(18)
+da = grid(2) - grid(1)
 
 dx = trapz(Ax_dif(14:18))*da
 dy = trapz(Ay_dif(14:18))*da
@@ -22,7 +24,7 @@ dth = trapz(At_dif(14:18))*da
 off = (point_a + point_b)/2;
 amp = abs(point_a - point_b)/2;
 gait = generate_1D_gait(amp,off,0);
-sol = asym_solve_gait(s, gait, system_map);
+sol = asym_solve_gait(s, gait);
 
 displacement = deval(sol, 2*pi)'
 

@@ -1,4 +1,4 @@
-function [B,h,J, J_full] = fat_chain(geometry, jointangles, display)
+function [B,h,J, J_full,scales_range] = fat_chain(geometry, jointangles, display)
 % Generate a set of rounded-end links based on link lengths and joint angles in
 % a kinematic chain
 %
@@ -32,6 +32,8 @@ function [B,h,J, J_full] = fat_chain(geometry, jointangles, display)
 %           an N-link system matches that for a continuous backbone with
 %           the same appearance, and so that increasing link numbers does
 %           not blunt the ends of the links.)
+%       
+%       scales: if true, draw scales
 %
 %
 %   jointangles: A vector of the angles between the links. Must be one
@@ -82,6 +84,12 @@ function [B,h,J, J_full] = fat_chain(geometry, jointangles, display)
     if ~isfield(display,'sharpness')
         display.sharpness = 0.03; % This matches some shapes originally drawn in OmniGraffle
     end
+    if ~isfield(display,'scales') 
+        display.scales = false;
+    end
+    if ~isfield(display,'points')
+        display.points = 50;
+    end
 
     % Get the positions and scaled lengths of the links
     [h,J, J_full] = N_link_chain(geometry,jointangles);
@@ -92,7 +100,7 @@ function [B,h,J, J_full] = fat_chain(geometry, jointangles, display)
     %%%%%%%%
     % Create the links
     
-    points = 50;             % Number of points per link
+    points = display.points;             % Number of points per link
     N_links = size(g,3);      % Number of links in the chain
     B = [];                   % Array to hold points on chain
     
@@ -104,6 +112,8 @@ function [B,h,J, J_full] = fat_chain(geometry, jointangles, display)
     cap_width = display.sharpness * sum(h.lengths);
 
     
+    % For scales display
+    scales_range = zeros(N_links,2);
     
     % Iterate over links
     for idx = 1:N_links
@@ -124,6 +134,24 @@ function [B,h,J, J_full] = fat_chain(geometry, jointangles, display)
         % Append C onto the end of B, and add a NaN so that the links will
         % plot discontinuously
         B = [B, C, NaN(3,1)];
+        
+        %%%manual
+        % If there are scales, add a chevron pattern to the links.
+        if display.scales
+            scales_range(idx,1) = size(B,2);
+            n_scales = 5;
+            scale_length = 1 / 20; % customize for custom length links
+            chevrons = [];
+            x = linspace(-length/2 + scale_length + cap_width,  length/2 - cap_width,n_scales);
+            for jdx = 1:n_scales
+                chevron = [x(jdx), x(jdx)-scale_length, x(jdx);  -0.5*width, 0, 0.5*width;   1,1,1];
+                chevrons = [chevrons, chevron, NaN(3,1)];
+            end
+            C = g(:,:,idx) * chevrons;
+            B = [B, C, NaN(3,1)];
+%             B_scales{idx} = C;
+            scales_range(idx,2) = size(B,2);
+        end
         
     end
 

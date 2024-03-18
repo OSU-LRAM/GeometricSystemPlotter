@@ -1,4 +1,4 @@
-function trajectory_plot(solution, gait_cycles)
+function trajectory = trajectory_plot(solution, gait_cycles)
 %TRAJECTORY_PLOT Summary of this function goes here
 %   Detailed explanation goes here
 
